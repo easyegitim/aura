@@ -449,7 +449,7 @@
     },
     "captured": {
       "title": "Fotoğraf hazır",
-      "body": "Kalite kapısından geçti. Skorlama 6. fazda (F07) bağlanacak.",
+      "body": "Kalite kapısından geçti. Analizi başlatınca fotoğraf yalnız skorlama için, rızanla, geçici olarak gönderilir.",
       "previewAlt": "Çekilen fotoğrafın önizlemesi",
       "source": "Kaynak",
       "sourceCamera": "Kamera",
@@ -458,7 +458,6 @@
       "brightness": "Parlaklık",
       "sharpness": "Netlik",
       "frames": "Kararlı kare",
-      "nextPhase": "Görüntü ve yüz noktaları yalnız bu cihazın belleğinde; bu ekrandan çıkınca silinir.",
       "retake": "Yeniden çek"
     }
   },
@@ -485,5 +484,57 @@
     "fwhr": "Yüz genişlik-yükseklik oranı",
     "thirds": "Üçte birler (üst / orta / alt)",
     "note": "Bu oranlar yalnız tarif eder; iyi ya da kötü anlamı taşımaz. Skorlamaya bağlam olarak gider."
+  },
+  "analysis": {
+    "start": "Analizi başlat",
+    "progress": {
+      "steps": {
+        "landmarks": "Yüz noktaları çıkarılıyor",
+        "ratios": "Oranlar hesaplanıyor",
+        "skinHair": "Cilt ve saç değerlendiriliyor",
+        "calibrating": "Skor kalibre ediliyor"
+      },
+      "hint": "Genellikle 5–10 saniye sürer."
+    },
+    "errors": {
+      "QUOTA_EXCEEDED": "Analiz hakkın kullanılmış.",
+      "NO_FACE": "Fotoğrafta tek bir yüz bulunamadı; yeniden çek.",
+      "AI_FAILED": "Skorlama şu an yanıt vermiyor. Biraz sonra tekrar dene; hakkın düşmedi.",
+      "AI_TIMEOUT": "Skorlama zaman aşımına uğradı. Tekrar dene; hakkın düşmedi.",
+      "CONSENT_REQUIRED": "Analiz için izinlerin eksik. İzinler sayfasından tamamla.",
+      "NOT_ADULT": "Bu hizmet 18 yaş ve üzeri içindir.",
+      "IMAGE_TOO_LARGE": "Görsel çok büyük; yeniden çek.",
+      "NETWORK": "Bağlantı sorunu. Tekrar dene.",
+      "GENERIC": "Bir sorun oluştu. Tekrar dene."
+    },
+    "retryAt": "Yeni hakkın {date} tarihinde açılıyor.",
+    "overallTitle": "Genel skorun",
+    "potential": "Potansiyel",
+    "disclaimer": "Bu skor yapay zekânın fotoğraf üzerinden tahminidir; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
+    "subscoresTitle": "Alt skorlar",
+    "sub": {
+      "harmony": "Yüz uyumu",
+      "eyes": "Göz bölgesi",
+      "jawline": "Çene hattı ve yüz hatları",
+      "skin": "Cilt görünümü",
+      "hair": "Saç",
+      "grooming": "Bakım"
+    },
+    "kind": {
+      "structural": "Yapısal",
+      "partial": "Kısmen geliştirilebilir",
+      "modifiable": "Geliştirilebilir"
+    },
+    "locked": {
+      "title": "Tam sonucunu aç",
+      "body": "Genel skorun, potansiyel skorun, 6 alt skor, oranlar ve kişisel planın premiumda. Ödeme sonrası bu analiz hemen açılır.",
+      "cta": "Planları gör"
+    },
+    "statusProcessing": "Analiz işleniyor…",
+    "statusFailed": "Bu analiz tamamlanamadı; hakkın düşmedi. Yeni bir çekim yapabilirsin.",
+    "listTitle": "Analizlerin",
+    "newAnalysis": "Yeni analiz",
+    "emptyTitle": "Henüz analiz yok",
+    "emptyBody": "İlk selfie'ni çek; skorun ve yüz şeklin burada listelenir."
   }
 }

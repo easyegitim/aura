@@ -35,7 +35,7 @@ test.describe("Yasal sayfalar ve çerez banner'ı (F16)", () => {
   });
 
   test("API uçları oturumsuz 401 döner (withGuard)", async ({ request }) => {
-    for (const path of ["/api/onboarding/age", "/api/consents", "/api/onboarding/questionnaire"]) {
+    for (const path of ["/api/onboarding/age", "/api/consents", "/api/onboarding/questionnaire", "/api/analyses"]) {
       const res = await request.post(path, { data: {} });
       expect(res.status(), path).toBe(401);
       const body = await res.json();

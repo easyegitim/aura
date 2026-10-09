@@ -1,11 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { AnalysisProgress } from "@/components/analysis/AnalysisProgress";
 import { SelfieCamera, type CaptureResult } from "@/components/camera/SelfieCamera";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { track } from "@/lib/analytics";
+import { submitAnalysis } from "@/lib/api/analysisClient";
+import { ApiClientError } from "@/lib/api/client";
 import { VisionClient } from "@/lib/face/client";
+import { cropForServer } from "@/lib/face/crop";
 import { findHairline } from "@/lib/face/hairline";
 import { computeStableGeometry, toPixels, type GeometryFrame } from "@/lib/face/metrics";
 import type { GeometryResult } from "@/lib/face/types";
@@ -28,10 +34,33 @@ async function computeGeometry(result: CaptureResult): Promise<GeometryResult> {
  */
 export function CaptureScreen() {
   const t = useTranslations("camera.captured");
+  const ta = useTranslations("analysis");
+  const router = useRouter();
   const [result, setResult] = useState<CaptureResult | null>(null);
   const [geometry, setGeometry] = useState<GeometryResult | null>(null);
+  const [phase, setPhase] = useState<"idle" | "submitting" | "done" | "error">("idle");
+  const [error, setError] = useState<{ code: string; retryAt?: string } | null>(null);
+  const requestIdRef = useRef<string>(crypto.randomUUID());
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tg = useTranslations("geometry");
+
+  async function runAnalysis(r: CaptureResult, g: GeometryResult) {
+    setPhase("submitting");
+    setError(null);
+    try {
+      const px = r.final.landmarks!.map((p) => ({ x: p.x * r.image.width, y: p.y * r.image.height }));
+      const { blob } = await cropForServer(r.image.bitmap, px);
+      const analysis = await submitAnalysis({ clientRequestId: requestIdRef.current, geometry: g, image: blob });
+      track("analysis_completed", { tier: analysis.overall.locked ? "free" : "premium" });
+      setPhase("done");
+      router.push(`/analiz/${analysis.id}`);
+    } catch (e) {
+      const code = e instanceof ApiClientError ? e.code : "NETWORK";
+      track("analysis_failed", { reason: code });
+      setError({ code, retryAt: e instanceof ApiClientError ? e.retryAt : undefined });
+      setPhase("error");
+    }
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -56,7 +85,21 @@ export function CaptureScreen() {
   if (!result) {
     return (
       <div className="mx-auto w-full max-w-lg px-4 py-6">
-        <SelfieCamera onCapture={setResult} />
+        <SelfieCamera
+          onCapture={(r) => {
+            requestIdRef.current = crypto.randomUUID();
+            setPhase("idle");
+            setResult(r);
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (phase === "submitting" || phase === "done") {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-6">
+        <AnalysisProgress done={phase === "done"} />
       </div>
     );
   }
@@ -113,10 +156,20 @@ export function CaptureScreen() {
           ) : (
             <p className="text-xs text-muted-foreground">{tg("computing")}</p>
           )}
-          <p className="text-xs text-muted-foreground">{t("nextPhase")}</p>
-          <Button variant="outline" className="w-full" onClick={() => setResult(null)}>
-            {t("retake")}
-          </Button>
+          {error ? (
+            <p role="alert" className="rounded-md border px-3 py-2 text-sm">
+              {ta.has(`errors.${error.code}`) ? ta(`errors.${error.code}`) : ta("errors.GENERIC")}
+              {error.retryAt ? ` ${ta("retryAt", { date: new Date(error.retryAt).toLocaleString("tr-TR") })}` : ""}
+            </p>
+          ) : null}
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setResult(null)}>
+              {t("retake")}
+            </Button>
+            <Button className="flex-1" disabled={!geometry || error?.code === "QUOTA_EXCEEDED"} onClick={() => geometry && void runAnalysis(result, geometry)}>
+              {ta("start")}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
