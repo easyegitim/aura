@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { LinkAccount } from "@/components/auth/LinkAccount";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { SubscriptionCard } from "@/components/billing/SubscriptionCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getPremiumStatus } from "@/lib/api/premium";
 import { createClient } from "@/lib/db/server";
 
 export default async function AccountPage({ searchParams }: PageProps<"/hesap">) {
@@ -13,6 +15,8 @@ export default async function AccountPage({ searchParams }: PageProps<"/hesap">)
     data: { user },
   } = await supabase.auth.getUser();
   const isAnonymous = user?.is_anonymous ?? true;
+  const sub = user ? await getPremiumStatus(supabase, user.id) : { premium: false, plan: null, periodEnd: null };
+  const { data: subRow } = user ? await supabase.from("subscriptions").select("cancel_at_period_end").eq("user_id", user.id).maybeSingle() : { data: null };
 
   return (
     <div className="mx-auto w-full max-w-lg space-y-4 px-4 py-6">
@@ -36,13 +40,10 @@ export default async function AccountPage({ searchParams }: PageProps<"/hesap">)
 
       {isAnonymous ? <LinkAccount returnPath="/hesap" /> : null}
 
+      <SubscriptionCard premium={sub.premium} plan={sub.plan} periodEnd={sub.periodEnd} cancelAtPeriodEnd={Boolean(subRow?.cancel_at_period_end)} />
+
       <Card>
-        <CardHeader>
-          <CardTitle>{t("planTitle")}</CardTitle>
-          <CardDescription>{t("planFree")}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">{t("planHint")}</p>
+        <CardContent className="pt-4">
           <SignOutButton />
         </CardContent>
       </Card>

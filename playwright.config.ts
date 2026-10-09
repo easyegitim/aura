@@ -13,13 +13,14 @@ export default defineConfig({
   projects: [
     {
       name: "mobile-chrome",
-      testIgnore: /privacy\.spec\.ts/,
+      testIgnore: /(privacy|billing)\.spec\.ts/,
       use: {
         ...devices["Pixel 7"],
         // Önceden kurulu bir Chromium kullanmak için (CI/sandbox): PLAYWRIGHT_CHROMIUM_PATH=/path/to/chrome
         launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : undefined,
       },
     },
+    ...(process.env.BILLING_E2E ? [{ name: "billing", testMatch: /billing\.spec\.ts/, use: { ...devices["Pixel 7"] } }] : []),
     // Gizlilik testi (CLAUDE.md): gerçek Supabase + sahte kamera dosyası ister; PRIVACY_E2E=1 ile çalışır.
     ...(process.env.PRIVACY_E2E
       ? [

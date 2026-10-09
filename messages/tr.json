@@ -166,7 +166,23 @@
     "planTitle": "Plan",
     "planFree": "Ücretsiz katman",
     "planHint": "Abonelik yönetimi 8. fazda (F14) geliyor.",
-    "authError": "Google ile bağlama tamamlanamadı. Tekrar dene."
+    "authError": "Google ile bağlama tamamlanamadı. Tekrar dene.",
+    "subscription": {
+      "title": "Plan",
+      "free": "Ücretsiz katman",
+      "weekPass": "7 Günlük Geçiş",
+      "renewsOn": "{date} tarihinde yenilenir",
+      "endsOn": "{date} tarihinde sona erer",
+      "cancel": "Aboneliği iptal et",
+      "cancelScheduled": "İptal edildi; erişimin dönem sonuna kadar sürer, yeni tahsilat yapılmaz.",
+      "upgrade": "Premium'a geç",
+      "confirmTitle": "Aboneliği iptal et",
+      "confirmBody": "Otomatik yenileme durur. {date} tarihine kadar premium özelliklerini kullanmaya devam edersin.",
+      "keep": "Vazgeç",
+      "confirm": "İptal et",
+      "canceled": "Abonelik iptal edildi.",
+      "cancelError": "İptal iletilemedi. Tekrar dene veya destekle iletişime geç."
+    }
   },
   "placeholders": {
     "comingSoon": "Bu ekran {phase}. fazda ({feature}) geliyor.",
@@ -505,7 +521,8 @@
       "NOT_ADULT": "Bu hizmet 18 yaş ve üzeri içindir.",
       "IMAGE_TOO_LARGE": "Görsel çok büyük; yeniden çek.",
       "NETWORK": "Bağlantı sorunu. Tekrar dene.",
-      "GENERIC": "Bir sorun oluştu. Tekrar dene."
+      "GENERIC": "Bir sorun oluştu. Tekrar dene.",
+      "PREMIUM_REQUIRED": "Bu özellik premiumda."
     },
     "retryAt": "Yeni hakkın {date} tarihinde açılıyor.",
     "overallTitle": "Genel skorun",
@@ -586,5 +603,59 @@
     "downloaded": "Kart indirildi.",
     "error": "Kart oluşturulamadı.",
     "photoError": "Fotoğraf açılamadı."
+  },
+  "checkout": {
+    "choosePlan": "Plan seç",
+    "weekPass": "7 Günlük Geçiş (banka kartı)",
+    "weekPassHint": "Tek seferlik ödeme, 7 gün erişim, otomatik yenilenmez.",
+    "bankCardNote": "Abonelik yalnız kredi kartıyla çalışır. Kart bilgin iyzico'nun güvenli formunda girilir; bize ulaşmaz.",
+    "billingTitle": "Fatura bilgileri",
+    "billingBody": "E-arşiv fatura için gerekli. Adres yalnız faturada kullanılır.",
+    "fields": {
+      "name": "Ad",
+      "surname": "Soyad",
+      "phone": "Telefon",
+      "identity": "T.C. Kimlik No",
+      "identityHint": "Ödeme kuruluşu isterse zorunlu olabilir (teyit bekleniyor); boş bırakabilirsin.",
+      "city": "Şehir",
+      "address": "Adres"
+    },
+    "terms": "<sale>Mesafeli Satış Sözleşmesi</sale>'ni ve <info>Ön Bilgilendirme Formu</info>'nu okudum, kabul ediyorum.",
+    "waiver": "Dijital hizmetin hemen başlamasını onaylıyorum; cayma hakkımın sona ereceğini biliyorum.",
+    "renewalNote": "Abonelik dönem sonunda otomatik yenilenir; Hesap sayfasından tek tıkla iptal edebilirsin.",
+    "continue": "{amount} ile devam et",
+    "payTitle": "Ödeme",
+    "payBody": "Kart bilgilerini iyzico'nun güvenli formuna gir.",
+    "alreadyTitle": "Zaten premiumsun",
+    "alreadyBody": "Aktif bir aboneliğin var; tüm özellikler açık.",
+    "goAnalyses": "Analizlerime git",
+    "errors": {
+      "ALREADY_SUBSCRIBED": "Zaten aktif bir aboneliğin var.",
+      "ANONYMOUS_NOT_ALLOWED": "Önce hesabını bağlamalısın.",
+      "NOT_ADULT": "Bu hizmet 18 yaş ve üzeri içindir.",
+      "FEATURE_DISABLED": "Bu plan şu an kapalı.",
+      "AI_FAILED": "Ödeme sağlayıcısına ulaşılamadı. Biraz sonra tekrar dene.",
+      "BAD_INPUT": "Formda eksik veya hatalı alan var.",
+      "NETWORK": "Bağlantı sorunu.",
+      "GENERIC": "Bir sorun oluştu."
+    },
+    "result": {
+      "ok": {
+        "title": "Ödemen alındı, sonucun açıldı",
+        "body": "Premium özelliklerin aktif. Son analizin kilitsiz; yeni çekim gerekmez.",
+        "cta": "Sonucumu gör",
+        "ctaList": "Analizlerime git"
+      },
+      "failed": {
+        "title": "Ödeme tamamlanamadı",
+        "body": "Kartından tahsilat yapılmadı. Başka bir kartla tekrar deneyebilirsin.",
+        "cta": "Tekrar dene"
+      },
+      "pending": {
+        "title": "Ödeme sonucu bekleniyor",
+        "body": "Ödeme kuruluşundan onay bekleniyor; birkaç saniye içinde güncellenecek."
+      },
+      "account": "Hesap"
+    }
   }
 }
