@@ -461,5 +461,29 @@
       "nextPhase": "Görüntü ve yüz noktaları yalnız bu cihazın belleğinde; bu ekrandan çıkınca silinir.",
       "retake": "Yeniden çek"
     }
+  },
+  "geometry": {
+    "title": "Cihazda hesaplanan oranlar",
+    "computing": "Oranlar hesaplanıyor…",
+    "faceShape": "Yüz şeklin",
+    "between": "{other} ile arası",
+    "shapes": {
+      "oval": "Oval",
+      "round": "Yuvarlak",
+      "square": "Kare",
+      "long": "Uzun",
+      "heart": "Kalp",
+      "diamond": "Elmas"
+    },
+    "canthalTilt": "Göz açısı",
+    "tilt": {
+      "positive": "Pozitif yönde",
+      "neutral": "Nötr",
+      "negative": "Negatif yönde"
+    },
+    "jawRatio": "Çene genişliği / elmacık genişliği",
+    "fwhr": "Yüz genişlik-yükseklik oranı",
+    "thirds": "Üçte birler (üst / orta / alt)",
+    "note": "Bu oranlar yalnız tarif eder; iyi ya da kötü anlamı taşımaz. Skorlamaya bağlam olarak gider."
   }
 }

@@ -1,0 +1,74 @@
+// Sentetik 478 noktalık yüz (gerçek yüz değil). Yalnız SPEC 7.4 indeksleri anlamlıdır; kalanı elips üzerinde.
+import { IDX, LANDMARK_COUNT } from "@/lib/face/indices";
+import type { Point } from "@/lib/face/types";
+
+export type SyntheticParams = {
+  /** Elmacık genişliği (piksel) */
+  cheek: number;
+  /** Yüz uzunluğu 10→152 */
+  length: number;
+  jaw: number;
+  forehead: number;
+  /** Dış göz köşesi iç köşeden bu kadar yukarıda (piksel) → pozitif canthal tilt */
+  eyeLift?: number;
+  cx?: number;
+  cy?: number;
+  /** Tüm noktalar bu açıyla (derece, saat yönü) döndürülür → roll */
+  rollDeg?: number;
+};
+
+export function syntheticFace(p: SyntheticParams): Point[] {
+  const { cheek, length: L, jaw, forehead, eyeLift = 0, cx = 500, cy = 500, rollDeg = 0 } = p;
+  const pts: Point[] = [];
+  for (let i = 0; i < LANDMARK_COUNT; i++) {
+    const a = (i / LANDMARK_COUNT) * Math.PI * 2;
+    pts.push({ x: cx + (cheek / 2) * 0.9 * Math.cos(a), y: cy + (L / 2) * 0.9 * Math.sin(a), z: 0 });
+  }
+  const set = (i: number, x: number, y: number) => (pts[i] = { x, y, z: 0 });
+  set(IDX.top, cx, cy - L * 0.45);
+  set(IDX.menton, cx, cy + L * 0.55);
+  set(IDX.cheekR, cx - cheek / 2, cy);
+  set(IDX.cheekL, cx + cheek / 2, cy);
+  set(IDX.gonionR, cx - jaw / 2, cy + L * 0.35);
+  set(IDX.gonionL, cx + jaw / 2, cy + L * 0.35);
+  set(IDX.foreheadR, cx - forehead / 2, cy - L * 0.3);
+  set(IDX.foreheadL, cx + forehead / 2, cy - L * 0.3);
+  set(IDX.browTopR, cx - cheek * 0.2, cy - L * 0.2);
+  set(IDX.browTopL, cx + cheek * 0.2, cy - L * 0.2);
+  set(IDX.upperLipMid, cx, cy + L * 0.25);
+  set(IDX.glabella, cx, cy - L * 0.22);
+  set(IDX.nasion, cx, cy - L * 0.18);
+  set(IDX.noseTip, cx, cy + L * 0.08);
+  set(IDX.subnasale, cx, cy + L * 0.12);
+  const eyeY = cy - L * 0.1;
+  set(IDX.eyeOuterR, cx - cheek * 0.3, eyeY - eyeLift);
+  set(IDX.eyeInnerR, cx - cheek * 0.1, eyeY);
+  set(IDX.eyeInnerL, cx + cheek * 0.1, eyeY);
+  set(IDX.eyeOuterL, cx + cheek * 0.3, eyeY - eyeLift);
+  set(IDX.irisR, cx - cheek * 0.2, eyeY - eyeLift / 2);
+  set(IDX.irisL, cx + cheek * 0.2, eyeY - eyeLift / 2);
+  set(IDX.mouthR, cx - cheek * 0.18, cy + L * 0.3);
+  set(IDX.mouthL, cx + cheek * 0.18, cy + L * 0.3);
+
+  if (rollDeg !== 0) {
+    const r = (rollDeg * Math.PI) / 180;
+    const cos = Math.cos(r), sin = Math.sin(r);
+    return pts.map((q) => ({ x: cx + (q.x - cx) * cos - (q.y - cy) * sin, y: cy + (q.x - cx) * sin + (q.y - cy) * cos, z: 0 }));
+  }
+  return pts;
+}
+
+/** Piksel noktaları 0–1'e normalize eder. */
+export function normalize(pts: Point[], width: number, height: number): Point[] {
+  return pts.map((p) => ({ x: p.x / width, y: p.y / height, z: p.z }));
+}
+
+/** Şekil başına referans parametreler (SPEC 7.6 kurallarının ortasına düşer). */
+export const SHAPE_PARAMS: Record<string, SyntheticParams> = {
+  oval: { cheek: 100, length: 142, jaw: 84, forehead: 88 },
+  round: { cheek: 100, length: 120, jaw: 80, forehead: 85 },
+  square: { cheek: 100, length: 125, jaw: 96, forehead: 92 },
+  long: { cheek: 100, length: 165, jaw: 85, forehead: 88 },
+  heart: { cheek: 100, length: 142, jaw: 72, forehead: 95 },
+  diamond: { cheek: 100, length: 142, jaw: 70, forehead: 72 },
+};
