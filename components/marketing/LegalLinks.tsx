@@ -1,7 +1,6 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-
-export const LEGAL_SLUGS = ["aydinlatma", "gizlilik", "cerez", "kullanim-kosullari", "mesafeli-satis", "on-bilgilendirme"] as const;
+import { LEGAL_SLUGS } from "@/lib/consent";
 
 export function LegalLinks({ className }: { className?: string }) {
   const t = useTranslations("legal.links");

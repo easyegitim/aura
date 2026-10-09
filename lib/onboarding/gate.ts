@@ -1,5 +1,7 @@
 export const AGE_GATE_PATH = "/baslangic/yas";
 export const CONSENTS_PATH = "/baslangic/izinler";
+export const QUESTIONNAIRE_PATH = "/baslangic/anket";
+export const CAPTURE_PATH = "/tara";
 
 export type GateProfile = { is_adult: boolean; onboarding_completed_at: string | null } | null;
 

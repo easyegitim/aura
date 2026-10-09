@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-type Props = { titleKey: "analysis" | "plan" | "tryon" | "routine" | "progress" | "onboarding"; phase: number; feature: string };
+type Props = { titleKey: "analysis" | "plan" | "tryon" | "routine" | "progress" | "onboarding" | "capture"; phase: number; feature: string };
 
 /** Sonraki fazlarda dolacak ekranlar için iskelet içerik. */
 export async function PhasePlaceholder({ titleKey, phase, feature }: Props) {
