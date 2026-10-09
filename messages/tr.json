@@ -1,0 +1,136 @@
+{
+  "common": {
+    "startAnalysis": "Analizini başlat",
+    "account": "Hesap",
+    "back": "Geri",
+    "loading": "Yükleniyor…",
+    "adultOnly": "18 yaş ve üzeri içindir.",
+    "photoNotStored": "Fotoğrafın sunucuda saklanmaz.",
+    "scoreDisclaimer": "Bu skor yapay zekânın fotoğraf üzerinden tahminidir; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
+    "notMedicalAdvice": "Tıbbi tavsiye değildir.",
+    "aiGenerated": "Yapay zekâ ile oluşturuldu."
+  },
+  "nav": {
+    "analysis": "Analiz",
+    "plan": "Plan",
+    "tryon": "Dene",
+    "routine": "Rutin",
+    "progress": "İlerleme",
+    "home": "Ana sayfa",
+    "pricing": "Fiyatlar"
+  },
+  "landing": {
+    "heroTitle": "Skorunu öğren, potansiyelini gör, planla yükselt.",
+    "heroSubtitle": "Bir selfie çek. Yapay zekâ görünüm skorunu, potansiyelini ve seni yükseltecek kişisel bakım planını çıkarsın.",
+    "heroNote": "18 yaş ve üzeri içindir. Fotoğrafın saklanmaz; yalnız analiz sırasında işlenir.",
+    "sampleCard": {
+      "badge": "Örnek sonuç",
+      "overallLabel": "Genel skor",
+      "potentialLabel": "Potansiyel",
+      "illustrationNote": "Temsili illüstrasyon, gerçek bir yüz değildir.",
+      "sub": { "skin": "Cilt", "hair": "Saç", "jawline": "Çene hattı" }
+    },
+    "howTitle": "Nasıl çalışır?",
+    "steps": {
+      "s1": { "title": "Selfie çek", "body": "Rehberli kamera ve kalite kontrolü. Yüzün önce telefonunda analiz edilir." },
+      "s2": { "title": "Skorunu gör", "body": "Genel skor, 6 alt skor ve 8–12 haftada ulaşabileceğin potansiyel skor." },
+      "s3": { "title": "Planla yükselt", "body": "Saç, sakal, cilt ve stil planı. 60 stili kendi fotoğrafında dene, rutinle takip et." }
+    },
+    "pricingTitle": "Planlar",
+    "pricingSubtitle": "Deneme süresi yok. İstediğin zaman iptal edebilirsin; erişimin dönem sonuna kadar sürer.",
+    "faqTitle": "Sık sorulan sorular",
+    "ctaFinalTitle": "Hazır mısın?",
+    "ctaFinalBody": "İlk analizin birkaç dakika sürer."
+  },
+  "pricing": {
+    "title": "Fiyatlar",
+    "subtitle": "Tüm fiyatlar KDV dahildir. Ödeme iyzico güvencesiyle alınır; kart bilgin bize ulaşmaz.",
+    "perWeek": "hafta",
+    "perMonth": "ay",
+    "perYear": "yıl",
+    "weeklyEquivalent": "Haftalık ~{amount}",
+    "plans": {
+      "weekly": { "name": "Haftalık" },
+      "monthly": { "name": "Aylık", "badge": "Ayda ~10 gün bedava" },
+      "yearly": { "name": "Yıllık", "badge": "Yılda 4 ay bedava · En avantajlı" }
+    },
+    "choose": "Bu planı seç",
+    "includesTitle": "Premium ile neler var?",
+    "includes": {
+      "i1": "Her 7 günde 1 yeni analiz; genel skor, 6 alt skor ve potansiyel skor",
+      "i2": "Kişisel koç raporu: saç, sakal, cilt, yüz hatları, stil",
+      "i3": "Her 7 günde 10 sanal deneme: 60 saç, sakal ve renk stili kendi fotoğrafında",
+      "i4": "Günlük rutin, ılımlı egzersizler ve seri sayacı",
+      "i5": "Skor trendi ve cihazında kalan ilerleme fotoğrafları",
+      "i6": "Paylaşım kartı"
+    },
+    "freeNote": "Hesap başına 1 analiz hakkı ile yüz şeklini ve bir alt skorunu görürsün; genel skor, potansiyel, rapor ve deneme premiumdadır.",
+    "autoRenewNote": "Abonelik otomatik yenilenir. İptali hesap sayfasından tek tıkla yapabilirsin."
+  },
+  "faq": {
+    "q1": { "q": "Fotoğrafım saklanıyor mu?", "a": "Hayır. Selfie'n yalnız analiz sırasında bellekte işlenir ve yapay zekâ sağlayıcısına geçici olarak iletilir. Sunucuda, veritabanında veya loglarda saklanmaz." },
+    "q2": { "q": "Skor nasıl hesaplanıyor?", "a": "Yüzün önce telefonunda analiz edilir. Sonra görsel bir yapay zekâ modeli 6 alt skor üretir; bunlar herkes için aynı kalibrasyonla genel skora dönüşür. Ödeme durumu skoru etkilemez." },
+    "q3": { "q": "Skor ne kadar güvenilir?", "a": "Skor yapay zekânın fotoğraf üzerinden tahminidir; ışık ve açıyla değişebilir, kişisel değerini ölçmez. İyi ışıkta, nötr ifadeyle çekim en tutarlı sonucu verir." },
+    "q4": { "q": "Tıbbi tavsiye veriyor musunuz?", "a": "Hayır. Uygulama teşhis koymaz; ilaç, takviye ya da işlem önermez. Gerekirse bir uzmana danışmanı önerir." },
+    "q5": { "q": "Aboneliği nasıl iptal ederim?", "a": "Hesap sayfasından tek tıkla. Otomatik yenileme durur, erişimin dönem sonuna kadar sürer." },
+    "q6": { "q": "Yaş sınırı var mı?", "a": "Evet. Hizmet yalnız 18 yaş ve üzeri içindir; doğum yılı sorulur." }
+  },
+  "legal": {
+    "title": "Yasal",
+    "links": {
+      "aydinlatma": "Aydınlatma Metni",
+      "gizlilik": "Gizlilik Politikası",
+      "cerez": "Çerez Politikası",
+      "kullanim-kosullari": "Kullanım Koşulları",
+      "mesafeli-satis": "Mesafeli Satış Sözleşmesi",
+      "on-bilgilendirme": "Ön Bilgilendirme Formu"
+    },
+    "rights": "© {year} {appName}. Tüm hakları saklıdır."
+  },
+  "auth": {
+    "captchaTitle": "Kısa bir doğrulama",
+    "captchaDescription": "Devam etmeden önce robot olmadığını doğrula. Bu adım hesap oluşturmaz; yalnız anonim bir oturum açar.",
+    "captchaError": "Doğrulama başarısız oldu. Sayfayı yenileyip tekrar dene.",
+    "sessionError": "Oturum açılamadı. Birazdan tekrar dene.",
+    "configError": "Oturum servisi yapılandırılmamış.",
+    "linkTitle": "Hesabını bağla",
+    "linkDescription": "Analizlerin bu cihazdaki anonim oturumda duruyor. E-posta veya Google ile bağlarsan başka cihazdan da ulaşırsın; ödeme için gereklidir.",
+    "methodEmail": "E-posta",
+    "methodGoogle": "Google",
+    "emailLabel": "E-posta adresin",
+    "emailPlaceholder": "ornek@eposta.com",
+    "sendCode": "Kod gönder",
+    "codeSentTo": "{email} adresine 6 haneli bir kod gönderdik.",
+    "codeLabel": "Doğrulama kodu",
+    "codePlaceholder": "123456",
+    "verify": "Doğrula ve bağla",
+    "changeEmail": "E-postayı değiştir",
+    "googleContinue": "Google ile bağla",
+    "googleHint": "Google hesabınla bağlanınca aynı sayfaya geri dönersin.",
+    "linked": "Hesabın bağlandı.",
+    "linkError": "Bağlama başarısız: {message}",
+    "invalidEmail": "Geçerli bir e-posta adresi gir.",
+    "invalidCode": "Kod 6 haneli olmalı.",
+    "signOut": "Çıkış yap",
+    "signedOut": "Çıkış yapıldı."
+  },
+  "account": {
+    "title": "Hesap",
+    "anonymous": "Anonim oturum",
+    "anonymousHint": "Henüz bir e-posta bağlı değil.",
+    "emailLabel": "E-posta",
+    "planTitle": "Plan",
+    "planFree": "Ücretsiz katman",
+    "planHint": "Abonelik yönetimi 8. fazda (F14) geliyor.",
+    "authError": "Google ile bağlama tamamlanamadı. Tekrar dene."
+  },
+  "placeholders": {
+    "comingSoon": "Bu ekran {phase}. fazda ({feature}) geliyor.",
+    "analysis": { "title": "Analiz", "body": "Selfie çekimi, skorlar ve geçmiş analizlerin burada görünecek." },
+    "plan": { "title": "Plan", "body": "Koç raporun: saç, sakal, cilt, yüz hatları ve stil." },
+    "tryon": { "title": "Dene", "body": "60 saç, sakal ve renk stilini kendi fotoğrafında dene." },
+    "routine": { "title": "Rutin", "body": "Sabah ve akşam bakım adımların, egzersizler ve seri sayacın." },
+    "progress": { "title": "İlerleme", "body": "Skor trendi ve yalnız cihazında kalan ilerleme fotoğrafların." },
+    "onboarding": { "title": "Başlangıç", "body": "Oturumun açıldı. Yaş, izinler ve anket adımları 3. fazda geliyor." }
+  }
+}
