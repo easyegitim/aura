@@ -43,3 +43,6 @@ next-env.d.ts
 # playwright
 /test-results
 /playwright-report
+
+# MediaPipe varlıkları (pnpm mediapipe:setup üretir; ~45 MB)
+/public/mediapipe

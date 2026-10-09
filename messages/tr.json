@@ -384,5 +384,82 @@
         "none": "Hiçbiri"
       }
     }
+  },
+  "camera": {
+    "guide": {
+      "title": "Selfie zamanı",
+      "body": "İyi ışıkta, kameraya düz bak; nötr bir ifade yeterli. Koşullar sağlanınca fotoğraf kendiliğinden çekilir.",
+      "tips": {
+        "light": "Pencereye dön; ışık yüzüne önden gelsin.",
+        "neutral": "Gözler açık, ağız kapalı, gülümseme yok.",
+        "frame": "Saçının üstü ve çenen kadrajda olsun.",
+        "alone": "Karede yalnız sen ol; gözlük takıyorsan çıkarman gerekmez."
+      },
+      "open": "Kamerayı aç",
+      "upload": "Galeriden yükle",
+      "privacy": "Görüntü telefonunda analiz edilir. Çekilen fotoğraf yalnız skorlama için, rızanla, geçici olarak gönderilir; saklanmaz."
+    },
+    "denied": {
+      "title": "Kameraya erişilemedi",
+      "body": "İzin verilmedi veya kamera kullanılamıyor. Galeriden iyi ışıkta çekilmiş bir selfie yükleyebilirsin."
+    },
+    "modelError": {
+      "title": "Yüz analizi başlatılamadı",
+      "body": "Tarayıcın bu özelliği desteklemiyor olabilir veya dosyalar yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+      "retry": "Tekrar dene"
+    },
+    "live": {
+      "loadingModel": "Model yükleniyor…",
+      "startingCamera": "Kamera açılıyor…",
+      "processing": "İşleniyor…",
+      "ready": "Yüzünü ovale yerleştir",
+      "holdStill": "Sabit kal",
+      "cancel": "Vazgeç"
+    },
+    "issues": {
+      "no_face": "Yüz bulunamadı",
+      "multiple_faces": "Karede yalnız sen ol",
+      "too_far": "Biraz yaklaş",
+      "too_close": "Biraz uzaklaş",
+      "off_center": "Yüzünü ortala",
+      "head_angle": "Kameraya düz bak",
+      "too_dark": "Daha aydınlık bir yere geç",
+      "too_bright": "Işık çok güçlü, biraz gölgeye geç",
+      "uneven_light": "Işık yandan geliyor, pencereye dön",
+      "blurry": "Telefonu sabit tut",
+      "eyes_closed": "Gözlerini aç",
+      "not_neutral": "Nötr bak, gülümseme"
+    },
+    "warnings": {
+      "hair_not_visible": "Saçının üst kısmı kadrajda olsun"
+    },
+    "errors": {
+      "bad_type": "Bu dosya türü desteklenmiyor (JPEG, PNG, WebP).",
+      "too_large": "Dosya 15 MB'tan büyük.",
+      "too_small": "Fotoğraf çok küçük; kısa kenar en az 640 piksel olmalı.",
+      "decode_failed": "Fotoğraf açılamadı. HEIC ise JPEG olarak kaydedip tekrar dene.",
+      "processing": "Fotoğraf işlenemedi. Tekrar dene."
+    },
+    "review": {
+      "okTitle": "Çekim iyi görünüyor",
+      "okBody": "Bu fotoğrafı kullanmak ister misin?",
+      "failTitle": "Bu fotoğraf uygun değil",
+      "retake": "Yeniden çek",
+      "use": "Bu fotoğrafı kullan"
+    },
+    "captured": {
+      "title": "Fotoğraf hazır",
+      "body": "Kalite kapısından geçti. Skorlama 6. fazda (F07) bağlanacak.",
+      "previewAlt": "Çekilen fotoğrafın önizlemesi",
+      "source": "Kaynak",
+      "sourceCamera": "Kamera",
+      "sourceGallery": "Galeri",
+      "pose": "Yaw / pitch / roll",
+      "brightness": "Parlaklık",
+      "sharpness": "Netlik",
+      "frames": "Kararlı kare",
+      "nextPhase": "Görüntü ve yüz noktaları yalnız bu cihazın belleğinde; bu ekrandan çıkınca silinir.",
+      "retake": "Yeniden çek"
+    }
   }
 }

@@ -25,6 +25,9 @@ export default async function QuestionnairePage() {
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-6">
+      {/* SPEC 7.1: model onboarding sırasında arka planda yüklenir */}
+      <link rel="prefetch" href="/mediapipe/face_landmarker.task" as="fetch" crossOrigin="anonymous" />
+      <link rel="prefetch" href="/mediapipe/wasm/vision_wasm_module_internal.wasm" as="fetch" crossOrigin="anonymous" />
       <QuestionnaireWizard nextPath={CAPTURE_PATH} initial={existing.success ? existing.data : undefined} />
     </div>
   );

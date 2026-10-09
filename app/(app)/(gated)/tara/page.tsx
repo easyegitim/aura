@@ -1,6 +1,6 @@
-import { PhasePlaceholder } from "@/components/app/PhasePlaceholder";
+import { CaptureScreen } from "@/components/camera/CaptureScreen";
 
-/** Faz 4'te (F05) rehberli selfie ve kalite kapısı gelir. */
+/** F05: rehberli selfie ve kalite kapısı. Skorlama (F07) Faz 6'da bağlanır. */
 export default function CapturePage() {
-  return <PhasePlaceholder titleKey="capture" phase={4} feature="F05" />;
+  return <CaptureScreen />;
 }

@@ -27,6 +27,7 @@ Google ile hesap bağlama için Supabase panelinde "Allow manual linking" açık
 | `pnpm test:rls` | RLS testleri; yerel Supabase ister (`SUPABASE_TEST_URL`, `SUPABASE_TEST_ANON_KEY`, `SUPABASE_TEST_SERVICE_ROLE_KEY`) |
 | `pnpm db:check-rls` | `DATABASE_URL` ile RLS kapalı tablo var mı kontrol eder (CI) |
 | `pnpm db:types` | Supabase tip üretimi (`supabase link` sonrası) |
+| `pnpm mediapipe:setup` | MediaPipe WASM ve modellerini `public/mediapipe` altına hazırlar (`predev`/`prebuild` otomatik çalıştırır; ~45 MB, git'e girmez) |
 | `pnpm calibrate` · `pnpm fairness` | Skor kalibrasyonu ve adalet raporu (ücretli, onay gerekir) |
 
 ## Veritabanı

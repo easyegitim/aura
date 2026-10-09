@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Üçüncü taraf çalışma zamanı dosyaları (pnpm mediapipe:setup kopyalar)
+    "public/**",
   ]),
 ]);
 

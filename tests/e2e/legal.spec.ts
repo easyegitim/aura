@@ -43,3 +43,8 @@ test.describe("Yasal sayfalar ve çerez banner'ı (F16)", () => {
     }
   });
 });
+
+test("debug sayfası production'da 404 (SPEC 4.2)", async ({ page }) => {
+  const res = await page.goto("/debug/landmarks");
+  expect(res?.status()).toBe(404);
+});

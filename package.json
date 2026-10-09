@@ -15,10 +15,14 @@
     "calibrate": "tsx scripts/calibrate-scores.ts",
     "fairness": "tsx scripts/fairness-report.ts",
     "test:rls": "RLS_TESTS=1 vitest run tests/rls",
-    "db:check-rls": "bash scripts/check-rls.sh"
+    "db:check-rls": "bash scripts/check-rls.sh",
+    "mediapipe:setup": "node scripts/setup-mediapipe.mjs",
+    "prebuild": "node scripts/setup-mediapipe.mjs",
+    "predev": "node scripts/setup-mediapipe.mjs"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.6.1",
+    "@mediapipe/tasks-vision": "^1.1.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
     "class-variance-authority": "^0.7.1",
