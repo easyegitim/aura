@@ -24,8 +24,16 @@ Google ile hesap bağlama için Supabase panelinde "Allow manual linking" açık
 | `pnpm typecheck` · `pnpm lint` · `pnpm test` | Her commit öncesi |
 | `pnpm test:e2e` | Playwright (önce `pnpm build`) |
 | `pnpm test:ai` | AI güvenlik testleri, ücretli çağrı yapar (onay gerekir) |
-| `pnpm db:types` | Supabase tip üretimi |
+| `pnpm test:rls` | RLS testleri; yerel Supabase ister (`SUPABASE_TEST_URL`, `SUPABASE_TEST_ANON_KEY`, `SUPABASE_TEST_SERVICE_ROLE_KEY`) |
+| `pnpm db:check-rls` | `DATABASE_URL` ile RLS kapalı tablo var mı kontrol eder (CI) |
+| `pnpm db:types` | Supabase tip üretimi (`supabase link` sonrası) |
 | `pnpm calibrate` · `pnpm fairness` | Skor kalibrasyonu ve adalet raporu (ücretli, onay gerekir) |
+
+## Veritabanı
+
+`supabase/migrations/0001…0005` SPEC Bölüm 13'tür. Yerelde: `supabase init` (config.toml üretir; migration'lara dokunmaz),
+`supabase start`, `supabase db reset`; ardından `pnpm test:rls` ve `pnpm db:types`. Staging/production'a `supabase db push --linked`
+yalnız onayla yapılır (CLAUDE.md). `ops` şeması PostgREST'e açık değildir; yalnız service role okur.
 
 ## Fazlar
 

@@ -5,6 +5,8 @@ export default defineConfig({
   resolve: { alias: { "@": path.resolve(import.meta.dirname, ".") } },
   test: {
     environment: "node",
-    include: ["tests/unit/**/*.test.ts", "tests/safety/**/*.test.ts"],
+    include: process.env.RLS_TESTS
+      ? ["tests/rls/**/*.test.ts"]
+      : ["tests/unit/**/*.test.ts", "tests/safety/**/*.test.ts"],
   },
 });

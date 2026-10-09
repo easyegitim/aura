@@ -13,7 +13,9 @@
     "test:e2e": "playwright test",
     "db:types": "supabase gen types typescript --linked > lib/db/types.ts",
     "calibrate": "tsx scripts/calibrate-scores.ts",
-    "fairness": "tsx scripts/fairness-report.ts"
+    "fairness": "tsx scripts/fairness-report.ts",
+    "test:rls": "RLS_TESTS=1 vitest run tests/rls",
+    "db:check-rls": "bash scripts/check-rls.sh"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.6.1",
