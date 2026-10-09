@@ -535,6 +535,56 @@
     "listTitle": "Analizlerin",
     "newAnalysis": "Yeni analiz",
     "emptyTitle": "Henüz analiz yok",
-    "emptyBody": "İlk selfie'ni çek; skorun ve yüz şeklin burada listelenir."
+    "emptyBody": "İlk selfie'ni çek; skorun ve yüz şeklin burada listelenir.",
+    "lockedAria": "Kilitli değer; açmak için dokun",
+    "potentialTitle": "Potansiyel skorun",
+    "narrative": "Genel skorun {overall}. 8–12 haftalık planla ulaşabileceğin potansiyel {potential}.",
+    "ratiosTitle": "Oranların",
+    "planTitle": "Sana özel plan",
+    "planBody": "Sana uygun 3 saç kesimi, sakal ve cilt rutini; 60 stili kendi yüzünde dene.",
+    "seePlan": "Planını gör",
+    "tryStyles": "Stilleri dene",
+    "unlock": "Kilidi aç",
+    "trend": {
+      "title": "Skor trendi",
+      "overall": "Genel",
+      "potential": "Potansiyel",
+      "date": "Tarih",
+      "needTwo": "Trend için en az iki analiz gerekir.",
+      "aria": "{n} analizlik skor trendi çizgi grafiği",
+      "calibrationNote": "Kalibrasyon sürümü bu aralıkta değişti; eski ve yeni skorlar birebir kıyaslanmayabilir."
+    }
+  },
+  "paywall": {
+    "title": "Tam sonucunu aç",
+    "body": "Genel skorun, potansiyelin, 6 alt skor, oranlar ve kişisel planın premiumda. Ödeme sonrası bu analiz hemen açılır; yeni çekim gerekmez.",
+    "includes": {
+      "i1": "Genel skor, potansiyel ve 6 alt skor",
+      "i2": "Kişisel koç raporu ve rutin",
+      "i3": "Her 7 günde 10 sanal deneme (60 stil)",
+      "i4": "Haftalık yeniden analiz ve skor trendi"
+    },
+    "cta": "Devam et",
+    "note": "Deneme süresi yok; dilediğin zaman tek tıkla iptal, erişim dönem sonuna kadar sürer.",
+    "pageTitle": "Premium",
+    "pageBody": "Bir plan seç. Ödemeden önce hesabını e-posta veya Google ile bağlaman istenir.",
+    "phaseNote": "Ödeme adımı 8. fazda (F14) açılacak."
+  },
+  "share": {
+    "button": "Paylaşım kartı oluştur",
+    "title": "Paylaşım kartı",
+    "description": "Genel skor, potansiyel ve 3 alt skor. Kart telefonunda üretilir; sunucuya gitmez.",
+    "story": "Hikâye (9:16)",
+    "square": "Kare (1:1)",
+    "addPhoto": "Fotoğrafımı ekle",
+    "addPhotoHint": "Varsayılan kapalı. Cihazından bir fotoğraf seçersin.",
+    "pickPhoto": "Fotoğraf seç",
+    "changePhoto": "Fotoğrafı değiştir",
+    "create": "Oluştur ve paylaş",
+    "shareTitle": "Aura skorum",
+    "shared": "Paylaşıldı.",
+    "downloaded": "Kart indirildi.",
+    "error": "Kart oluşturulamadı.",
+    "photoError": "Fotoğraf açılamadı."
   }
 }

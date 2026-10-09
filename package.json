@@ -18,7 +18,8 @@
     "db:check-rls": "bash scripts/check-rls.sh",
     "mediapipe:setup": "node scripts/setup-mediapipe.mjs",
     "prebuild": "node scripts/setup-mediapipe.mjs",
-    "predev": "node scripts/setup-mediapipe.mjs"
+    "predev": "node scripts/setup-mediapipe.mjs",
+    "test:e2e:privacy": "PRIVACY_E2E=1 playwright test --project=privacy"
   },
   "dependencies": {
     "@google/genai": "^2.28.0",

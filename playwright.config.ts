@@ -13,12 +13,34 @@ export default defineConfig({
   projects: [
     {
       name: "mobile-chrome",
+      testIgnore: /privacy\.spec\.ts/,
       use: {
         ...devices["Pixel 7"],
         // Önceden kurulu bir Chromium kullanmak için (CI/sandbox): PLAYWRIGHT_CHROMIUM_PATH=/path/to/chrome
         launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } : undefined,
       },
     },
+    // Gizlilik testi (CLAUDE.md): gerçek Supabase + sahte kamera dosyası ister; PRIVACY_E2E=1 ile çalışır.
+    ...(process.env.PRIVACY_E2E
+      ? [
+          {
+            name: "privacy",
+            testMatch: /privacy\.spec\.ts/,
+            use: {
+              ...devices["Pixel 7"],
+              permissions: ["camera"],
+              launchOptions: {
+                executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH,
+                args: [
+                  "--use-fake-ui-for-media-stream",
+                  "--use-fake-device-for-media-stream",
+                  `--use-file-for-fake-video-capture=${process.env.PRIVACY_FACE_VIDEO ?? ""}`,
+                ],
+              },
+            },
+          },
+        ]
+      : []),
   ],
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ScoreTrend } from "@/components/analysis/ScoreTrend";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPremiumStatus } from "@/lib/api/premium";
@@ -35,6 +36,17 @@ export default async function AnalysesPage() {
           <Link href="/tara">{t("newAnalysis")}</Link>
         </Button>
       </div>
+      {premium && items.filter((i) => i.status === "completed").length >= 2 ? (
+        <Card>
+          <CardContent className="pt-4">
+            <ScoreTrend
+              points={items
+                .filter((i) => i.status === "completed" && i.overall !== null && i.potential !== null)
+                .map((i) => ({ id: i.id, date: i.createdAt, overall: i.overall!, potential: i.potential!, calibrationVersion: i.calibrationVersion }))}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
       {items.length === 0 ? (
         <Card>
           <CardHeader>

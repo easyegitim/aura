@@ -2,13 +2,14 @@ import { z } from "zod";
 import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { ScoreView } from "@/components/analysis/ScoreView";
+import { PaywallProvider } from "@/components/paywall/PaywallSheet";
 import { getPremiumStatus } from "@/lib/api/premium";
 import { getTeaserConfig } from "@/lib/config/teaser";
 import { createAdminClient } from "@/lib/db/admin";
 import { createClient } from "@/lib/db/server";
 import { toClientAnalysis, type AnalysisRow } from "@/lib/score/present";
 
-/** /analiz/[id]: sunucu kırpılmış görünümü üretir; kilitli değerler HTML'e de girmez. */
+/** /analiz/[id]: sunucu kırpılmış görünümü üretir; kilitli değerler HTML'e ve istemciye girmez. */
 export default async function AnalysisPage({ params }: PageProps<"/analiz/[id]">) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
@@ -41,7 +42,9 @@ export default async function AnalysisPage({ params }: PageProps<"/analiz/[id]">
   const a = toClientAnalysis(row, premium, teaser.mode, teaser.subscore);
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-6">
-      <ScoreView a={a} />
+      <PaywallProvider teaserMode={teaser.mode}>
+        <ScoreView a={a} premium={premium} />
+      </PaywallProvider>
     </div>
   );
 }
