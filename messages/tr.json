@@ -192,7 +192,7 @@
     },
     "plan": {
       "title": "Plan",
-      "body": "Koç raporun: saç, sakal, cilt, yüz hatları ve stil."
+      "body": "Önce bir analiz yap; koç raporun burada oluşur."
     },
     "tryon": {
       "title": "Dene",
@@ -657,5 +657,66 @@
       },
       "account": "Hesap"
     }
+  },
+  "report": {
+    "title": "Planın",
+    "generatingTitle": "Planın hazırlanıyor…",
+    "generatingBody": "Skorların, yüz şeklin ve anket cevapların katalogdaki seçeneklerle eşleştiriliyor. 10–20 saniye sürebilir.",
+    "errorTitle": "Plan oluşturulamadı",
+    "errors": {
+      "PREMIUM_REQUIRED": "Koç raporu premiumda.",
+      "QUOTA_EXCEEDED": "Yeniden üretim hakkın doldu.",
+      "BAD_INPUT": "Anket eksik; önce anketi tamamla.",
+      "AI_FAILED": "Servis yanıt vermedi. Tekrar dene.",
+      "AI_TIMEOUT": "Zaman aşımı. Tekrar dene.",
+      "NETWORK": "Bağlantı sorunu.",
+      "GENERIC": "Bir sorun oluştu."
+    },
+    "retry": "Tekrar dene",
+    "goPremium": "Premium'a geç",
+    "lockedTitle": "Kişisel planın premiumda",
+    "lockedBody": "Saç, sakal, cilt, yüz hatları, egzersiz ve stil planın ödeme sonrası hemen üretilir.",
+    "fallbackNote": "Bu plan yapay zekâ yanıtı doğrulanamadığı için kurallara göre hazırlandı; yeniden üretebilirsin.",
+    "sections": {
+      "summary": "Özet",
+      "hair": "Saç",
+      "beard": "Sakal",
+      "color": "Saç rengi",
+      "skin": "Cilt",
+      "contours": "Yüz hatları",
+      "exercises": "Egzersizler",
+      "habits": "Alışkanlıklar",
+      "style": "Stil",
+      "professional": "Uzmana danış"
+    },
+    "slots": {
+      "morning": "Sabah",
+      "evening": "Akşam",
+      "weekly": "Haftalık"
+    },
+    "maintenance": "Bakım",
+    "showBarber": "Berbere göster",
+    "tryIt": "Dene",
+    "barberHint": "Telefonu berberine/kuaförüne göster.",
+    "findExpert": "Uzman bul",
+    "addToRoutine": "Rutinime ekle",
+    "addedToRoutine": "{n} adım rutinine eklendi.",
+    "alreadyInRoutine": "Bu adımlar zaten rutininde.",
+    "routineError": "Rutine eklenemedi.",
+    "regenerate": "Planı yeniden üret"
+  },
+  "feedback": {
+    "helpful": "Faydalı mı?",
+    "thanks": "Teşekkürler",
+    "yes": "Faydalı",
+    "no": "Faydasız",
+    "report": "Uygunsuz içerik bildir",
+    "reportTitle": "Uygunsuz içerik bildir",
+    "reportBody": "Yanlış, rahatsız edici veya uygunsuz bulduğun içeriği kısaca anlat. Fotoğraf eklenmez.",
+    "reportPlaceholder": "Ne uygunsuzdu?",
+    "cancel": "Vazgeç",
+    "send": "Gönder",
+    "reported": "Bildirimin alındı.",
+    "error": "Gönderilemedi."
   }
 }
