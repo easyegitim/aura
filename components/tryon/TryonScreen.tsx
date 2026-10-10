@@ -39,6 +39,7 @@ type Stage = "gallery" | "camera" | "generating" | "result";
 const CROP_SIZE = 1024;
 /** Süre ölçümü (olay işleyicilerinde; modül düzeyinde tanımlı). */
 const nowMs = () => performance.now();
+const epochNow = () => Date.now();
 
 /** /dene (F11): stil galerisi → (rıza) → selfie bellekte → POST /api/tryon → worker kompoziti → önce/sonra. */
 export function TryonScreen({ consentVersion, hasConsent, recommended, quota, initialPreset, presentation }: Props) {
@@ -90,7 +91,7 @@ export function TryonScreen({ consentVersion, hasConsent, recommended, quota, in
       width: r.image.width,
       height: r.image.height,
       landmarks: r.final.landmarks.map((p) => ({ x: p.x * r.image.width, y: p.y * r.image.height })),
-      capturedAt: Date.now(),
+      capturedAt: epochNow(),
     });
     r.image.bitmap.close();
     if (pending) void run(pending);
