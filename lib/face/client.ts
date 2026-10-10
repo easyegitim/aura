@@ -1,8 +1,9 @@
 "use client";
 
 // Worker'ı saran Promise API (SPEC Faz 4 madde 3). Tek örnek; sayfalar arasında paylaşılır.
-import type { FrameAnalysis, SegmentationResult } from "./types";
-import type { InitResult, WorkerRequest, WorkerResponse } from "./vision.worker";
+import type { Protect } from "@/content/types";
+import type { FrameAnalysis, Point, SegmentationResult } from "./types";
+import type { InitResult, TryonWorkerResult, WorkerRequest, WorkerResponse } from "./vision.worker";
 
 export const MEDIAPIPE_BASE_PATH = "/mediapipe";
 
@@ -77,6 +78,11 @@ export class VisionClient {
 
   segment(bitmap: ImageBitmap): Promise<SegmentationResult | null> {
     return this.send<SegmentationResult | null>({ type: "segment", id: this.nextId(), bitmap }, [bitmap]);
+  }
+
+  /** c ve g worker'a devredilir ve orada kapatılır; başarıda kompozit bitmap geri devredilir. */
+  tryon(c: ImageBitmap, g: ImageBitmap, landmarksC: Point[], protect: Protect): Promise<TryonWorkerResult> {
+    return this.send<TryonWorkerResult>({ type: "tryon", id: this.nextId(), c, g, landmarksC, protect }, [c, g]);
   }
 
   async terminate() {

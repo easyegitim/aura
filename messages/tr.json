@@ -718,5 +718,59 @@
     "send": "Gönder",
     "reported": "Bildirimin alındı.",
     "error": "Gönderilemedi."
+  },
+  "tryon": {
+    "title": "Dene",
+    "lockedTitle": "Sanal deneme premiumda",
+    "lockedBody": "60 saç, sakal ve renk stilini kendi fotoğrafında, yüzün değişmeden dene. Her 7 günde 10 deneme.",
+    "goPremium": "Premium'a geç",
+    "consent": {
+      "title": "Sanal deneme için izin",
+      "body": "Hangi görselin nereye gittiğini bil:",
+      "b1": "Selfie'nin 1024 piksellik yüz kırpımı, seçtiğin stil için yapay zekâ görsel modeline geçici olarak gönderilir.",
+      "b2": "Sunucumuz görseli saklamaz; yalnız bellekte iletir.",
+      "b3": "Yüzün telefonunda orijinal piksellerle geri yazılır; kontrol başarısızsa sonuç gösterilmez ve hakkın düşmez.",
+      "b4": "Sonuç görselleri yalnız telefonunda kalır; indirdiğinde 'Yapay zekâ ile oluşturuldu' etiketi gömülür.",
+      "accept": "İzin veriyorum ve devam et"
+    },
+    "consentError": "İzin kaydedilemedi.",
+    "needSelfie": "Bu oturumda bellekte selfie yok; deneme için yeni bir çekim yap. Fotoğraf cihazından çıkmadan önce kalite kapısından geçer.",
+    "back": "Geri",
+    "tabs": {
+      "recommended": "Sana önerilen",
+      "hair": "Saç",
+      "beard": "Sakal",
+      "color": "Renk"
+    },
+    "recommendedBadge": "Önerilen",
+    "remaining": "Kalan deneme: {n} / {limit}",
+    "nextAt": "Yeni hak: {date}",
+    "galleryNote": "Deneme yalnız saç, sakal ve saç rengini değiştirir; yüz hatları ve kemik yapısı değişmez.",
+    "generating": {
+      "title": "{name} deneniyor…",
+      "body": "Genellikle 10–20 saniye sürer. Sonra yüzün telefonunda geri yazılır.",
+      "slow": "Biraz uzun sürüyor; 60 saniyeye kadar bekleyebiliriz.",
+      "elapsed": "{s} sn"
+    },
+    "driftMessage": "Bu stil yüzüne düzgün oturmadı, tekrar deneyelim. Hakkın düşmedi.",
+    "errors": {
+      "QUOTA_EXCEEDED": "Bu haftaki deneme hakkın doldu.",
+      "PREMIUM_REQUIRED": "Sanal deneme premiumda.",
+      "CONSENT_REQUIRED": "Deneme için izin gerekli.",
+      "AI_SAFETY_BLOCKED": "Model bu fotoğraf için görsel üretmedi; farklı bir çekimle dene.",
+      "AI_FAILED": "Deneme servisi yanıt vermedi. Tekrar dene; hakkın düşmedi.",
+      "AI_TIMEOUT": "Zaman aşımı. Tekrar dene; hakkın düşmedi.",
+      "IMAGE_TOO_LARGE": "Görsel çok büyük.",
+      "NETWORK": "Bağlantı sorunu.",
+      "GENERIC": "Bir sorun oluştu."
+    },
+    "before": "Önce",
+    "after": "Sonra",
+    "beforeAlt": "Orijinal selfie",
+    "afterAlt": "Denenen stil (yapay zekâ ile oluşturuldu)",
+    "sliderAria": "Önce/sonra karşılaştırma",
+    "download": "İndir",
+    "tryAnother": "Başka stil dene",
+    "resultNote": "Görsel temsilidir; gerçek sonuç berber/kuaför uygulamasına bağlıdır. Yüzün orijinal piksellerinle korundu."
   }
 }

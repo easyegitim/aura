@@ -12,6 +12,7 @@ import { submitAnalysis } from "@/lib/api/analysisClient";
 import { ApiClientError } from "@/lib/api/client";
 import { VisionClient } from "@/lib/face/client";
 import { cropForServer } from "@/lib/face/crop";
+import { setSessionSelfie } from "@/lib/face/sessionStore";
 import { findHairline } from "@/lib/face/hairline";
 import { computeStableGeometry, toPixels, type GeometryFrame } from "@/lib/face/metrics";
 import type { GeometryResult } from "@/lib/face/types";
@@ -86,10 +87,20 @@ export function CaptureScreen() {
     return (
       <div className="mx-auto w-full max-w-lg px-4 py-6">
         <SelfieCamera
-          onCapture={(r) => {
+          onCapture={async (r) => {
             requestIdRef.current = crypto.randomUUID();
             setPhase("idle");
             setResult(r);
+            // SPEC 10.3 adım 3: selfie + landmark'lar oturum boyunca bellekte (IndexedDB'ye yazılmaz).
+            if (r.final.landmarks) {
+              setSessionSelfie({
+                bitmap: await createImageBitmap(r.image.bitmap),
+                width: r.image.width,
+                height: r.image.height,
+                landmarks: r.final.landmarks.map((p) => ({ x: p.x * r.image.width, y: p.y * r.image.height })),
+                capturedAt: Date.now(),
+              });
+            }
           }}
         />
       </div>
