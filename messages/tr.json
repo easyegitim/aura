@@ -474,7 +474,9 @@
       "brightness": "Parlaklık",
       "sharpness": "Netlik",
       "frames": "Kararlı kare",
-      "retake": "Yeniden çek"
+      "retake": "Yeniden çek",
+      "saveProgress": "Bu fotoğrafı ilerlememe kaydet",
+      "saveProgressHint": "Yalnız bu cihazda saklanır; sunucuya gitmez. Varsayılan kapalı."
     }
   },
   "geometry": {
@@ -772,5 +774,65 @@
     "download": "İndir",
     "tryAnother": "Başka stil dene",
     "resultNote": "Görsel temsilidir; gerçek sonuç berber/kuaför uygulamasına bağlıdır. Yüzün orijinal piksellerinle korundu."
+  },
+  "routine": {
+    "title": "Rutin",
+    "lockedTitle": "Rutin premiumda",
+    "lockedBody": "Sabah/akşam bakım adımları, egzersiz zamanlayıcıları ve seri sayacı.",
+    "goPremium": "Premium'a geç",
+    "loading": "Yükleniyor…",
+    "emptyTitle": "Rutinin boş",
+    "emptyBody": "Planındaki adımları tek dokunuşla ekle veya kataloğdan seç.",
+    "fromPlan": "Planımdan rutin oluştur",
+    "addManual": "Adım ekle",
+    "today": "Bugün, {date}",
+    "streak": "Seri: {n} gün",
+    "streakHint": "Günlük adımların en az %80'i yapılınca gün seriye sayılır.",
+    "progressAria": "Bugünkü tamamlanma",
+    "slots": {
+      "morning": "Sabah",
+      "daily": "Gün içi",
+      "evening": "Akşam",
+      "weekly": "Haftalık"
+    },
+    "edit": "Düzenle",
+    "done": "Bitti",
+    "moveUp": "Yukarı taşı",
+    "moveDown": "Aşağı taşı",
+    "remove": "Kaldır",
+    "addTitle": "Adım ekle",
+    "habits": "Alışkanlıklar",
+    "exercises": "Egzersizler",
+    "exercisesNotEligible": "Çene sağlığı cevaplarına göre egzersizler bu hesapta kapalı.",
+    "saveError": "Kaydedilemedi; bağlantını kontrol et.",
+    "timer": {
+      "start": "Başlat",
+      "pause": "Duraklat",
+      "reset": "Sıfırla",
+      "rep": "+1 tekrar",
+      "set": "Set {n}/{total}",
+      "hold": "{s} sn tut"
+    }
+  },
+  "progress": {
+    "title": "İlerleme",
+    "loading": "Yükleniyor…",
+    "deviceNote": "Fotoğrafların yalnız bu cihazda. Tarayıcı verisini silersen kaybolur.",
+    "storageUnavailable": "Bu tarayıcıda yerel depolama kapalı; ilerleme fotoğrafları kaydedilemez.",
+    "emptyTitle": "Henüz ilerleme fotoğrafı yok",
+    "emptyBody": "Analiz sırasında \"Bu fotoğrafı ilerlememe kaydet\" kutusunu işaretle.",
+    "compareTitle": "Karşılaştırma",
+    "sliderAria": "İki fotoğrafı karşılaştır",
+    "clearCompare": "Seçimi temizle",
+    "pickTwo": "Karşılaştırmak için iki fotoğraf seç ({n}/2)",
+    "delete": "Sil",
+    "notePlaceholder": "Not (isteğe bağlı)",
+    "saveError": "Not kaydedilemedi.",
+    "newSlotTitle": "Yeni analiz hakkın açıldı",
+    "newSlotBody": "7 gün doldu. Aynı ışık ve açıyla yeni bir selfie çek; skor trendin güncellensin.",
+    "newAnalysis": "Yeni analiz",
+    "trendLockedTitle": "Skor trendi premiumda",
+    "trendLockedBody": "Haftalık yeniden analizle genel ve potansiyel skorun zaman içinde.",
+    "goPremium": "Premium'a geç"
   }
 }

@@ -13,6 +13,8 @@ import { ApiClientError } from "@/lib/api/client";
 import { VisionClient } from "@/lib/face/client";
 import { cropForServer } from "@/lib/face/crop";
 import { setSessionSelfie } from "@/lib/face/sessionStore";
+import { addProgressPhoto } from "@/lib/local/progressStore";
+import { Checkbox } from "@/components/ui/checkbox";
 import { findHairline } from "@/lib/face/hairline";
 import { computeStableGeometry, toPixels, type GeometryFrame } from "@/lib/face/metrics";
 import type { GeometryResult } from "@/lib/face/types";
@@ -42,6 +44,7 @@ export function CaptureScreen() {
   const [phase, setPhase] = useState<"idle" | "submitting" | "done" | "error">("idle");
   const [error, setError] = useState<{ code: string; retryAt?: string } | null>(null);
   const requestIdRef = useRef<string>(crypto.randomUUID());
+  const [saveProgress, setSaveProgress] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tg = useTranslations("geometry");
 
@@ -53,6 +56,16 @@ export function CaptureScreen() {
       const { blob } = await cropForServer(r.image.bitmap, px);
       const analysis = await submitAnalysis({ clientRequestId: requestIdRef.current, geometry: g, image: blob });
       track("analysis_completed", { tier: analysis.overall.locked ? "free" : "premium" });
+      if (saveProgress) {
+        // SPEC 11.2: yalnız cihazda (IndexedDB); sunucuya gitmez.
+        try {
+          const canvas = new OffscreenCanvas(r.image.width, r.image.height);
+          canvas.getContext("2d")?.drawImage(r.image.bitmap, 0, 0);
+          await addProgressPhoto({ blob: await canvas.convertToBlob({ type: "image/jpeg", quality: 0.85 }), analysisId: analysis.id });
+        } catch {
+          // depolama kapalıysa sessizce geç
+        }
+      }
       setPhase("done");
       router.push(`/analiz/${analysis.id}`);
     } catch (e) {
@@ -167,6 +180,13 @@ export function CaptureScreen() {
           ) : (
             <p className="text-xs text-muted-foreground">{tg("computing")}</p>
           )}
+          <label className="flex items-start gap-3 rounded-md border px-3 py-2 text-sm">
+            <Checkbox checked={saveProgress} onCheckedChange={(v) => setSaveProgress(v === true)} className="mt-0.5" />
+            <span>
+              {t("saveProgress")}
+              <span className="block text-xs text-muted-foreground">{t("saveProgressHint")}</span>
+            </span>
+          </label>
           {error ? (
             <p role="alert" className="rounded-md border px-3 py-2 text-sm">
               {ta.has(`errors.${error.code}`) ? ta(`errors.${error.code}`) : ta("errors.GENERIC")}
