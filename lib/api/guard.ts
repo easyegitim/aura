@@ -5,6 +5,7 @@ import type { z, ZodType } from "zod";
 import { CONSENT_DOC, type ConsentState, type ConsentType } from "@/lib/consent";
 import { createClient } from "@/lib/db/server";
 import { getLegalVersion } from "@/lib/legal/docs";
+import { isAdminUser } from "./admin";
 import { ApiError, apiError } from "./errors";
 
 /**
@@ -19,6 +20,8 @@ export type GuardOptions<S extends ZodType | undefined> = {
   allowAnonymous?: boolean;
   requireAdult?: boolean;
   requireConsents?: readonly ConsentType[];
+  /** ADMIN_EMAILS dışındaki herkes için 404 biçiminde FEATURE_DISABLED (varlık sızdırılmaz). */
+  requireAdmin?: boolean;
 };
 
 type InputOf<S> = S extends ZodType ? z.output<S> : undefined;
@@ -37,6 +40,7 @@ export function withGuard<S extends ZodType | undefined = undefined>(
       if (opts.allowAnonymous === false && user.is_anonymous) {
         throw new ApiError("ANONYMOUS_NOT_ALLOWED", "Bu işlem için hesabını bağlaman gerekiyor.");
       }
+      if (opts.requireAdmin && !isAdminUser(user)) throw new ApiError("FEATURE_DISABLED", "Bulunamadı.");
 
       let input: unknown = undefined;
       if (opts.schema) {

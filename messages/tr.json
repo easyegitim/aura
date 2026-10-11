@@ -834,5 +834,38 @@
     "trendLockedTitle": "Skor trendi premiumda",
     "trendLockedBody": "Haftalık yeniden analizle genel ve potansiyel skorun zaman içinde.",
     "goPremium": "Premium'a geç"
+  },
+  "experts": {
+    "title": "Uzman Ağı",
+    "intro": "Doğrulanmış hekim ve uzmanlar. Uygulama hiçbir işlem önermez; sen seçer, ön görüşme talep edersin.",
+    "specialty": "Uzmanlık",
+    "all": "Tümü",
+    "city": "Şehir",
+    "cityPlaceholder": "ör. İstanbul",
+    "disclaimer": "Partner kartlarında fiyat, kampanya veya önce/sonra görseli yer almaz. Tıbbi tavsiye değildir.",
+    "loading": "Yükleniyor…",
+    "empty": "Bu filtreyle partner bulunamadı.",
+    "verified": "Doğrulandı",
+    "license": "Tescil no",
+    "request": "Ön görüşme talep et",
+    "formTitle": "{name} ile ön görüşme",
+    "formBody": "Partner seninle verdiğin iletişim bilgisinden ulaşır. Fotoğrafın asla paylaşılmaz.",
+    "name": "Ad",
+    "contact": "Telefon veya e-posta",
+    "contactPlaceholder": "+905… veya ornek@eposta.com",
+    "message": "Kısa mesaj (isteğe bağlı)",
+    "share": "Son analiz özetimi paylaş",
+    "shareHint": "Skorlar ve gözlem cümleleri paylaşılır; fotoğraf asla. Bu, ayrı bir açık rıza (expert_data_sharing) gerektirir ve kutuyu işaretlemen bu rızayı verir.",
+    "send": "Talebi gönder",
+    "sent": "Talebin iletildi. Referans: {ref}. Partner seninle iletişime geçecek.",
+    "close": "Kapat",
+    "errors": {
+      "RATE_LIMITED": "Günde en fazla 5 talep gönderebilirsin.",
+      "CONSENT_REQUIRED": "Özet paylaşımı için rıza gerekli.",
+      "BAD_INPUT": "Form eksik veya partner bulunamadı.",
+      "FEATURE_DISABLED": "Uzman Ağı şu an kapalı.",
+      "NETWORK": "Bağlantı sorunu.",
+      "GENERIC": "Bir sorun oluştu."
+    }
   }
 }

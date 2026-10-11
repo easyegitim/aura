@@ -48,3 +48,13 @@ test("debug sayfası production'da 404 (SPEC 4.2)", async ({ page }) => {
   const res = await page.goto("/debug/landmarks");
   expect(res?.status()).toBe(404);
 });
+
+test("Uzman Ağı flag kapalıyken 404 / FEATURE_DISABLED (SPEC 12.2)", async ({ page, request }) => {
+  const res = await page.goto("/uzman");
+  // oturumsuz: (app) kapısı açılışa döndürür; flag kontrolü ise oturumlu akışta 404'tür — API ile doğrula
+  expect([200, 404]).toContain(res?.status() ?? 0);
+  const api = await request.get("/api/experts");
+  expect([401, 404]).toContain(api.status());
+  const status = await request.get("/api/experts/requests/AU-TEST-TEST/status?status=contacted&sig=00");
+  expect(status.status()).toBe(404);
+});
