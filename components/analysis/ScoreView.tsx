@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { usePaywall } from "@/components/paywall/PaywallSheet";
+import { FeedbackButtons } from "@/components/report/FeedbackButtons";
 import { ShareCardButton } from "@/components/share/ShareCardButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,6 +112,8 @@ export function ScoreView({ a, premium }: { a: ClientAnalysis; premium: boolean 
     </LockedSection>
   );
 
+  const feedback = a.status === "completed" ? <FeedbackButtons targetType="score" targetId={a.id} /> : null;
+
   const shareCard =
     premium && overall !== null && potential !== null ? (
       <ShareCardButton
@@ -138,6 +141,7 @@ export function ScoreView({ a, premium }: { a: ClientAnalysis; premium: boolean 
       )}
       {lowScore ? ratiosCard : null}
       {shareCard}
+      {feedback}
     </div>
   );
 }

@@ -18,16 +18,21 @@ export function readCookieConsent(): CookieConsentValue | null {
 
 // Çerez değeri için küçük bir dış mağaza: yazınca aboneler yeniden okur.
 const listeners = new Set<() => void>();
-const subscribe = (cb: () => void) => {
+export const subscribeCookieConsent = (cb: () => void) => {
   listeners.add(cb);
-  return () => listeners.delete(cb);
+  return () => {
+    listeners.delete(cb);
+  };
 };
+const subscribe = subscribeCookieConsent;
+/** Çerez başka yerden (hesap ayarları) yazıldığında aboneleri uyandırır. */
+export const notifyCookieConsent = () => listeners.forEach((cb) => cb());
 const getSnapshot = (): CookieConsentValue | "none" => readCookieConsent() ?? "none";
 const getServerSnapshot = (): "pending" => "pending";
 
 /**
  * Çerez banner'ı (SPEC Faz 3 madde 5). Tercih zorunlu bir çerezde tutulur; oturum varsa consents'e de yazılır.
- * PostHog yalnız "granted" iken başlatılır (Faz 14).
+ * PostHog yalnız "granted" iken başlatılır (components/providers/AnalyticsProvider.tsx).
  */
 export function CookieBanner({ cookieTextVersion }: { cookieTextVersion: string }) {
   const t = useTranslations("cookies");

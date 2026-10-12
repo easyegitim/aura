@@ -1,5 +1,8 @@
-// SPEC 17.1 olay adları. PostHog bağlantısı Faz 14'te (F17) eklenir; o zamana kadar no-op.
-// Kural: olaylara fotoğraf, skor, metrik, e-posta eklenmez.
+// SPEC 17.1 olay adları. PostHog yalnız çerez onayı "granted" iken ve yalnız tarayıcıda çalışır
+// (components/providers/AnalyticsProvider.tsx). Sunucuda track() no-op'tur.
+// Kural: olaylara fotoğraf, skor, metrik, e-posta eklenmez; tip sistemi bunu zorlar.
+import type { PostHog } from "posthog-js";
+
 export type AnalyticsEvents = {
   landing_cta_clicked: undefined;
   anon_session_started: undefined;
@@ -28,9 +31,48 @@ export type AnalyticsEvents = {
 
 export type AnalyticsEventName = keyof AnalyticsEvents;
 
+/** Olay özelliklerinde yasak anahtarlar (savunma: tip dışı çağrılara karşı çalışma zamanı filtresi). */
+const FORBIDDEN_PROP = /^(image|photo|selfie|landmarks|points|email|overall|potential|subscores|metrics|geometry|score)$/i;
+
+export function sanitizeProps(props: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+  if (!props) return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(props)) {
+    if (FORBIDDEN_PROP.test(k)) continue;
+    if (typeof v === "string" && v.length > 200) continue;
+    if (v !== null && typeof v === "object") continue;
+    out[k] = v;
+  }
+  return out;
+}
+
+let client: PostHog | null = null;
+
+/** AnalyticsProvider çerez onayına göre bağlar/çözer. */
+export function setAnalyticsClient(c: PostHog | null): void {
+  client = c;
+}
+
+export function isAnalyticsEnabled(): boolean {
+  return client !== null;
+}
+
 export function track<E extends AnalyticsEventName>(
   ...args: AnalyticsEvents[E] extends undefined ? [event: E] : [event: E, props: AnalyticsEvents[E]]
 ): void {
-  // Faz 14: çerez onayı varsa posthog.capture(args[0], args[1])
-  void args;
+  if (!client) return;
+  const [event, props] = args as [E, Record<string, unknown> | undefined];
+  try {
+    client.capture(event, sanitizeProps(props));
+  } catch {
+    // analitik hiçbir akışı bozmaz
+  }
+}
+
+/** Teaser A/B bayrağı (PostHog feature flag "teaser_mode"). Sunucu tarafı mod TEASER_MODE ortam değişkenidir;
+ *  bayrak yalnız deney kaydı için okunur ve olaylara "teaserVariant" olarak eklenir. */
+export function getTeaserVariant(): string | null {
+  if (!client) return null;
+  const v = client.getFeatureFlag("teaser_mode");
+  return typeof v === "string" ? v : null;
 }

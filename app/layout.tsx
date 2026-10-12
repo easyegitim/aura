@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { CookieBanner } from "@/components/legal/CookieBanner";
+import { AnalyticsProvider } from "@/components/providers/AnalyticsProvider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { APP_NAME, APP_URL } from "@/lib/config/app";
@@ -35,6 +36,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <NextIntlClientProvider>
             {children}
             <CookieBanner cookieTextVersion={cookieTextVersion} />
+            <AnalyticsProvider />
             <Toaster position="top-center" richColors />
           </NextIntlClientProvider>
         </ThemeProvider>

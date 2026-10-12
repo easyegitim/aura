@@ -46,3 +46,6 @@ next-env.d.ts
 
 # MediaPipe varlıkları (pnpm mediapipe:setup üretir; ~45 MB)
 /public/mediapipe
+
+# Sentry
+.sentryclirc

@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { MANAGEABLE_CONSENTS, offersAnalysisDeletion, revokeEffects, type ManageableConsent } from "@/lib/account/consents";
 import { track } from "@/lib/analytics";
 import { postJson } from "@/lib/api/client";
+import { notifyCookieConsent } from "@/components/legal/CookieBanner";
 import { COOKIE_CONSENT_NAME, type ConsentState } from "@/lib/consent";
 
 type Props = {
@@ -22,6 +23,7 @@ type Props = {
 /** Çerez banner'ıyla aynı teknik çerez; analytics_cookies rızası buradan da güncellenir. */
 function setCookieConsent(value: "granted" | "denied") {
   document.cookie = `${COOKIE_CONSENT_NAME}=${value}; path=/; max-age=${60 * 60 * 24 * 180}; samesite=lax`;
+  notifyCookieConsent();
 }
 
 /** SPEC 16.2: /hesap rıza anahtarları; geri alma etkileri; biometric_processing için analiz silme sorusu. */
