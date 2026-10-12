@@ -28,14 +28,14 @@ test.describe("Yasal sayfalar ve çerez banner'ı (F16)", () => {
   });
 
   test("onboarding ekranları oturumsuz açılışa döner (F03)", async ({ page }) => {
-    for (const path of ["/baslangic/yas", "/baslangic/izinler", "/baslangic/anket", "/tara"]) {
+    for (const path of ["/baslangic/yas", "/baslangic/izinler", "/baslangic/anket", "/tara", "/silme", "/hesap"]) {
       await page.goto(path);
       await expect(page).toHaveURL(/\/$/);
     }
   });
 
   test("API uçları oturumsuz 401 döner (withGuard)", async ({ request }) => {
-    for (const path of ["/api/onboarding/age", "/api/consents", "/api/onboarding/questionnaire", "/api/analyses"]) {
+    for (const path of ["/api/onboarding/age", "/api/consents", "/api/onboarding/questionnaire", "/api/analyses", "/api/me/delete", "/api/me/delete/cancel"]) {
       const res = await request.post(path, { data: {} });
       expect(res.status(), path).toBe(401);
       const body = await res.json();
@@ -57,4 +57,12 @@ test("Uzman Ağı flag kapalıyken 404 / FEATURE_DISABLED (SPEC 12.2)", async ({
   expect([401, 404]).toContain(api.status());
   const status = await request.get("/api/experts/requests/AU-TEST-TEST/status?status=contacted&sig=00");
   expect(status.status()).toBe(404);
+});
+
+test("hesap uçları oturumsuz 401 (F15: export, delete)", async ({ request }) => {
+  const exp = await request.get("/api/me/export");
+  expect(exp.status()).toBe(401);
+  expect(exp.headers()["content-disposition"]).toBeUndefined();
+  const del = await request.post("/api/me/delete", { data: { confirm: "SİL" } });
+  expect(del.status()).toBe(401);
 });

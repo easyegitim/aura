@@ -165,7 +165,6 @@
     "emailLabel": "E-posta",
     "planTitle": "Plan",
     "planFree": "Ücretsiz katman",
-    "planHint": "Abonelik yönetimi 8. fazda (F14) geliyor.",
     "authError": "Google ile bağlama tamamlanamadı. Tekrar dene.",
     "subscription": {
       "title": "Plan",
@@ -182,6 +181,81 @@
       "confirm": "İptal et",
       "canceled": "Abonelik iptal edildi.",
       "cancelError": "İptal iletilemedi. Tekrar dene veya destekle iletişime geç."
+    },
+    "legalTitle": "Yasal metinler",
+    "consents": {
+      "title": "İzinler ve rızalar",
+      "description": "Verdiğin rızaları buradan geri alabilirsin. Geri alma geçmişe dönük işlemi etkilemez; yeni işlem için tekrar rıza gerekir.",
+      "ifRevoked": "Geri alırsan:",
+      "historyNote": "Her değişiklik tarih ve metin sürümüyle kaydedilir. Metin sürümü değişirse yeniden onay istenir.",
+      "granted": "Rıza kaydedildi.",
+      "revoked": "Rıza geri alındı.",
+      "revokedAndDeleted": "Rıza geri alındı; geçmiş analizlerin ve planların silindi.",
+      "error": "Kaydedilemedi. Tekrar dene.",
+      "revokeBiometricTitle": "Yüz verisi rızasını geri al",
+      "revokeBiometricBody": "Bu rıza olmadan yeni analiz yapılamaz. Geçmiş analizlerin de silinsin mi?",
+      "deletePastAnalyses": "Geçmiş analizlerimi ve planlarımı da sil",
+      "deletePastAnalysesHint": "Skorlar, yüz oranları ve koç raporları kalıcı olarak silinir. Cihazındaki ilerleme fotoğrafları etkilenmez.",
+      "keep": "Vazgeç",
+      "confirmRevoke": "Geri al",
+      "effects": {
+        "analysis_blocked": "Yeni analiz yapılamaz.",
+        "tryon_blocked": "Sanal deneme kapanır.",
+        "expert_sharing_blocked": "Uzmanla analiz özeti paylaşılmaz.",
+        "marketing_stopped": "Pazarlama e-postası gelmez.",
+        "analytics_stopped": "Analitik çerezleri kapanır."
+      },
+      "items": {
+        "biometric_processing": {
+          "title": "Yüz verilerimin işlenmesi",
+          "body": "Yüz oranların, yüz şeklin ve skorların hesaplanır ve hesabında saklanır."
+        },
+        "photo_ai_analysis": {
+          "title": "Fotoğrafımın yapay zekâ ile analizi",
+          "body": "Selfie'n skor için yapay zekâ modeline gönderilir; saklanmaz."
+        },
+        "cross_border_transfer": {
+          "title": "Yurt dışına aktarım",
+          "body": "Selfie'n ve analiz verilerin yurt dışındaki sağlayıcılara geçici olarak aktarılır."
+        },
+        "tryon_generation": {
+          "title": "Sanal deneme görseli üretimi",
+          "body": "Selfie'n saç/sakal denemesi için görsel modeline gönderilir; yüzün orijinal piksellerle korunur."
+        },
+        "expert_data_sharing": {
+          "title": "Uzmanla analiz özeti paylaşımı",
+          "body": "Ön görüşme talebinde yalnız metin özet paylaşılır; fotoğraf asla paylaşılmaz."
+        },
+        "marketing": {
+          "title": "Pazarlama iletişimi",
+          "body": "E-posta ile ürün haberleri ve kampanyalar."
+        },
+        "analytics_cookies": {
+          "title": "Analitik çerezleri",
+          "body": "Ürünü geliştirmek için anonim kullanım olayları (fotoğraf, skor veya e-posta içermez)."
+        }
+      }
+    },
+    "export": {
+      "title": "Verimi indir",
+      "description": "Profilin, rızaların, analizlerin, planların, rutinin, aboneliğin ve uzman taleplerin JSON dosyası olarak iner. Fotoğraf saklanmadığı için dosyada yer almaz.",
+      "button": "JSON olarak indir",
+      "busy": "Hazırlanıyor…",
+      "done": "Dosyan indirildi.",
+      "rateLimited": "Günde en fazla 3 dışa aktarma yapabilirsin.",
+      "error": "İndirilemedi. Tekrar dene."
+    },
+    "delete": {
+      "title": "Hesabımı sil",
+      "description": "Talebinden {days} gün sonra hesabın ve tüm verilerin kalıcı olarak silinir. Bu süre içinde giriş yaparak vazgeçebilirsin.",
+      "button": "Hesabımı sil",
+      "confirmTitle": "Hesabını silmek istediğine emin misin?",
+      "confirmBody": "Aktif aboneliğin iptal edilir, cihazındaki ilerleme fotoğrafların temizlenir ve oturumun kapanır. Hesabın {days} gün sonra kalıcı olarak silinir. Onaylamak için {word} yaz.",
+      "typeWord": "Onay sözcüğü: {word}",
+      "keep": "Vazgeç",
+      "confirm": "Hesabımı sil",
+      "done": "Silme talebin alındı. {days} gün içinde giriş yaparak iptal edebilirsin.",
+      "error": "Talep iletilemedi. Tekrar dene."
     }
   },
   "placeholders": {
@@ -867,5 +941,13 @@
       "NETWORK": "Bağlantı sorunu.",
       "GENERIC": "Bir sorun oluştu."
     }
+  },
+  "deletion": {
+    "title": "Silme talebin bekliyor",
+    "body": "{requested} tarihinde hesabını silmeyi istedin. Vazgeçmezsen hesabın ve tüm verilerin {purge} tarihinde kalıcı olarak silinir.",
+    "cancelButton": "Silme talebini iptal et",
+    "keepHint": "İptal etmezsen uygulamayı kullanmaya devam edemezsin; verilerin planlanan tarihte silinir.",
+    "canceled": "Silme talebi iptal edildi. Hesabın açık.",
+    "error": "İptal edilemedi. Tekrar dene."
   }
 }

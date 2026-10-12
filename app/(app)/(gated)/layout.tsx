@@ -12,12 +12,14 @@ export default async function GatedLayout({ children }: LayoutProps<"/">) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("is_adult, onboarding_completed_at")
+    .select("is_adult, onboarding_completed_at, deletion_requested_at")
     .eq("id", user.id)
     .maybeSingle();
 
   const target = getOnboardingRedirect(
-    profile ? { is_adult: Boolean(profile.is_adult), onboarding_completed_at: profile.onboarding_completed_at ?? null } : null,
+    profile
+      ? { is_adult: Boolean(profile.is_adult), onboarding_completed_at: profile.onboarding_completed_at ?? null, deletion_requested_at: profile.deletion_requested_at ?? null }
+      : null,
   );
   if (target) redirect(target);
 
