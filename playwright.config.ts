@@ -13,7 +13,7 @@ export default defineConfig({
   projects: [
     {
       name: "mobile-chrome",
-      testIgnore: /(privacy|billing)\.spec\.ts/,
+      testIgnore: /(privacy|billing|flow)\.spec\.ts/,
       use: {
         ...devices["Pixel 7"],
         // Önceden kurulu bir Chromium kullanmak için (CI/sandbox): PLAYWRIGHT_CHROMIUM_PATH=/path/to/chrome
@@ -21,6 +21,28 @@ export default defineConfig({
       },
     },
     ...(process.env.BILLING_E2E ? [{ name: "billing", testMatch: /billing\.spec\.ts/, use: { ...devices["Pixel 7"] } }] : []),
+    // Ana akış (SPEC Faz 15 madde 1): gerçek Supabase + sahte kamera videosu; FULL_FLOW_E2E=1 ile çalışır.
+    ...(process.env.FULL_FLOW_E2E
+      ? [
+          {
+            name: "flow",
+            testMatch: /flow\.spec\.ts/,
+            fullyParallel: false,
+            use: {
+              ...devices["Pixel 7"],
+              permissions: ["camera"],
+              launchOptions: {
+                executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH,
+                args: [
+                  "--use-fake-ui-for-media-stream",
+                  "--use-fake-device-for-media-stream",
+                  `--use-file-for-fake-video-capture=${process.env.E2E_FACE_VIDEO ?? process.env.PRIVACY_FACE_VIDEO ?? ""}`,
+                ],
+              },
+            },
+          },
+        ]
+      : []),
     // Gizlilik testi (CLAUDE.md): gerçek Supabase + sahte kamera dosyası ister; PRIVACY_E2E=1 ile çalışır.
     ...(process.env.PRIVACY_E2E
       ? [
