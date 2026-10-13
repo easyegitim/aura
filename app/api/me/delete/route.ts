@@ -42,8 +42,8 @@ export const POST = withGuard({ schema: Input }, async ({ user, supabase, input 
   if (error) throw new Error("silme talebi kaydedilemedi");
   track("account_deletion_requested");
 
-  // 3) Oturumu kapat (çerezler proxy/SSR istemcisi üzerinden temizlenir)
-  await supabase.auth.signOut();
+  // 3) Oturumu kapat (çerez akışı). Bearer (mobil) akışında sunucuda oturum yoktur; istemci kendi kapatır.
+  await supabase.auth.signOut().catch(() => undefined);
 
   return Response.json({ deletionRequestedAt: requestedAt, subscriptionCancelPending }, { status: 202 });
 });

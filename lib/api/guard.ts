@@ -6,6 +6,7 @@ import { CONSENT_DOC, type ConsentState, type ConsentType } from "@/lib/consent"
 import { createClient } from "@/lib/db/server";
 import { getLegalVersion } from "@/lib/legal/docs";
 import { isAdminUser } from "./admin";
+import { parseBearer } from "./bearer";
 import { ApiError, apiError } from "./errors";
 
 /**
@@ -33,9 +34,11 @@ export function withGuard<S extends ZodType | undefined = undefined>(
   return async (req) => {
     try {
       const supabase = await createClient();
+      // Bearer varsa token Supabase Auth'ta doğrulanır; yoksa çerez oturumu.
+      const bearer = parseBearer(req.headers.get("authorization"));
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await supabase.auth.getUser(bearer ?? undefined);
       if (!user) throw new ApiError("UNAUTHENTICATED", "Oturum gerekli.");
       if (opts.allowAnonymous === false && user.is_anonymous) {
         throw new ApiError("ANONYMOUS_NOT_ALLOWED", "Bu işlem için hesabını bağlaman gerekiyor.");
