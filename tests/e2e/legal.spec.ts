@@ -66,3 +66,9 @@ test("hesap uçları oturumsuz 401 (F15: export, delete)", async ({ request }) =
   const del = await request.post("/api/me/delete", { data: { confirm: "SİL" } });
   expect(del.status()).toBe(401);
 });
+
+test("geçersiz Bearer token 401 döner, 500 değil (SPEC-MOBILE M2)", async ({ request }) => {
+  const res = await request.get("/api/billing/status", { headers: { authorization: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4In0.invalidsignatureinvalidsignature" } });
+  expect(res.status()).toBe(401);
+  expect((await res.json()).error.code).toBe("UNAUTHENTICATED");
+});
