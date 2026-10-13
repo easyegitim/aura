@@ -250,7 +250,8 @@
       "busy": "Hazırlanıyor…",
       "done": "Dosyan indirildi.",
       "rateLimited": "Günde en fazla 3 dışa aktarma yapabilirsin.",
-      "error": "İndirilemedi. Tekrar dene."
+      "error": "İndirilemedi. Tekrar dene.",
+      "shareTitle": "Aura verilerim"
     },
     "delete": {
       "title": "Hesabımı sil",
@@ -262,7 +263,8 @@
       "keep": "Vazgeç",
       "confirm": "Hesabımı sil",
       "done": "Silme talebin alındı. {days} gün içinde giriş yaparak iptal edebilirsin.",
-      "error": "Talep iletilemedi. Tekrar dene."
+      "error": "Talep iletilemedi. Tekrar dene.",
+      "cleaning": "Cihazdaki fotoğraflar temizleniyor…"
     }
   },
   "placeholders": {
@@ -344,6 +346,10 @@
         "marketing": {
           "title": "Pazarlama iletişimi",
           "body": "E-posta ile ürün haberleri ve kampanyalar. İstediğin zaman vazgeçebilirsin."
+        },
+        "analytics_cookies": {
+          "title": "Analitik izni",
+          "body": "Ürünü geliştirmek için anonim kullanım olayları (fotoğraf, skor veya e-posta içermez). İstediğin zaman kapatabilirsin."
         }
       }
     }

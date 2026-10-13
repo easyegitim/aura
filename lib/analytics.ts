@@ -1,7 +1,7 @@
 // SPEC 17.1 olay adları. PostHog yalnız çerez onayı "granted" iken ve yalnız tarayıcıda çalışır
 // (components/providers/AnalyticsProvider.tsx). Sunucuda track() no-op'tur.
 // Kural: olaylara fotoğraf, skor, metrik, e-posta eklenmez; tip sistemi bunu zorlar.
-import type { PostHog } from "posthog-js";
+// İstemci yapısal tiptedir: web posthog-js, mobil posthog-react-native aynı arayüzü sağlar.
 
 export type AnalyticsEvents = {
   landing_cta_clicked: undefined;
@@ -46,10 +46,15 @@ export function sanitizeProps(props: Record<string, unknown> | undefined): Recor
   return out;
 }
 
-let client: PostHog | null = null;
+export type AnalyticsClient = {
+  capture(event: string, properties?: Record<string, unknown>): unknown;
+  getFeatureFlag(flag: string): unknown;
+};
 
-/** AnalyticsProvider çerez onayına göre bağlar/çözer. */
-export function setAnalyticsClient(c: PostHog | null): void {
+let client: AnalyticsClient | null = null;
+
+/** AnalyticsProvider (web: çerez onayı, mobil: analitik izni) bağlar/çözer. */
+export function setAnalyticsClient(c: AnalyticsClient | null): void {
   client = c;
 }
 

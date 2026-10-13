@@ -42,6 +42,8 @@ const config: ExpoConfig = {
     ],
     ["expo-image-picker", { photosPermission: "Galeriden selfie seçmek için erişim gerekir. Fotoğrafın saklanmaz." }],
     "./plugins/withMediapipeModels.js",
+    // Sentry: kaynak haritası yüklemesi yalnız SENTRY_AUTH_TOKEN/ORG/PROJECT verilince; DSN yoksa SDK başlatılmaz (src/lib/monitoring.ts)
+    ["@sentry/react-native/expo", { organization: process.env.SENTRY_ORG, project: process.env.SENTRY_PROJECT }],
   ],
   experiments: { typedRoutes: true },
   extra: { eas: { projectId: process.env.EAS_PROJECT_ID ?? "" } },
