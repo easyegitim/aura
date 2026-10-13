@@ -6,6 +6,8 @@ import type { ClientAnalysis } from "@/lib/score/present";
 import { Button } from "@/mobile/src/components/ui/Button";
 import { Card } from "@/mobile/src/components/ui/Card";
 import { Text } from "@/mobile/src/components/ui/Text";
+import { FeedbackButtons } from "@/mobile/src/components/report/FeedbackButtons";
+import { ShareCardButton } from "@/mobile/src/features/share/ShareCardButton";
 import { usePaywall } from "@/mobile/src/features/paywall/PaywallSheet";
 import { scoped } from "@/mobile/src/lib/i18n";
 import { spacing, useTheme } from "@/mobile/src/theme";
@@ -100,7 +102,7 @@ export function ScoreView({ a, premium }: { a: ClientAnalysis; premium: boolean 
     <Card title={t("planTitle")} description={t("planBody")}>
       {premium ? (
         <View style={{ gap: spacing.sm }}>
-          <Button title={t("seePlan")} onPress={() => router.push(`/plan/${a.id}`)} />
+          <Button title={t("seePlan")} onPress={() => router.push({ pathname: "/plan/[analysisId]", params: { analysisId: a.id } })} />
           <Button title={t("tryStyles")} variant="outline" onPress={() => router.push("/(tabs)/dene")} />
         </View>
       ) : (
@@ -108,6 +110,12 @@ export function ScoreView({ a, premium }: { a: ClientAnalysis; premium: boolean 
       )}
     </Card>
   );
+
+  const shareCard =
+    premium && overall !== null && potential !== null ? (
+      <ShareCardButton overall={overall} potential={potential} subs={(["skin", "hair", "jawline"] as SubKey[]).map((k) => ({ label: t(`sub.${k}`), value: (a.subscores[k].locked ? null : a.subscores[k].value) ?? 0 }))} />
+    ) : null;
+  const feedback = a.status === "completed" ? <FeedbackButtons targetType="score" targetId={a.id} /> : null;
 
   return (
     <View style={{ gap: spacing.md }}>
@@ -126,6 +134,8 @@ export function ScoreView({ a, premium }: { a: ClientAnalysis; premium: boolean 
           {planCard}
         </>
       )}
+      {shareCard}
+      {feedback}
     </View>
   );
 }

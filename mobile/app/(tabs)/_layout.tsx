@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Redirect, Tabs, router } from "expo-router";
+import { Redirect, Tabs, router, type Href } from "expo-router";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { useGate } from "@/mobile/src/features/session/useGate";
 import { t } from "@/mobile/src/lib/i18n";
@@ -24,7 +24,7 @@ export default function TabsLayout() {
       </View>
     );
   }
-  if (gate.redirect) return <Redirect href={gate.redirect} />;
+  if (gate.redirect) return <Redirect href={gate.redirect as Href} />;
 
   return (
     <Tabs
