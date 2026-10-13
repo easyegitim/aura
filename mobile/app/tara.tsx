@@ -1,5 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import { Stack, router } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Image, View, useWindowDimensions } from "react-native";
 import { MediapipeCamera } from "react-native-mediapipe";
@@ -23,6 +23,8 @@ import { scoped, t as tt } from "@/mobile/src/lib/i18n";
 import { detectFaceOnImage, useLiveFaceLandmarker } from "@/mobile/src/native/faceLandmarker";
 import { cropForServerBase64, deleteQuietly, pixelStatsFor, resizeToAnalysis, type LocalImage } from "@/mobile/src/native/images";
 import { addProgressPhoto } from "@/mobile/src/lib/progressStore";
+import { setSessionSelfie } from "@/mobile/src/features/capture/sessionSelfie";
+import { File, Paths } from "expo-file-system";
 import { SwitchRow } from "@/mobile/src/components/ui/SwitchRow";
 import { radius, spacing, useTheme } from "@/mobile/src/theme";
 
@@ -53,6 +55,8 @@ export default function CaptureScreen() {
   const { colors } = useTheme();
   const { width: winW } = useWindowDimensions();
   const { api } = useSession();
+  const { purpose } = useLocalSearchParams<{ purpose?: string }>();
+  const forTryon = purpose === "tryon";
   const { hasPermission, requestPermission } = useCameraPermission();
   const cameraRef = useRef<Camera>(null);
   const [stage, setStage] = useState<Stage>("guide");
@@ -186,6 +190,21 @@ export default function CaptureScreen() {
     go("guide");
   }
 
+  /** SPEC 10.3 adım 3: deneme için selfie + landmark'lar oturum boyunca önbellekte (analiz gönderilmez). */
+  async function keepForTryon() {
+    if (!review?.final.landmarks) return;
+    try {
+      const dest = new File(Paths.cache, "aura-session-selfie.jpg");
+      if (dest.exists) dest.delete();
+      await new File(review.image.uri).copy(dest);
+      setSessionSelfie({ uri: dest.uri, width: review.image.width, height: review.image.height, landmarksPx: review.final.landmarks.map((p) => ({ x: p.x * review.image.width, y: p.y * review.image.height })), capturedAt: Date.now() });
+      await deleteQuietly(review.image.uri);
+      router.back();
+    } catch {
+      setIssue(t("errors.processing"));
+    }
+  }
+
   async function submit() {
     if (!review?.geometry || !review.final.landmarks) return;
     go("submitting");
@@ -196,6 +215,14 @@ export default function CaptureScreen() {
       const analysis = await api.post<ClientAnalysis>("/api/analyses", { clientRequestId: requestIdRef.current, geometry: review.geometry, image: base64 });
       if (!analysis) throw new Error("empty_response");
       track("analysis_completed", { tier: analysis.overall.locked ? "free" : "premium" });
+      try {
+        const dest = new File(Paths.cache, "aura-session-selfie.jpg");
+        if (dest.exists) dest.delete();
+        await new File(review.image.uri).copy(dest);
+        setSessionSelfie({ uri: dest.uri, width: review.image.width, height: review.image.height, landmarksPx: px, capturedAt: Date.now() });
+      } catch {
+        // deneme için bellek kopyası isteğe bağlıdır
+      }
       // SPEC 11.2: yalnız cihazda (uygulama sanal alanı); sunucuya gitmez. Varsayılan kapalı.
       if (saveProgress) await addProgressPhoto(review.image.uri, analysis.id).catch(() => undefined);
       await deleteQuietly(review.image.uri);
@@ -249,10 +276,11 @@ export default function CaptureScreen() {
                 {error.retryAt ? ` ${ta("retryAt", { date: new Date(error.retryAt).toLocaleString("tr-TR") })}` : ""}
               </Text>
             ) : null}
-            {review.report.passed ? <SwitchRow label={tc("saveProgress")} hint={tc("saveProgressHint")} value={saveProgress} onChange={setSaveProgress} /> : null}
+            {review.report.passed && !forTryon ? <SwitchRow label={tc("saveProgress")} hint={tc("saveProgressHint")} value={saveProgress} onChange={setSaveProgress} /> : null}
             <View style={{ flexDirection: "row", gap: spacing.sm }}>
               <Button title={t("review.retake")} variant="outline" style={{ flex: 1 }} onPress={retake} />
-              {review.report.passed ? <Button title={ta("start")} style={{ flex: 1 }} disabled={!review.geometry || error?.code === "QUOTA_EXCEEDED"} onPress={submit} /> : null}
+              {review.report.passed && forTryon ? <Button title={t("review.use")} style={{ flex: 1 }} onPress={() => void keepForTryon()} /> : null}
+              {review.report.passed && !forTryon ? <Button title={ta("start")} style={{ flex: 1 }} disabled={!review.geometry || error?.code === "QUOTA_EXCEEDED"} onPress={submit} /> : null}
             </View>
             <Text variant="small">{tt("common.photoNotStored")}</Text>
           </Card>

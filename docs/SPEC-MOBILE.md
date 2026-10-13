@@ -16,7 +16,7 @@ aura/                       Next.js projesi (kök); mobile/ ayrı pnpm projesidi
 └─ packages/ (yok)          paylaşım `@/` takma adıyla doğrudan kök `lib/` ve `content/`'ten yapılır
 ```
 
-- **Paylaşılan kod:** babel `module-resolver` ile `@/` → depo kökü; Metro `watchFolders` kökü izler, `blockList` Next dosyalarını dışlar. `mobile/` yalnız saf modülleri içe aktarır: `lib/config/*`, `lib/consent.ts`, `lib/questionnaire.ts`, `lib/face/{types,indices,pose,quality,metrics,faceShape,hairline}.ts`, `lib/score/present.ts` (tipler), `lib/coach/{bodyRules,eligibility,catalog}.ts`, `lib/tryon/{align,mask,composite}.ts`, `lib/routine/streak.ts`, `lib/account/consents.ts`, `lib/billing/revenuecat.ts` (saf eşleme), `lib/api/errors.ts` (tipler), `lib/analytics.ts` (olay adları), `content/*`, `messages/tr.json`. `"server-only"` içeren veya `next`, `react-dom`, DOM API kullanan hiçbir modül mobilden içe aktarılmaz (ESLint `no-restricted-imports` ile zorlanır).
+- **Paylaşılan kod:** babel `module-resolver` ile `@/` → depo kökü; Metro `watchFolders` kökü izler, `blockList` Next dosyalarını dışlar. `mobile/` yalnız saf modülleri içe aktarır: `lib/config/*`, `lib/consent.ts`, `lib/questionnaire.ts`, `lib/face/{types,indices,pose,quality,metrics,faceShape,hairline}.ts`, `lib/score/present.ts` (tipler), `lib/coach/{bodyRules,eligibility,catalog}.ts`, `lib/tryon/{align,mask,pixels}.ts` (+ `composite.ts`'ten `geometryDrift`/`TRYON_LIMITS`; canvas'lı `compositeTryon` yalnız web), `lib/routine/streak.ts`, `lib/account/consents.ts`, `lib/billing/revenuecat.ts` (saf eşleme), `lib/api/errors.ts` (tipler), `lib/analytics.ts` (olay adları), `content/*`, `messages/tr.json`. `"server-only"` içeren veya `next`, `react-dom`, DOM API kullanan hiçbir modül mobilden içe aktarılmaz (ESLint `no-restricted-imports` ile zorlanır).
 - **Sunucu:** mevcut `/api/*` uçları aynen kullanılır. Oturum: Supabase JS istemcisi (`expo-secure-store` ile token saklama), istekler `Authorization: Bearer <access_token>` ile gider; `withGuard` çerez yerine bearer'ı da kabul eder (M2).
 - **Ortam değişkenleri:** `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_POSTHOG_KEY`, `EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`. Gizli anahtar mobil pakete girmez (RevenueCat public SDK anahtarları gizli değildir).
 
@@ -57,7 +57,9 @@ Pazarlama, fiyatlar, yasal, admin: yalnız web.
 
 ## M5. Sanal deneme
 
-- `POST /api/tryon` aynen. Sonuç görseli cihazda `@shopify/react-native-skia` ile piksel dizisine açılır; `lib/tryon/{align,mask,composite}.ts` (Uint8/Float32 dizileri üzerinde saf) aynen çalışır; sonuç Skia ile JPEG'e kodlanır. Kimlik sapması kontrolü ve kota iadesi (`/api/tryon/[id]/drift`) aynı.
+- `GET /api/tryon/status` (premium, rıza, önerilenler, kota, sunum) ve `POST /api/tryon` aynen. Selfie oturum boyunca önbellekte (`features/capture/sessionSelfie`; `/tara?purpose=tryon`), 1024 px C kırpımı `expo-image-manipulator` ile.
+- Kompozit `src/native/tryon.ts`: G'de yüz bulma → benzerlik dönüşümü (Skia matrisi) → `readPixels` → `lib/tryon/pixels.ts` saf çekirdek (web worker ile aynı maske/ton/karışım) → `Skia.Image.MakeImage` → JPEG → kompozitte yeniden yüz bulma ve geometri sapması (`geometryDrift`, ≤ %3). Başarısızlıkta sonuç gösterilmez, `/api/tryon/[id]/drift` ile kota iade edilir.
+- İndirme: "Yapay zekâ ile oluşturuldu" etiketi Skia ile gömülür, sistem paylaşım sayfası açılır.
 
 ## M6. Ödeme (RevenueCat) — SPEC 15.4'ün ayrıntısı
 
