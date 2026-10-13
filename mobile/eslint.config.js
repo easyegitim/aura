@@ -15,7 +15,7 @@ module.exports = defineConfig([
           paths: [{ name: "server-only", message: "Sunucu modülü; mobilde kullanılamaz." }],
           patterns: [
             { group: ["next", "next/*", "react-dom", "react-dom/*"], message: "Next/DOM modülü; mobilde kullanılamaz." },
-            { group: ["@/lib/db/*", "@/lib/api/guard", "@/lib/api/premium", "@/lib/api/admin", "@/lib/ai/*", "@/lib/billing/*", "@/lib/coach/generate", "@/lib/coach/reportsStore", "@/lib/experts/*", "@/lib/legal/*", "@/lib/email/*", "@/lib/face/vision.worker", "@/lib/face/client", "@/lib/face/preprocess", "@/lib/local/*", "@/lib/share/*", "@/lib/security/*", "@/lib/monitoring/*", "@/app/*", "@/components/*"], message: "Sunucu/DOM modülü; SPEC-MOBILE M1 paylaşım listesine bak." },
+            { group: ["@/lib/db/*", "@/lib/api/guard", "@/lib/api/premium", "@/lib/api/admin", "@/lib/ai/*", "@/lib/billing/*", "!@/lib/billing/revenuecat", "@/lib/coach/generate", "@/lib/coach/reportsStore", "@/lib/experts/*", "@/lib/legal/*", "@/lib/email/*", "@/lib/face/vision.worker", "@/lib/face/client", "@/lib/face/preprocess", "@/lib/local/*", "@/lib/share/*", "@/lib/security/*", "@/lib/monitoring/*", "@/app/*", "@/components/*"], message: "Sunucu/DOM modülü; SPEC-MOBILE M1 paylaşım listesine bak." },
           ],
         },
       ],
