@@ -29,7 +29,20 @@ const config: ExpoConfig = {
     permissions: ["android.permission.CAMERA"],
     predictiveBackGestureEnabled: false,
   },
-  plugins: ["expo-router", "expo-secure-store"],
+  plugins: [
+    "expo-router",
+    "expo-secure-store",
+    [
+      "react-native-vision-camera",
+      {
+        cameraPermissionText: "Selfie'ni analiz etmek için kameraya erişim gerekir. Fotoğrafın saklanmaz.",
+        enableFrameProcessors: true,
+        enableCodeScanner: false,
+      },
+    ],
+    ["expo-image-picker", { photosPermission: "Galeriden selfie seçmek için erişim gerekir. Fotoğrafın saklanmaz." }],
+    "./plugins/withMediapipeModels.js",
+  ],
   experiments: { typedRoutes: true },
   extra: { eas: { projectId: process.env.EAS_PROJECT_ID ?? "" } },
 };

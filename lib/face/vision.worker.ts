@@ -2,6 +2,7 @@
 import { FaceLandmarker, FilesetResolver, ImageSegmenter, type FaceLandmarkerResult } from "@mediapipe/tasks-vision";
 import type { Protect } from "@/content/types";
 import { CompositeError, compositeTryon, geometryDrift } from "@/lib/tryon/composite";
+import { faceBoxToPixels, pixelStatsFromRgba } from "./pixelStats";
 import { SEG_CLASS, type BlendshapeScores, type FrameAnalysis, type Point, type SegmentationResult } from "./types";
 
 export type WorkerRequest =
@@ -121,48 +122,15 @@ function box(landmarks: Point[]) {
   return { minX, minY, maxX, maxY };
 }
 
-/** Parlaklık, sol/sağ yanak dengesi ve Laplace varyansı; 256 px'e küçültülmüş kopyada hesaplanır. */
+/** Parlaklık, sol/sağ yanak dengesi ve Laplace varyansı; 256 px'e küçültülmüş kopyada hesaplanır (lib/face/pixelStats.ts). */
 function pixelStats(bitmap: ImageBitmap, landmarks: Point[]) {
   const ctx = statsCanvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return { brightness: null, brightnessBalance: null, sharpness: null };
-  const b = box(landmarks);
   const S = 256;
   ctx.drawImage(bitmap, 0, 0, S, S);
-  const x0 = Math.max(0, Math.floor(b.minX * S)), y0 = Math.max(0, Math.floor(b.minY * S));
-  const x1 = Math.min(S, Math.ceil(b.maxX * S)), y1 = Math.min(S, Math.ceil(b.maxY * S));
-  const w = x1 - x0, h = y1 - y0;
+  const { x0, y0, w, h } = faceBoxToPixels(box(landmarks), S);
   if (w < 8 || h < 8) return { brightness: null, brightnessBalance: null, sharpness: null };
-  const img = ctx.getImageData(x0, y0, w, h).data;
-
-  let sum = 0, leftSum = 0, rightSum = 0, leftN = 0, rightN = 0;
-  const gray = new Float32Array(w * h);
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4;
-      const g = 0.299 * img[i] + 0.587 * img[i + 1] + 0.114 * img[i + 2];
-      gray[y * w + x] = g;
-      sum += g;
-      // yanaklar: dikeyde %40–70 bandı, yatayda dış %30'lar
-      if (y > h * 0.4 && y < h * 0.7) {
-        if (x < w * 0.3) { leftSum += g; leftN++; } else if (x > w * 0.7) { rightSum += g; rightN++; }
-      }
-    }
-  }
-  const brightness = sum / (w * h);
-  const brightnessBalance = leftN && rightN ? Math.abs(leftSum / leftN - rightSum / rightN) : null;
-
-  // 128×128 gri kırpımda Laplace varyansı (yeniden örnekleme: en yakın komşu)
-  const L = 128;
-  const lap: number[] = [];
-  const sample = (x: number, y: number) => gray[Math.min(h - 1, Math.floor((y * h) / L)) * w + Math.min(w - 1, Math.floor((x * w) / L))];
-  for (let y = 1; y < L - 1; y++) {
-    for (let x = 1; x < L - 1; x++) {
-      lap.push(sample(x - 1, y) + sample(x + 1, y) + sample(x, y - 1) + sample(x, y + 1) - 4 * sample(x, y));
-    }
-  }
-  const mean = lap.reduce((a, v) => a + v, 0) / lap.length;
-  const sharpness = lap.reduce((a, v) => a + (v - mean) ** 2, 0) / lap.length;
-  return { brightness, brightnessBalance, sharpness };
+  return pixelStatsFromRgba(ctx.getImageData(x0, y0, w, h).data, w, h);
 }
 
 /** Segmenter saç sınıfı yüz kutusunun hemen üstünde var mı? */

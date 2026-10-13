@@ -4,6 +4,8 @@ const expoConfig = require("eslint-config-expo/flat");
 module.exports = defineConfig([
   ...expoConfig,
   { ignores: ["dist/*", "ios/*", "android/*", ".expo/*"] },
+  // Node ortamında çalışan yapılandırma/eklenti/betik dosyaları
+  { files: ["plugins/**/*.js", "scripts/**/*.mjs", "*.config.js"], languageOptions: { globals: { __dirname: "readonly", require: "readonly", module: "writable", process: "readonly", console: "readonly" } } },
   {
     rules: {
       // SPEC-MOBILE M1: sunucu ve DOM'a bağlı modüller mobilden içe aktarılmaz.
