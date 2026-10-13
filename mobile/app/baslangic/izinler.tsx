@@ -9,6 +9,7 @@ import { Card } from "@/mobile/src/components/ui/Card";
 import { Screen } from "@/mobile/src/components/ui/Screen";
 import { SwitchRow } from "@/mobile/src/components/ui/SwitchRow";
 import { Text } from "@/mobile/src/components/ui/Text";
+import { setAnalyticsConsent } from "@/mobile/src/features/analytics/consent";
 import { readConsentState, type LegalDocDto } from "@/mobile/src/features/onboarding/consents";
 import { useSession } from "@/mobile/src/features/session/SessionProvider";
 import { useGate } from "@/mobile/src/features/session/useGate";
@@ -17,10 +18,11 @@ import { getSupabase } from "@/mobile/src/lib/supabase";
 import { radius, spacing, useTheme } from "@/mobile/src/theme";
 
 const t = scoped("onboarding.consents");
-type Key = (typeof REQUIRED_ANALYSIS_CONSENTS)[number] | (typeof OPTIONAL_ONBOARDING_CONSENTS)[number];
-const KEYS: readonly Key[] = [...REQUIRED_ANALYSIS_CONSENTS, ...OPTIONAL_ONBOARDING_CONSENTS];
+type Key = (typeof REQUIRED_ANALYSIS_CONSENTS)[number] | (typeof OPTIONAL_ONBOARDING_CONSENTS)[number] | "analytics_cookies";
+/** Mobilde çerez banner'ı yoktur; analitik izni (SPEC 16.2 analytics_cookies) burada isteğe bağlı sorulur. */
+const KEYS: readonly Key[] = [...REQUIRED_ANALYSIS_CONSENTS, ...OPTIONAL_ONBOARDING_CONSENTS, "analytics_cookies"];
 
-type Loaded = { notice: LegalDocDto; consentVersion: string; initial: ConsentState };
+type Loaded = { notice: LegalDocDto; consentVersion: string; cookieVersion: string; initial: ConsentState };
 
 /** SPEC 4.1 adım 4 / 16.2: aydınlatma (sona kadar kaydır, "Okudum") → zorunlu üç rıza + pazarlama. Metinler /api/legal'dan. */
 export default function ConsentsScreen() {
@@ -31,19 +33,20 @@ export default function ConsentsScreen() {
   const [failed, setFailed] = useState(false);
   const [step, setStep] = useState<"notice" | "consents">("notice");
   const [scrolledToEnd, setScrolledToEnd] = useState(false);
-  const [toggles, setToggles] = useState<Record<Key, boolean>>({ biometric_processing: false, photo_ai_analysis: false, cross_border_transfer: false, marketing: false });
+  const [toggles, setToggles] = useState<Record<Key, boolean>>({ biometric_processing: false, photo_ai_analysis: false, cross_border_transfer: false, marketing: false, analytics_cookies: false });
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
-    void Promise.all([api.get<LegalDocDto>("/api/legal/aydinlatma"), api.get<LegalDocDto>("/api/legal/acik-riza"), readConsentState(getSupabase())])
-      .then(([notice, consentDoc, initial]) => {
-        if (!active || !notice || !consentDoc) return;
+    void Promise.all([api.get<LegalDocDto>("/api/legal/aydinlatma"), api.get<LegalDocDto>("/api/legal/acik-riza"), api.get<LegalDocDto>("/api/legal/cerez"), readConsentState(getSupabase())])
+      .then(([notice, consentDoc, cookieDoc, initial]) => {
+        if (!active || !notice || !consentDoc || !cookieDoc) return;
         const ack = initial.kvkk_notice_ack;
+        const versionOf = (k: Key) => (k === "analytics_cookies" ? cookieDoc.version : consentDoc.version);
         const next = {} as Record<Key, boolean>;
-        for (const k of KEYS) next[k] = Boolean(initial[k]?.granted && initial[k]?.textVersion === consentDoc.version);
+        for (const k of KEYS) next[k] = Boolean(initial[k]?.granted && initial[k]?.textVersion === versionOf(k));
         setToggles(next);
-        setLoaded({ notice, consentVersion: consentDoc.version, initial });
+        setLoaded({ notice, consentVersion: consentDoc.version, cookieVersion: cookieDoc.version, initial });
         if (ack?.granted && ack.textVersion === notice.version) setStep("consents");
       })
       .catch(() => {
@@ -87,9 +90,11 @@ export default function ConsentsScreen() {
     setBusy(true);
     try {
       for (const k of KEYS) {
+        const version = k === "analytics_cookies" ? loaded.cookieVersion : loaded.consentVersion;
         const prev = loaded.initial[k];
-        const unchanged = prev && prev.granted === toggles[k] && prev.textVersion === loaded.consentVersion;
-        if (!unchanged && (toggles[k] || prev)) await post(k, toggles[k], loaded.consentVersion);
+        const unchanged = prev && prev.granted === toggles[k] && prev.textVersion === version;
+        if (!unchanged && (toggles[k] || prev)) await post(k, toggles[k], version);
+        if (k === "analytics_cookies") await setAnalyticsConsent(toggles[k]);
       }
       router.replace(QUESTIONNAIRE_PATH);
     } catch {

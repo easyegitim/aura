@@ -1,11 +1,16 @@
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Linking, Platform, View } from "react-native";
+import { Alert, Linking, Platform, Pressable, View } from "react-native";
 import { Button } from "@/mobile/src/components/ui/Button";
 import { Card } from "@/mobile/src/components/ui/Card";
 import { Screen } from "@/mobile/src/components/ui/Screen";
 import { Text } from "@/mobile/src/components/ui/Text";
+import { ConsentSettings } from "@/mobile/src/features/account/ConsentSettings";
+import { DataExport } from "@/mobile/src/features/account/DataExport";
+import { DeleteAccount } from "@/mobile/src/features/account/DeleteAccount";
 import { LinkAccount } from "@/mobile/src/features/auth/LinkAccount";
+import { LEGAL_SLUGS } from "@/lib/consent";
+import { env } from "@/mobile/src/lib/env";
 import { storeManageUrl } from "@/mobile/src/features/billing/plans";
 import { ensurePurchases, isPurchasesConfigured, restore } from "@/mobile/src/features/billing/purchases";
 import { useSession } from "@/mobile/src/features/session/SessionProvider";
@@ -16,7 +21,7 @@ const ts = scoped("account.subscription");
 const tp = scoped("pricing");
 type Status = { premium: boolean; plan: string | null; periodEnd: string | null; cancelAtPeriodEnd: boolean };
 
-/** /hesap (M4): e-posta/anonim, hesap bağlama, plan ve mağaza yönetimi, çıkış. Rızalar, export, silme M7'de. */
+/** /hesap (M7): e-posta/anonim, hesap bağlama, plan ve mağaza yönetimi, rızalar, verimi indir, yasal metinler, hesabımı sil, çıkış. */
 export default function AccountScreen() {
   const { user, signOut, api } = useSession();
   const [linked, setLinked] = useState(!(user?.is_anonymous ?? true));
@@ -64,6 +69,17 @@ export default function AccountScreen() {
         )}
         {isPurchasesConfigured() && linked ? <Button title={ts("restore")} variant="ghost" busy={busy} onPress={restorePurchases} /> : null}
       </Card>
+
+      <ConsentSettings />
+      <DataExport />
+      <Card title={t("account.legalTitle")}>
+        {LEGAL_SLUGS.map((slug) => (
+          <Pressable key={slug} accessibilityRole="link" onPress={() => void Linking.openURL(`${env.apiUrl}/yasal/${slug}`)}>
+            <Text style={{ textDecorationLine: "underline" }}>{t(`legal.links.${slug}`)}</Text>
+          </Pressable>
+        ))}
+      </Card>
+      <DeleteAccount />
 
       <Button
         title={t("auth.signOut")}
