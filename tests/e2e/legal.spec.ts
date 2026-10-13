@@ -35,7 +35,7 @@ test.describe("Yasal sayfalar ve çerez banner'ı (F16)", () => {
   });
 
   test("API uçları oturumsuz 401 döner (withGuard)", async ({ request }) => {
-    for (const path of ["/api/onboarding/age", "/api/consents", "/api/onboarding/questionnaire", "/api/analyses", "/api/me/delete", "/api/me/delete/cancel"]) {
+    for (const path of ["/api/onboarding/age", "/api/consents", "/api/onboarding/questionnaire", "/api/analyses", "/api/me/delete", "/api/me/delete/cancel", "/api/tryon"]) {
       const res = await request.post(path, { data: {} });
       expect(res.status(), path).toBe(401);
       const body = await res.json();
@@ -90,4 +90,9 @@ test("RevenueCat webhook yetkisiz 401; sync oturumsuz 401 (SPEC-MOBILE M6)", asy
   expect(wh.status()).toBe(401);
   const sync = await request.post("/api/billing/sync", { data: {} });
   expect(sync.status()).toBe(401);
+});
+
+test("GET /api/tryon/status oturumsuz 401 (SPEC-MOBILE M5)", async ({ request }) => {
+  const res = await request.get("/api/tryon/status");
+  expect(res.status()).toBe(401);
 });

@@ -4,14 +4,15 @@ import { ALIGN_POINTS, IDX } from "@/lib/face/indices";
 import { computeMetrics, rollCorrect } from "@/lib/face/metrics";
 import type { Point } from "@/lib/face/types";
 import { alignmentResidual, estimateSimilarity, type Similarity } from "./align";
-import { buildProtectMask, edgeBand } from "./mask";
+import { buildProtectMask } from "./mask";
+import { compositePixels } from "./pixels";
 
 export const TRYON_LIMITS = {
   /** Hizalama artığı / göz bebekleri arası mesafe (SPEC 10.5). */
   maxResidual: 0.04,
   /** lengthRatio ve jawRatio sapması (SPEC 10.5). */
   maxGeometryDrift: 0.03,
-  /** Kenar bandında parlaklık farkı eşiği (SPEC 10.4 adım 5). */
+  /** Kenar bandında parlaklık farkı eşiği (SPEC 10.4 adım 5; lib/tryon/pixels.ts). */
   edgeLumaDiff: 18,
   edgeBandPx: 12,
 } as const;
@@ -42,10 +43,6 @@ export class CompositeError extends Error {
   }
 }
 
-function luma(d: Uint8ClampedArray, i: number) {
-  return 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-}
-
 export async function compositeTryon(input: CompositeInput): Promise<CompositeResult> {
   const W = input.c.width, H = input.c.height;
   // 1) G, C boyutuna ölçeklenir; G noktaları da aynı ölçekle.
@@ -74,45 +71,11 @@ export async function compositeTryon(input: CompositeInput): Promise<CompositeRe
   const gp = ctxG.getImageData(0, 0, W, H);
   const cp = ctxC.getImageData(0, 0, W, H);
 
-  // 3) Maske (10 px yumuşatma).
+  // 3–5) Maske (10 px yumuşatma), kenar bandı ton düzeltmesi ve karışım: saf çekirdek (lib/tryon/pixels.ts)
   const mask = buildProtectMask(LC, W, H, input.protect);
-
-  // 5) Renk geçişi: kenar bandında ortalama parlaklık farkı > 18 ise G' maske dışında ton düzeltmesi.
-  const band = edgeBand(mask);
-  let sumG = 0, sumC = 0;
-  for (const i of band) {
-    sumG += luma(gp.data, i * 4);
-    sumC += luma(cp.data, i * 4);
-  }
-  const edgeLumaDiff = band.length ? Math.abs(sumG - sumC) / band.length : 0;
-  let toneAdjusted = false;
-  if (edgeLumaDiff > TRYON_LIMITS.edgeLumaDiff && band.length) {
-    const gain = Math.min(1.25, Math.max(0.8, sumC / Math.max(1, sumG)));
-    for (let i = 0; i < gp.data.length; i += 4) {
-      if (mask[i >> 2] === 255) continue;
-      gp.data[i] = Math.min(255, gp.data[i] * gain);
-      gp.data[i + 1] = Math.min(255, gp.data[i + 1] * gain);
-      gp.data[i + 2] = Math.min(255, gp.data[i + 2] * gain);
-    }
-    toneAdjusted = true;
-  }
-
-  // 4) Çıktı = G' × (1 − M) + C × M — maskede 255 olan pikseller C'den birebir (piksel farkı 0).
+  const { out: outData, edgeLumaDiff, toneAdjusted } = compositePixels(gp.data, cp.data, mask, W, H);
   const out = ctxC.createImageData(W, H);
-  for (let p = 0; p < W * H; p++) {
-    const m = mask[p] / 255;
-    const i = p * 4;
-    if (m === 1) {
-      out.data[i] = cp.data[i]; out.data[i + 1] = cp.data[i + 1]; out.data[i + 2] = cp.data[i + 2];
-    } else if (m === 0) {
-      out.data[i] = gp.data[i]; out.data[i + 1] = gp.data[i + 1]; out.data[i + 2] = gp.data[i + 2];
-    } else {
-      out.data[i] = gp.data[i] * (1 - m) + cp.data[i] * m;
-      out.data[i + 1] = gp.data[i + 1] * (1 - m) + cp.data[i + 1] * m;
-      out.data[i + 2] = gp.data[i + 2] * (1 - m) + cp.data[i + 2] * m;
-    }
-    out.data[i + 3] = 255;
-  }
+  out.data.set(outData);
   ctxC.putImageData(out, 0, 0);
   const image = canvasC.transferToImageBitmap();
   return { image, residual, transform: t, edgeLumaDiff, toneAdjusted };

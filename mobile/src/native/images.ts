@@ -3,6 +3,7 @@
 import { AlphaType, ColorType, Skia } from "@shopify/react-native-skia";
 import { File } from "expo-file-system";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { computeCropBox, type CropBox } from "@/lib/face/crop";
 import { faceBoxToPixels, pixelStatsFromRgba, type PixelStats } from "@/lib/face/pixelStats";
 import { faceBox } from "@/lib/face/quality";
 import type { Point } from "@/lib/face/types";
@@ -38,6 +39,25 @@ export async function pixelStatsFor(uri: string, landmarks: Point[]): Promise<Pi
     return pixelStatsFromRgba(px, w, h);
   } finally {
     await deleteQuietly(small.uri);
+  }
+}
+
+/** Kare kırpım (lib/face/crop.ts kutusu) → size px JPEG; base64 ≤ maxBytes olana kadar kalite düşer. Kırpım kutusunu da döner. */
+export async function cropSquareBase64(uri: string, landmarksPx: Point[], width: number, height: number, size: number, maxBytes: number, startQuality = 0.85): Promise<{ base64: string; bytes: number; box: CropBox; uri: string }> {
+  const box = computeCropBox(landmarksPx, width, height);
+  let quality = startQuality;
+  const ref = await ImageManipulator.manipulate(uri).crop({ originX: box.x, originY: box.y, width: box.size, height: box.size }).resize({ width: size, height: size }).renderAsync();
+  try {
+    for (;;) {
+      const out = await ref.saveAsync({ format: SaveFormat.JPEG, compress: quality, base64: true });
+      const b64 = out.base64 ?? "";
+      const bytes = base64Bytes(b64);
+      if (bytes <= maxBytes || quality <= 0.5) return { base64: b64, bytes, box, uri: out.uri };
+      await deleteQuietly(out.uri);
+      quality = Math.round((quality - 0.1) * 100) / 100;
+    }
+  } finally {
+    ref.release();
   }
 }
 
