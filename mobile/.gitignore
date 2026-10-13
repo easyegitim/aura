@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+dist/
+web-build/
+ios/
+android/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.env*.local
+# MediaPipe modelleri pnpm mobile:setup ile indirilir
+assets/mediapipe/*.task
+assets/mediapipe/*.tflite

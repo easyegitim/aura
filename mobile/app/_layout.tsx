@@ -1,0 +1,14 @@
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "react-native";
+
+/** Kök düzen (M0). Tema, oturum ve kapılar M1'de eklenir. */
+export default function RootLayout() {
+  const scheme = useColorScheme();
+  return (
+    <>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false }} />
+    </>
+  );
+}

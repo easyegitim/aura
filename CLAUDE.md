@@ -99,3 +99,13 @@ ELLE DOĞRULAMA:      1. … (gerçek telefonda adımlar dahil)
 ONAY BEKLEYENLER:    - push, merge, migration, deploy vb. (yoksa "yok")
 SONRAKİ ADIM:        …
 ```
+
+## Mobil uygulama (mobile/ — docs/SPEC-MOBILE.md)
+
+- Ürün lansmanı iOS + Android (Expo). Next.js kod tabanı API, pazarlama, yasal ve admin olarak kalır; `app/(app)/*` web ekranları dondurulur, silinmez.
+- `mobile/` yalnız saf paylaşılan modülleri içe aktarır (SPEC-MOBILE M1 listesi). `"server-only"`, `next/*`, DOM API içeren modül mobilden içe aktarılmaz.
+- Mağaza satın alma sonucu (RevenueCat/StoreKit/Play) istemcide premium açmaz; yetki yalnız webhook/sunucu doğrulamasıyla `subscriptions` üzerinden gelir.
+- Fotoğraf ve landmark kuralları aynen: görsel yalnız `/api/analyses` ve `/api/tryon`'a gider; cihazda yalnız geçici dosya; ilerleme fotoğrafları uygulama sanal alanında, ağa çıkmaz.
+- Native paket eklerken sürüm uyumunu (Expo SDK, vision-camera, worklets) doğrula; emin olmadığın native API adını uydurma.
+- Ajan cihazda/simülatörde çalıştıramaz: her mobil faz `pnpm --filter mobile typecheck && lint && test` ve `expo export` ile doğrulanır; cihaz testi "ELLE DOĞRULAMA"ya yazılır.
+- Görev kimlikleri M0–M8; commit: `"M3: …"`.

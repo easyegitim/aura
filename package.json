@@ -21,7 +21,12 @@
     "predev": "node scripts/setup-mediapipe.mjs",
     "test:e2e:privacy": "PRIVACY_E2E=1 playwright test --project=privacy",
     "test:e2e:billing": "BILLING_E2E=1 playwright test --project=billing",
-    "db:push:api": "node scripts/supabase-api-migrate.mjs"
+    "db:push:api": "node scripts/supabase-api-migrate.mjs",
+    "mobile:install": "pnpm --dir mobile install",
+    "mobile:typecheck": "pnpm --dir mobile typecheck",
+    "mobile:lint": "pnpm --dir mobile lint",
+    "mobile:test": "pnpm --dir mobile test",
+    "mobile:export": "pnpm --dir mobile export"
   },
   "dependencies": {
     "@fal-ai/client": "^1.10.1",

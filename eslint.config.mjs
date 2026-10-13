@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Üçüncü taraf çalışma zamanı dosyaları (pnpm mediapipe:setup kopyalar)
     "public/**",
+    // Mobil uygulama kendi ESLint yapılandırmasıyla denetlenir (mobile/eslint.config.js)
+    "mobile/**",
   ]),
 ]);
 

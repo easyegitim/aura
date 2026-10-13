@@ -73,3 +73,24 @@ jobs:
         run: bash scripts/check-rls.sh
       - name: Silme talebi → 7 gün → hiçbir tabloda satır kalmaz (SPEC Faz 13 çıkış kriteri)
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/ci/purge-check.sql
+
+  mobile:
+    name: mobile · typecheck · lint · test · export
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm export
