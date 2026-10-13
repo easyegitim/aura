@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findHairline } from "@/lib/face/hairline";
+import { findHairline, hairlineRatio, propagateHairline } from "@/lib/face/hairline";
 import { IDX } from "@/lib/face/indices";
 import { SEG_CLASS, type SegmentationResult } from "@/lib/face/types";
 import { syntheticFace } from "../helpers/syntheticFace";
@@ -39,5 +39,21 @@ describe("findHairline (SPEC 7.4)", () => {
   it("arama görüntü dışına çıkarsa bulunamadı", () => {
     const all = { width: W, height: H, mask: new Uint8Array(W * H).fill(SEG_CLASS.faceSkin) };
     expect(findHairline(face, { width: W, height: H }, all).found).toBe(false);
+  });
+});
+
+describe("propagateHairline (SPEC-MOBILE M8)", () => {
+  it("bulunan nokta başka ölçekteki kareye yüz yüksekliği oranıyla taşınır", () => {
+    const r = findHairline(face, { width: W, height: H }, mask(70, SEG_CLASS.hair));
+    const bigger = face.map((p) => ({ x: p.x * 2 + 10, y: p.y * 2 + 5 }));
+    const moved = propagateHairline(face, r.point!, bigger)!;
+    expect(moved.x).toBeCloseTo(r.point!.x * 2 + 10, 3);
+    expect(moved.y).toBeCloseTo(r.point!.y * 2 + 5, 3);
+    expect(hairlineRatio(bigger, moved)).toBeCloseTo(hairlineRatio(face, r.point!)!, 6);
+  });
+  it("geçersiz oranlarda null döner", () => {
+    const g = face[IDX.glabella];
+    expect(propagateHairline(face, { x: g.x, y: g.y }, face)).toBeNull(); // uzaklık 0
+    expect(propagateHairline(face, { x: g.x, y: g.y - 1000 }, face)).toBeNull(); // yüz yüksekliğinin 1,5 katından uzak
   });
 });

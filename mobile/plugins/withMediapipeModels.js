@@ -5,7 +5,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { withDangerousMod, withXcodeProject, IOSConfig } = require("expo/config-plugins");
 
-const MODELS = ["face_landmarker.task"];
+// M8: selfie_multiclass_256x256.tflite → modules/aura-segmenter (saç çizgisi).
+const MODELS = ["face_landmarker.task", "selfie_multiclass_256x256.tflite"];
 const SRC_DIR = path.join(__dirname, "..", "assets", "mediapipe");
 
 function assertModels() {

@@ -50,3 +50,33 @@ export function findHairline(
   }
   return { found: false, point: null };
 }
+
+/**
+ * SPEC-MOBILE M8: saç çizgisi yalnız çekilen karede (segmenter) bulunur; önceki canlı karelerde yoktur.
+ * computeStableGeometry çoğunluk ister; bu yüzden bulunan nokta, glabella→tepe doğrultusundaki göreli
+ * konumuyla (yüz yüksekliğine oranla) diğer karelerin landmark uzayına taşınır. Saf; kare boyutu farklı olabilir.
+ */
+export function propagateHairline(fromPx: Point[], hairline: Point, toPx: Point[]): Point | null {
+  const ratio = hairlineRatio(fromPx, hairline);
+  if (ratio === null) return null;
+  const g = toPx[IDX.glabella];
+  const top = toPx[IDX.top];
+  const dx = top.x - g.x;
+  const dy = top.y - g.y;
+  const len = Math.hypot(dx, dy);
+  const faceHeight = Math.hypot(toPx[IDX.menton].x - top.x, toPx[IDX.menton].y - top.y);
+  if (len === 0 || faceHeight === 0) return null;
+  const dist = ratio * faceHeight;
+  return { x: g.x + (dx / len) * dist, y: g.y + (dy / len) * dist };
+}
+
+/** Glabella'dan saç çizgisine uzaklık / yüz yüksekliği (tepe→menton). Geçersizse null. */
+export function hairlineRatio(px: Point[], hairline: Point): number | null {
+  const g = px[IDX.glabella];
+  const top = px[IDX.top];
+  const faceHeight = Math.hypot(px[IDX.menton].x - top.x, px[IDX.menton].y - top.y);
+  if (faceHeight === 0) return null;
+  const dist = Math.hypot(hairline.x - g.x, hairline.y - g.y);
+  const r = dist / faceHeight;
+  return Number.isFinite(r) && r > 0 && r < 1.5 ? r : null;
+}
