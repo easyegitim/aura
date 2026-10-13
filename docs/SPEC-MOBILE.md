@@ -48,7 +48,8 @@ Pazarlama, fiyatlar, yasal, admin: yalnız web.
 ## M4. Kamera ve yüz hattı
 
 - `react-native-vision-camera` **4.x** (react-native-mediapipe 0.6 ile uyumlu sürüm; 5.x değil) + `react-native-worklets-core` + `react-native-mediapipe` (Face Landmarker, 478 nokta, native iOS/Android).
-- Çıktı web ile **aynı `GeometryResult` (`geo-v1`)**; `lib/face/{quality,pose,metrics,faceShape}.ts` değişmeden kullanılır. Poz: paket dönüşüm matrisi veriyorsa `eulerFromMatrix`, vermiyorsa landmark tabanlı tahmin (`lib/face/pose.ts`'e eklenir, birim testli).
+- Çıktı web ile **aynı `GeometryResult` (`geo-v1`)**; `lib/face/{quality,pose,metrics,faceShape}.ts` değişmeden kullanılır. Poz: paketin `facialTransformationMatrixes[0].data` (16 sayı) → `eulerFromMatrix`; eksen/işaret uyumu gerçek cihazda `/tara` inceleme ekranındaki yaw/pitch/roll ile doğrulanır (AÇIK: satır/sütun önceliği farklıysa `lib/face/pose.ts`'e mobil varyant eklenir).
+- Canlı önizlemede piksel erişimi yoktur: kalite kapısı landmark + blendshape + poz ile çalışır; parlaklık/denge/netlik **çekilen karede** Skia `readPixels` ile hesaplanır (`lib/face/pixelStats.ts`, web worker ile ortak saf fonksiyon).
 - Saç çizgisi: react-native-mediapipe görüntü bölütleme (selfie segmenter) içermez. **M4'te `hairlineFound=false`** ile ilerlenir (SPEC 7.6 zaten bu durumu tanımlar: üst üçte bir `null`); **M8'de** özel Expo modülü ile segmenter eklenir.
 - Görüntü: `expo-image-manipulator` ile 1280 px uzun kenar → kalite kapısı → 768 px kare kırpma (`lib/face/crop.ts` saf matematiği; piksel işlemi native) → JPEG base64 → `POST /api/analyses` (aynı sözleşme: `image` + `geometry`, 478 nokta gitmez).
 - Galeriden yükleme: `expo-image-picker`; aynı kalite kapısından geçer.
