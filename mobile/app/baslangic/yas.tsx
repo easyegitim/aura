@@ -1,4 +1,4 @@
-import { Redirect, router } from "expo-router";
+import { Redirect, router, type Href } from "expo-router";
 import { useState } from "react";
 import { Alert, View } from "react-native";
 import { track } from "@/lib/analytics";
@@ -24,7 +24,7 @@ export default function AgeGateScreen() {
   const [blocked, setBlocked] = useState(false);
 
   // Zaten 18+ işaretliyse (gate yaş kapısını istemiyorsa) izinlere geç.
-  if (gate.ready && gate.redirect !== AGE_GATE_PATH && gate.redirect !== "/") return <Redirect href={gate.redirect ?? CONSENTS_PATH} />;
+  if (gate.ready && gate.redirect !== AGE_GATE_PATH && gate.redirect !== "/") return <Redirect href={(gate.redirect ?? CONSENTS_PATH) as Href} />;
 
   const parsed = parseBirthYear(year);
 

@@ -22,6 +22,8 @@ import { ApiClientError } from "@/mobile/src/lib/api";
 import { scoped, t as tt } from "@/mobile/src/lib/i18n";
 import { detectFaceOnImage, useLiveFaceLandmarker } from "@/mobile/src/native/faceLandmarker";
 import { cropForServerBase64, deleteQuietly, pixelStatsFor, resizeToAnalysis, type LocalImage } from "@/mobile/src/native/images";
+import { addProgressPhoto } from "@/mobile/src/lib/progressStore";
+import { SwitchRow } from "@/mobile/src/components/ui/SwitchRow";
 import { radius, spacing, useTheme } from "@/mobile/src/theme";
 
 const t = scoped("camera");
@@ -66,6 +68,7 @@ export default function CaptureScreen() {
   const [review, setReview] = useState<Review | null>(null);
   const [error, setError] = useState<{ code: string; retryAt?: string } | null>(null);
   const requestIdRef = useRef(newRequestId());
+  const [saveProgress, setSaveProgress] = useState(false);
 
   const go = useCallback((s: Stage) => {
     stageRef.current = s;
@@ -193,6 +196,8 @@ export default function CaptureScreen() {
       const analysis = await api.post<ClientAnalysis>("/api/analyses", { clientRequestId: requestIdRef.current, geometry: review.geometry, image: base64 });
       if (!analysis) throw new Error("empty_response");
       track("analysis_completed", { tier: analysis.overall.locked ? "free" : "premium" });
+      // SPEC 11.2: yalnız cihazda (uygulama sanal alanı); sunucuya gitmez. Varsayılan kapalı.
+      if (saveProgress) await addProgressPhoto(review.image.uri, analysis.id).catch(() => undefined);
       await deleteQuietly(review.image.uri);
       requestIdRef.current = newRequestId();
       router.replace(`/analiz/${analysis.id}`);
@@ -244,6 +249,7 @@ export default function CaptureScreen() {
                 {error.retryAt ? ` ${ta("retryAt", { date: new Date(error.retryAt).toLocaleString("tr-TR") })}` : ""}
               </Text>
             ) : null}
+            {review.report.passed ? <SwitchRow label={tc("saveProgress")} hint={tc("saveProgressHint")} value={saveProgress} onChange={setSaveProgress} /> : null}
             <View style={{ flexDirection: "row", gap: spacing.sm }}>
               <Button title={t("review.retake")} variant="outline" style={{ flex: 1 }} onPress={retake} />
               {review.report.passed ? <Button title={ta("start")} style={{ flex: 1 }} disabled={!review.geometry || error?.code === "QUOTA_EXCEEDED"} onPress={submit} /> : null}
