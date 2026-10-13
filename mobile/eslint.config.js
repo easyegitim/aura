@@ -6,6 +6,7 @@ module.exports = defineConfig([
   { ignores: ["dist/*", "ios/*", "android/*", ".expo/*"] },
   // Node ortamında çalışan yapılandırma/eklenti/betik dosyaları
   { files: ["plugins/**/*.js", "scripts/**/*.mjs", "*.config.js"], languageOptions: { globals: { __dirname: "readonly", require: "readonly", module: "writable", process: "readonly", console: "readonly" } } },
+  { ignores: ["modules/*/android/**", "modules/*/ios/**"] },
   { files: ["tests/setup/**/*.js"], languageOptions: { globals: { jest: "readonly", require: "readonly" } } },
   {
     rules: {

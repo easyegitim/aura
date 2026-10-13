@@ -7,13 +7,13 @@ import { getPreset } from "@/content/presets";
 import { SKIN_STEPS } from "@/content/skin-steps";
 import type { CoachReport, ReportPick } from "@/lib/ai/reportSchema";
 import { track } from "@/lib/analytics";
-import { isFeatureEnabled } from "@/lib/config/flags";
 import { FeedbackButtons } from "@/mobile/src/components/report/FeedbackButtons";
 import { Button } from "@/mobile/src/components/ui/Button";
 import { Card } from "@/mobile/src/components/ui/Card";
 import { Text } from "@/mobile/src/components/ui/Text";
 import { addReportToRoutine } from "@/mobile/src/features/routine/addFromReport";
 import { useSession } from "@/mobile/src/features/session/SessionProvider";
+import { isMobileFeatureEnabled } from "@/mobile/src/lib/flags";
 import { ApiClientError } from "@/mobile/src/lib/api";
 import { scoped, t as tt } from "@/mobile/src/lib/i18n";
 import { radius, spacing, useTheme } from "@/mobile/src/theme";
@@ -124,7 +124,7 @@ export function ReportView({ analysisId }: { analysisId: string }) {
       {r.style.length ? <Section id="style" title={t("sections.style")} reportId={reportId}>{r.style.map((s, i) => <Text key={i}>• {s}</Text>)}</Section> : null}
       {r.seeProfessional ? (
         <Card title={t("sections.professional")} description={r.seeProfessional.text}>
-          {isFeatureEnabled("expertNetwork") ? <Button title={t("findExpert")} variant="outline" onPress={() => router.push({ pathname: "/uzman", params: { alan: r.seeProfessional!.specialty } })} /> : null}
+          {isMobileFeatureEnabled("expertNetwork") ? <Button title={t("findExpert")} variant="outline" onPress={() => router.push({ pathname: "/uzman", params: { alan: r.seeProfessional!.specialty } })} /> : null}
         </Card>
       ) : null}
       <Button title={t("addToRoutine")} size="lg" busy={busy} onPress={addToRoutine} />

@@ -110,3 +110,5 @@ Her faz CLAUDE.md "Görev sonu raporu" biçimiyle biter. Cihazda çalıştırma 
 
 - Bu ortamda `api.expo.dev` ve `docs.expo.dev` ağ politikasında kapalı: `expo install` sürüm çözümlemesi çalışmaz; sürümler `node_modules/expo/bundledNativeModules.json`'dan alınır ve `pnpm add` ile kurulur. Expo belgeleri doğrulanamadığında API adı tahmin edilmez; paketin kendi tip tanımları okunur.
 - Doğrulama zinciri: `pnpm mobile:typecheck && pnpm mobile:lint && pnpm mobile:test && pnpm mobile:export` (Metro paketi üretir; cihaz gerekmez).
+- Yerel Expo modülleri `mobile/modules/<ad>/` altındadır (autolinking varsayılan dizini); `pnpm --dir mobile check:modules` her iki platformda çözümlendiğini doğrular. Native API'ler (MediaPipe Tasks) bu ortamda belgeden doğrulanamadığından sürümler bağımlı paketlerle aynı tutulur ve cihaz testi "ELLE DOĞRULAMA"ya yazılır.
+- `expo prebuild --platform <android|ios> --no-install` eklenti ve model kopyalamayı doğrular; üretilen `android/`, `ios/` dizinleri silinir (CNG).

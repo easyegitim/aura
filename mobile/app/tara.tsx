@@ -5,7 +5,8 @@ import { Image, View, useWindowDimensions } from "react-native";
 import { MediapipeCamera } from "react-native-mediapipe";
 import { Camera, useCameraPermission } from "react-native-vision-camera";
 import { track } from "@/lib/analytics";
-import { computeStableGeometry, type GeometryFrame } from "@/lib/face/metrics";
+import { findHairline, propagateHairline } from "@/lib/face/hairline";
+import { computeStableGeometry, toPixels, type GeometryFrame } from "@/lib/face/metrics";
 import { checkQuality, type QualityReport } from "@/lib/face/quality";
 import type { FrameAnalysis, GeometryResult } from "@/lib/face/types";
 import type { ClientAnalysis } from "@/lib/score/present";
@@ -16,11 +17,13 @@ import { Card } from "@/mobile/src/components/ui/Card";
 import { Screen } from "@/mobile/src/components/ui/Screen";
 import { Text } from "@/mobile/src/components/ui/Text";
 import { toFrameAnalysis, type NativeBundle } from "@/mobile/src/features/capture/frame";
+import { hairAboveFace } from "@/mobile/src/features/capture/segmentation";
 import { initialLive, shouldProcess, stepLive, type LiveState } from "@/mobile/src/features/capture/machine";
 import { useSession } from "@/mobile/src/features/session/SessionProvider";
 import { ApiClientError } from "@/mobile/src/lib/api";
 import { scoped, t as tt } from "@/mobile/src/lib/i18n";
 import { detectFaceOnImage, useLiveFaceLandmarker } from "@/mobile/src/native/faceLandmarker";
+import { segmentForHairline } from "@/mobile/src/native/segmenter";
 import { cropForServerBase64, deleteQuietly, pixelStatsFor, resizeToAnalysis, type LocalImage } from "@/mobile/src/native/images";
 import { addProgressPhoto } from "@/mobile/src/lib/progressStore";
 import { setSessionSelfie } from "@/mobile/src/features/capture/sessionSelfie";
@@ -86,14 +89,24 @@ export default function CaptureScreen() {
       try {
         image = await resizeToAnalysis(src.uri, src.width, src.height);
         const bundle = await detectFaceOnImage(image.uri);
-        const stats = bundle.results[0]?.faceLandmarks.length === 1 ? await pixelStatsFor(image.uri, bundle.results[0].faceLandmarks[0]) : null;
-        const final = toFrameAnalysis(bundle, Date.now(), stats);
+        const oneFace = bundle.results[0]?.faceLandmarks.length === 1;
+        const stats = oneFace ? await pixelStatsFor(image.uri, bundle.results[0].faceLandmarks[0]) : null;
+        // M8: segmenter maskesi (yalnız çekilen karede) → saç görünürlüğü uyarısı + saç çizgisi. Modül yoksa null.
+        const seg = oneFace ? await segmentForHairline(image.uri) : null;
+        const base = toFrameAnalysis(bundle, Date.now(), stats);
+        const final: FrameAnalysis = seg && base.landmarks ? { ...base, hairVisible: hairAboveFace(seg, base.landmarks) } : base;
         const report = checkQuality(final);
         attemptsRef.current++;
         let geometry: GeometryResult | null = null;
         if (report.passed) {
           track("capture_succeeded", { attempts: attemptsRef.current });
-          const frames: GeometryFrame[] = [...recentRef.current.slice(-4).map((f) => ({ frame: f, hairline: null })), { frame: final, hairline: null }];
+          const finalPx = toPixels(final.landmarks!, final.width, final.height);
+          const hairline = seg ? findHairline(finalPx, final, seg).point : null;
+          // Saç çizgisi canlı karelere göreli konumuyla taşınır (computeStableGeometry çoğunluk ister).
+          const frames: GeometryFrame[] = [
+            ...recentRef.current.slice(-4).map((f) => ({ frame: f, hairline: hairline && f.landmarks ? propagateHairline(finalPx, hairline, toPixels(f.landmarks, f.width, f.height)) : null })),
+            { frame: final, hairline },
+          ];
           try {
             geometry = computeStableGeometry(frames);
           } catch {

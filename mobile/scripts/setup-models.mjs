@@ -7,6 +7,8 @@ import { Readable } from "node:stream";
 const DIR = path.join(process.cwd(), "assets", "mediapipe");
 const MODELS = [
   { file: "face_landmarker.task", url: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task", minBytes: 3_000_000 },
+  // M8: saç çizgisi için selfie bölütleme (modules/aura-segmenter). Web ile aynı model (scripts/setup-mediapipe.mjs).
+  { file: "selfie_multiclass_256x256.tflite", url: "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite", minBytes: 10_000_000 },
 ];
 mkdirSync(DIR, { recursive: true });
 for (const m of MODELS) {

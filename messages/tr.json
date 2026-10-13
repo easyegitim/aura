@@ -965,7 +965,8 @@
       "FEATURE_DISABLED": "Uzman Ağı şu an kapalı.",
       "NETWORK": "Bağlantı sorunu.",
       "GENERIC": "Bir sorun oluştu."
-    }
+    },
+    "disabled": "Uzman Ağı şu an kapalı."
   },
   "deletion": {
     "title": "Silme talebin bekliyor",

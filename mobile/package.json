@@ -57,7 +57,8 @@
     "export": "expo export --platform android",
     "doctor": "expo-doctor",
     "setup": "node scripts/setup-models.mjs",
-    "prebuild": "node scripts/setup-models.mjs && expo prebuild"
+    "prebuild": "node scripts/setup-models.mjs && expo prebuild",
+    "check:modules": "node scripts/check-modules.mjs"
   },
   "private": true
 }
