@@ -72,3 +72,15 @@ test("geçersiz Bearer token 401 döner, 500 değil (SPEC-MOBILE M2)", async ({ 
   expect(res.status()).toBe(401);
   expect((await res.json()).error.code).toBe("UNAUTHENTICATED");
 });
+
+test("GET /api/legal/[slug] yasal metni sürümüyle döner; bilinmeyen slug 404 (SPEC-MOBILE M2)", async ({ request }) => {
+  const res = await request.get("/api/legal/aydinlatma");
+  expect(res.status()).toBe(200);
+  const body = await res.json();
+  expect(body.slug).toBe("aydinlatma");
+  expect(body.version).toMatch(/^\d{4}-\d{2}-\d{2}/);
+  expect(typeof body.body).toBe("string");
+  expect(body.body.length).toBeGreaterThan(100);
+  const missing = await request.get("/api/legal/yok");
+  expect(missing.status()).toBe(404);
+});
