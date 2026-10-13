@@ -84,3 +84,10 @@ test("GET /api/legal/[slug] yasal metni sürümüyle döner; bilinmeyen slug 404
   const missing = await request.get("/api/legal/yok");
   expect(missing.status()).toBe(404);
 });
+
+test("RevenueCat webhook yetkisiz 401; sync oturumsuz 401 (SPEC-MOBILE M6)", async ({ request }) => {
+  const wh = await request.post("/api/billing/revenuecat", { data: { event: { id: "x", app_user_id: "u" } } });
+  expect(wh.status()).toBe(401);
+  const sync = await request.post("/api/billing/sync", { data: {} });
+  expect(sync.status()).toBe(401);
+});

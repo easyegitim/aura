@@ -156,7 +156,11 @@
     "invalidEmail": "Geçerli bir e-posta adresi gir.",
     "invalidCode": "Kod 6 haneli olmalı.",
     "signOut": "Çıkış yap",
-    "signedOut": "Çıkış yapıldı."
+    "signedOut": "Çıkış yapıldı.",
+    "methodApple": "Apple",
+    "appleContinue": "Apple ile bağla",
+    "oauthHint": "Tarayıcı açılır; bağlandıktan sonra uygulamaya dönersin.",
+    "oauthCancelled": "Bağlama iptal edildi."
   },
   "account": {
     "title": "Hesap",
@@ -180,7 +184,10 @@
       "keep": "Vazgeç",
       "confirm": "İptal et",
       "canceled": "Abonelik iptal edildi.",
-      "cancelError": "İptal iletilemedi. Tekrar dene veya destekle iletişime geç."
+      "cancelError": "İptal iletilemedi. Tekrar dene veya destekle iletişime geç.",
+      "manageInStore": "Aboneliği mağazada yönet",
+      "storeManaged": "Bu abonelik App Store / Google Play üzerinden yönetilir.",
+      "restore": "Satın almaları geri yükle"
     },
     "legalTitle": "Yasal metinler",
     "consents": {
@@ -661,7 +668,19 @@
     "note": "Deneme süresi yok; dilediğin zaman tek tıkla iptal, erişim dönem sonuna kadar sürer.",
     "pageTitle": "Premium",
     "pageBody": "Bir plan seç. Ödemeden önce hesabını e-posta veya Google ile bağlaman istenir.",
-    "phaseNote": "Ödeme adımı 8. fazda (F14) açılacak."
+    "phaseNote": "Ödeme adımı 8. fazda (F14) açılacak.",
+    "linkFirstTitle": "Önce hesabını bağla",
+    "linkFirstBody": "Satın alma için kalıcı bir hesap gerekir; böylece aboneliğin başka cihazda da geçerli olur.",
+    "choosePlan": "Plan seç",
+    "buy": "Satın al",
+    "restore": "Satın almaları geri yükle",
+    "restored": "Satın almalar geri yüklendi.",
+    "noOfferings": "Mağaza planları şu an yüklenemedi. Biraz sonra tekrar dene.",
+    "purchaseCancelled": "Satın alma iptal edildi.",
+    "purchaseError": "Satın alma tamamlanamadı. Mağaza hesabını kontrol edip tekrar dene.",
+    "pending": "Ödeme doğrulanıyor…",
+    "storeNote": "Abonelik App Store / Google Play hesabından yönetilir ve faturalanır. İptal etsen de erişimin dönem sonuna kadar sürer.",
+    "alreadyPremium": "Premium hesabın açık."
   },
   "share": {
     "button": "Paylaşım kartı oluştur",

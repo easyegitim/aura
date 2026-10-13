@@ -9,8 +9,10 @@ export const runtime = "nodejs";
 
 /** SPEC 15.2 adım 9: tek tık iptal → iyzico cancel → cancel_at_period_end = true; erişim dönem sonuna kadar. */
 export const POST = withGuard({}, async ({ user, supabase }) => {
-  const { data } = await supabase.from("subscriptions").select("plan, status, provider_subscription_ref, cancel_at_period_end").eq("user_id", user.id).maybeSingle();
+  const { data } = await supabase.from("subscriptions").select("plan, status, provider, provider_subscription_ref, cancel_at_period_end").eq("user_id", user.id).maybeSingle();
   if (!data || !["active", "past_due"].includes(String(data.status))) throw new ApiError("BAD_INPUT", "Aktif abonelik yok.");
+  // SPEC 15.4: mağaza abonelikleri mağazadan iptal edilir; sunucu RevenueCat olayıyla güncellenir.
+  if (String(data.provider) === "revenuecat") throw new ApiError("BAD_INPUT", "Mağaza aboneliği; iptal App Store / Google Play abonelik ayarlarından yapılır.");
   if (data.cancel_at_period_end) return Response.json({ cancelAtPeriodEnd: true });
   const ref = data.provider_subscription_ref ? String(data.provider_subscription_ref) : null;
   if (ref && !ref.startsWith("onetime:")) {
