@@ -15,19 +15,21 @@ import { cropForServer } from "@/lib/face/crop";
 import { setSessionSelfie } from "@/lib/face/sessionStore";
 import { addProgressPhoto } from "@/lib/local/progressStore";
 import { Checkbox } from "@/components/ui/checkbox";
-import { findHairline } from "@/lib/face/hairline";
+import { findHairline, propagateHairline } from "@/lib/face/hairline";
 import { computeStableGeometry, toPixels, type GeometryFrame } from "@/lib/face/metrics";
 import type { GeometryResult } from "@/lib/face/types";
 
 /** Çekim sonrası cihazda geometri (F06): segmenter → saç çizgisi → 5 kare medyanı → GeometryResult. */
 async function computeGeometry(result: CaptureResult): Promise<GeometryResult> {
   const seg = await VisionClient.get().segment(await createImageBitmap(result.image.bitmap));
-  const hairline =
-    seg && result.final.landmarks
-      ? findHairline(toPixels(result.final.landmarks, result.final.width, result.final.height), result.final, seg).point
-      : null;
-  // Canlı karelerde saç çizgisi aranmaz (maliyet); son karenin saç çizgisi hepsine uygulanmaz, yalnız son kareye.
-  const frames: GeometryFrame[] = [...result.recentFrames.map((f) => ({ frame: f, hairline: null })), { frame: result.final, hairline }];
+  const finalPx = result.final.landmarks ? toPixels(result.final.landmarks, result.final.width, result.final.height) : null;
+  const hairline = seg && finalPx ? findHairline(finalPx, result.final, seg).point : null;
+  // Canlı karelerde segmenter çalıştırılmaz (maliyet); son karede bulunan saç çizgisi göreli konumuyla canlı karelere
+  // taşınır (computeStableGeometry çoğunluk ister; aksi halde üst üçte bir hep null kalırdı). Mobil ile aynı kural (M8).
+  const frames: GeometryFrame[] = [
+    ...result.recentFrames.map((f) => ({ frame: f, hairline: hairline && finalPx && f.landmarks ? propagateHairline(finalPx, hairline, toPixels(f.landmarks, f.width, f.height)) : null })),
+    { frame: result.final, hairline },
+  ];
   return computeStableGeometry(frames);
 }
 

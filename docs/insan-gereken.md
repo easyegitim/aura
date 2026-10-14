@@ -32,7 +32,7 @@ Web Faz 0–15 ve mobil M0–M8 `main`'de. Ajan ortamında yapılamayan veya hes
 
 - [ ] Apple Developer, Google Play Console, EAS hesapları; RevenueCat ürünleri/webhook; Sign in with Apple — `docs/store-submission.md` §1.
 - [ ] `pnpm --dir mobile setup` → `eas build --profile development` → gerçek cihazda: /tara (< 10 sn, poz işaretleri, segmenter "Üst üçte bir"), sandbox satın alma → webhook → premium, sanal deneme drift ≤ %3, hesap silme/iptal, veri dışa aktarma.
-- [ ] Native derleme doğrulaması: `modules/aura-segmenter` (Swift/Kotlin, MediaPipe Tasks 0.10.12/0.10.14) ilk EAS derlemesinde derlenmeli; hata olursa API adları için MediaPipe belgelerine bak (ajan ortamında belgeler kapalıydı).
+- [ ] Native derleme doğrulaması: `modules/aura-segmenter` (Swift/Kotlin, MediaPipe Tasks 0.10.12/0.10.14) ilk EAS derlemesinde derlenmeli. API adları MediaPipe kaynak koduyla (iOS başlıkları v0.10.11=v0.10.14, Android v0.10.14) doğrulandı; kalan risk yalnız derleme/bağlama.
 - [ ] mitmproxy gizlilik koşusu (`mobile/tests/privacy/README.md`).
 - [ ] TestFlight + Play kapalı test; App Privacy / Data safety formları (`docs/store-submission.md` §4–5); yaş 17+/18+.
 
