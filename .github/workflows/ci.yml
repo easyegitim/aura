@@ -87,7 +87,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # Kök bağımlılıklar: mobil, kökteki lib/ ve content/ dosyalarını içe aktarır; bunların paketleri (zod, supabase-js…)
+      # Node çözümlemesiyle kök node_modules'tan bulunur.
       - run: pnpm install --frozen-lockfile
+        working-directory: .
+      # mobile ayrı bir pnpm projesidir; kök pnpm-workspace.yaml'a bağlanmaması için --ignore-workspace zorunlu.
+      - run: pnpm install --frozen-lockfile --ignore-workspace
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
