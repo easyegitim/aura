@@ -7,7 +7,7 @@
  *   4. isteğe bağlı: bir kullanıcıyı premium yapar (--premium <user_id> | --premium latest).
  * Her adım bağımsızdır; biri başarısız olursa elle yapılacak adımı yazar ve devam eder.
  *
- * Kullanım: SUPABASE_ACCESS_TOKEN=sbp_... SUPABASE_PROJECT_REF=xxxx node scripts/dev-bootstrap.mjs [--premium latest]
+ * Kullanım: SUPABASE_ACCESS_TOKEN=sbp_... SUPABASE_PROJECT_REF=xxxx [GEMINI_API_KEY=...] node scripts/dev-bootstrap.mjs [--premium latest]
  * Gizli değerler yalnız .env.local'e yazılır (depoya girmez); ekrana basılmaz.
  */
 import { spawnSync } from "node:child_process";
@@ -83,6 +83,7 @@ let wrote = 0;
 if (set("NEXT_PUBLIC_SUPABASE_URL", `https://${ref}.supabase.co`)) wrote++;
 if (anon && set("NEXT_PUBLIC_SUPABASE_ANON_KEY", anon)) wrote++;
 if (service && set("SUPABASE_SERVICE_ROLE_KEY", service)) wrote++;
+if (process.env.GEMINI_API_KEY && set("GEMINI_API_KEY", process.env.GEMINI_API_KEY)) wrote++;
 writeFileSync(envPath, env);
 console.log(`  ${wrote} değer yazıldı`);
 if (!anon || !service) console.log("  ! anahtarlar API'den alınamadı. Elle: Supabase → Settings → API → anon ve service_role değerlerini .env.local'e yapıştır.");
