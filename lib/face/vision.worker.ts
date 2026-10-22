@@ -1,4 +1,5 @@
 // Web Worker: Face Landmarker + Image Segmenter (SPEC 7.1). Görüntü ve noktalar hiçbir yere gönderilmez/loglanmaz.
+import { isModuleWorkerFromProbe } from "./workerEnv";
 import { FaceLandmarker, FilesetResolver, ImageSegmenter, type FaceLandmarkerResult } from "@mediapipe/tasks-vision";
 import type { Protect } from "@/content/types";
 import { CompositeError, compositeTryon, geometryDrift } from "@/lib/tryon/composite";
@@ -34,16 +35,10 @@ let lastVideoTimestamp = -1;
 
 const statsCanvas = new OffscreenCanvas(256, 256);
 
-/** Klasik worker'da importScripts çalışır; modül worker'da TypeError fırlatır. Yükleyici buna göre seçilir. */
+/** Yükleyici (importScripts / dynamic import) worker türüne göre seçilir; probe CSP'ye uyumludur (workerEnv.ts). */
 function isModuleWorker(): boolean {
   const scope = globalThis as { importScripts?: (...urls: string[]) => void };
-  if (typeof scope.importScripts !== "function") return true;
-  try {
-    scope.importScripts("data:text/javascript,");
-    return false;
-  } catch {
-    return true;
-  }
+  return isModuleWorkerFromProbe(scope.importScripts ? (...u: string[]) => scope.importScripts!(...u) : undefined);
 }
 
 async function init(basePath: string): Promise<InitResult> {
