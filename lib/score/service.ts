@@ -42,7 +42,8 @@ export async function scoreImage(
 ): Promise<ScoredAnalysis> {
   const prompt = buildScorePrompt({ presentation: ctx.presentation, geometry, bodyFatContextAllowed: ctx.bodyFatContextAllowed });
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), SCORE_CALL_TIMEOUT_MS + 2_000);
+  // Bütçe: çağrı başına zaman aşımı × (1 + tekrar) + beklemeler + yedek model denemesi.
+  const timer = setTimeout(() => controller.abort(), SCORE_CALL_TIMEOUT_MS * 2 + 10_000);
   let settled: PromiseSettledResult<ScoreOutput>[];
   try {
     settled = await Promise.allSettled(Array.from({ length: calls }, () => provider.scoreOnce(imageBase64, prompt, controller.signal)));
@@ -73,7 +74,7 @@ export async function scoreImage(
     observations: agg.observations,
     flags: agg.flags,
     samples: agg.samples,
-    model: provider.model,
+    model: provider.lastModel ?? provider.model,
     promptVersion: SCORE_PROMPT_VERSION,
     calibrationVersion: version,
   };

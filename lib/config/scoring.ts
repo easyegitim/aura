@@ -41,11 +41,17 @@ export const POTENTIAL = {
 
 /** Paralel skorlama çağrısı sayısı (SPEC 8.6; tutarsızlıkta 5'e çıkarılır). */
 export const SCORE_CALLS = 3;
-/** Çağrı başına zaman aşımı (ms). Toplam hedef p95 < 10 sn. */
-export const SCORE_CALL_TIMEOUT_MS = 25_000;
+/** Çağrı başına zaman aşımı (ms): güvenlik tavanı. Hedef p95 < 10 sn; yoğunlukta flash-lite 20 sn'yi aşabiliyor (22 Ekim ölçümü). */
+export const SCORE_CALL_TIMEOUT_MS = 40_000;
+
+/** Geçici hatada (503/429) çağrı başına yeniden deneme sayısı ve ilk bekleme. */
+export const SCORE_RETRIES = 2;
+export const SCORE_RETRY_BASE_MS = 1_500;
 
 export function getScoringEnv() {
   const scoreModel = process.env.GEMINI_SCORE_MODEL || "gemini-3.5-flash-lite";
+  // Birincil model yoğunlukta (503) ise son çare; boş string kapatır. Kullanılan model analyses.scoring_model'e yazılır.
+  const fallbackModel = process.env.GEMINI_SCORE_FALLBACK_MODEL ?? "gemini-3.5-flash";
   const calibrationVersion = process.env.SCORE_CALIBRATION_VERSION || "v0";
-  return { scoreModel, calibrationVersion };
+  return { scoreModel, fallbackModel: fallbackModel.trim() || null, calibrationVersion };
 }
