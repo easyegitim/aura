@@ -6,6 +6,8 @@ import { createAdminClient } from "@/lib/db/admin";
 import type { GeometryResult } from "@/lib/face/types";
 import { QuestionnaireSchema } from "@/lib/questionnaire";
 import { generateCoachReport } from "./generate";
+import { isUnlimitedQuota } from "@/lib/api/quota";
+import { effectiveLimit } from "@/lib/billing/entitlement";
 
 export type StoredReport = { id: string; report: unknown; isFallback: boolean; createdAt: string; promptVersion: string };
 
@@ -40,7 +42,7 @@ export async function createReport(userId: string, analysisId: string, regenerat
     const latest = await getLatestReport(userId, analysisId);
     if (latest) return latest;
   }
-  if (existing > ENTITLEMENTS.premium.reportRegens) throw new ApiError("QUOTA_EXCEEDED", "Yeniden üretim hakkın doldu.");
+  if (existing > effectiveLimit(ENTITLEMENTS.premium.reportRegens, await isUnlimitedQuota(admin, userId))) throw new ApiError("QUOTA_EXCEEDED", "Yeniden üretim hakkın doldu.");
 
   const { data: profile } = await admin.from("profiles").select("questionnaire").eq("id", userId).maybeSingle();
   const q = QuestionnaireSchema.safeParse(profile?.questionnaire);

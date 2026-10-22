@@ -2,11 +2,14 @@ import "server-only";
 
 import { ENTITLEMENTS } from "@/lib/config/plans";
 import { createAdminClient } from "@/lib/db/admin";
+import { isUnlimitedQuota } from "@/lib/api/quota";
+import { effectiveLimit } from "@/lib/billing/entitlement";
 
 /** Kayan 7 günde kullanılan deneme sayısı (pending + success; SPEC 13.3 reserve_tryon ile aynı sayım). */
 export async function tryonUsage(userId: string): Promise<{ used: number; limit: number; windowDays: number; since: string; nextAt: string | null }> {
   const admin = createAdminClient();
-  const { windowDays, tryonsPerWindow } = ENTITLEMENTS.premium;
+  const { windowDays } = ENTITLEMENTS.premium;
+  const tryonsPerWindow = effectiveLimit(ENTITLEMENTS.premium.tryonsPerWindow, await isUnlimitedQuota(admin, userId));
   const since = new Date(Date.now() - windowDays * 86_400_000).toISOString();
   const { data } = await admin.from("tryon_events").select("created_at").eq("user_id", userId).in("status", ["pending", "success"]).gte("created_at", since).order("created_at", { ascending: true });
   const rows = data ?? [];

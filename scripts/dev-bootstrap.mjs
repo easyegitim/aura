@@ -4,7 +4,8 @@
  *   1. migration'ları uygular (scripts/supabase-api-migrate.mjs),
  *   2. anonim girişi açar,
  *   3. anon + service_role anahtarlarını .env.local'e yazar (boş olanları),
- *   4. isteğe bağlı: bir kullanıcıyı premium yapar (--premium <user_id> | --premium latest).
+ *   4. isteğe bağlı: bir kullanıcıyı premium yapar (--premium <user_id> | --premium latest),
+ *   5. isteğe bağlı: test hesabına sınırsız hak verir (--unlimited <user_id> | --unlimited latest).
  * Her adım bağımsızdır; biri başarısız olursa elle yapılacak adımı yazar ve devam eder.
  *
  * Kullanım: SUPABASE_ACCESS_TOKEN=sbp_... SUPABASE_PROJECT_REF=xxxx [GEMINI_API_KEY=...] node scripts/dev-bootstrap.mjs [--premium latest]
@@ -22,6 +23,7 @@ if (!token || !ref) {
 }
 const args = process.argv.slice(2);
 const premiumArg = args.includes("--premium") ? args[args.indexOf("--premium") + 1] : null;
+const unlimitedArg = args.includes("--unlimited") ? args[args.indexOf("--unlimited") + 1] : null;
 const API = `https://api.supabase.com/v1/projects/${ref}`;
 const headers = { authorization: `Bearer ${token}`, "content-type": "application/json" };
 
@@ -103,6 +105,23 @@ else {
       values ('${userId}', 'iyzico', 'monthly', 'active', now(), now() + interval '30 days')
       on conflict (user_id) do update set status = 'active', plan = 'monthly', current_period_end = now() + interval '30 days', updated_at = now()`);
     console.log(`  premium açıldı: ${userId}`);
+  } catch (e) {
+    console.log(`  ! olmadı (${e.message.split("\n")[0]}).`);
+  }
+}
+
+// 5. sınırsız hak (test hesabı)
+if (unlimitedArg) {
+  console.log("\n[5/5] sınırsız hak");
+  try {
+    let userId = unlimitedArg;
+    if (unlimitedArg === "latest") {
+      const rows = await sql("select id from auth.users order by created_at desc limit 1");
+      userId = rows?.[0]?.id;
+      if (!userId) throw new Error("auth.users boş");
+    }
+    await sql(`update public.profiles set unlimited_quota = true, updated_at = now() where id = '${userId}'`);
+    console.log(`  analiz/deneme/rapor limitleri kaldırıldı: ${userId}`);
   } catch (e) {
     console.log(`  ! olmadı (${e.message.split("\n")[0]}).`);
   }
