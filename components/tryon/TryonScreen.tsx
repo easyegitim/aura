@@ -23,6 +23,7 @@ import { VisionClient } from "@/lib/face/client";
 import { cropForServer, landmarksToCrop } from "@/lib/face/crop";
 import { getSessionSelfie, setSessionSelfie } from "@/lib/face/sessionStore";
 import { stampAiLabel } from "@/lib/tryon/composite";
+import { base64ToBlob } from "@/lib/tryon/base64";
 
 type Props = {
   consentVersion: string;
@@ -119,7 +120,7 @@ export function TryonScreen({ consentVersion, hasConsent, recommended, quota, in
       });
       if (!res) throw new Error("empty");
       eventId = res.eventId;
-      const gBlob = await (await fetch(`data:${res.mimeType};base64,${res.image}`)).blob();
+      const gBlob = base64ToBlob(res.image, res.mimeType); // fetch("data:") CSP tarafından engellenir
       const g = await createImageBitmap(gBlob);
       const out = await VisionClient.get().tryon(c, g, landmarksC, preset.protect);
       if (!out.ok) {
