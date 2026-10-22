@@ -2,6 +2,8 @@ import { ApiError } from "@/lib/api/errors";
 import { withGuard } from "@/lib/api/guard";
 import { AnalysisInput, decodeJpeg } from "@/lib/api/analysesInput";
 import { getPremiumStatus } from "@/lib/api/premium";
+import { isUnlimitedQuota } from "@/lib/api/quota";
+import { effectiveLimit } from "@/lib/billing/entitlement";
 import { ENTITLEMENTS } from "@/lib/config/plans";
 import { getTeaserConfig } from "@/lib/config/teaser";
 import { REQUIRED_ANALYSIS_CONSENTS } from "@/lib/consent";
@@ -29,9 +31,9 @@ export const POST = withGuard(
     }
 
     const admin = createAdminClient();
-    const { premium } = await getPremiumStatus(supabase, user.id);
+    const [{ premium }, unlimited] = await Promise.all([getPremiumStatus(supabase, user.id), isUnlimitedQuota(admin, user.id)]);
     const window = premium ? ENTITLEMENTS.premium : null;
-    const limit = premium ? ENTITLEMENTS.premium.analysesPerWindow : ENTITLEMENTS.free.analysesLifetime;
+    const limit = effectiveLimit(premium ? ENTITLEMENTS.premium.analysesPerWindow : ENTITLEMENTS.free.analysesLifetime, unlimited);
     const since = window ? new Date(Date.now() - window.windowDays * 86_400_000).toISOString() : "-infinity";
 
     const { data: reservedId, error: rpcError } = await admin.rpc("reserve_analysis", {

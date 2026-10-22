@@ -10,10 +10,10 @@ pnpm dev                                                                       #
 
 Akış: Analizini başlat → yaş → rızalar → anket → /tara (kamera veya galeri) → skor (ücretsiz: teaser) → plan → rutin → deneme.
 
-Tam skor/rapor/deneme için son kullanıcıyı premium yap (ödeme kurmadan):
+Tam skor/rapor/deneme için son kullanıcıyı premium yap (ödeme kurmadan); `--unlimited latest` eklersen analiz (haftada 1), deneme (7 günde 10) ve rapor yenileme limitleri de kalkar (test hesabı):
 
 ```bash
-SUPABASE_ACCESS_TOKEN=sbp_... SUPABASE_PROJECT_REF=<ref> pnpm dev:bootstrap --premium latest
+SUPABASE_ACCESS_TOKEN=sbp_... SUPABASE_PROJECT_REF=<ref> pnpm dev:bootstrap --premium latest --unlimited latest
 ```
 
 Kamera yalnız `localhost` veya HTTPS'te açılır; telefonda denemek için `pnpm dev --hostname 0.0.0.0` yerine Vercel preview kullan (aynı 4 ortam değişkeni).

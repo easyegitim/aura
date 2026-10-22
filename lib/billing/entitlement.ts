@@ -3,3 +3,10 @@ export function isPremium(sub?: { status: string; current_period_end: string | n
   if (!sub?.current_period_end) return false;
   return ["active", "past_due"].includes(sub.status) && new Date(sub.current_period_end) > now;
 }
+
+/** Test hesapları (profiles.unlimited_quota) için fiilen sınırsız limit; SQL fonksiyonları int bekler. */
+export const UNLIMITED_LIMIT = 1_000_000;
+
+export function effectiveLimit(base: number, unlimited: boolean): number {
+  return unlimited ? UNLIMITED_LIMIT : base;
+}

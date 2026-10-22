@@ -7,6 +7,8 @@ import { getPremiumStatus } from "@/lib/api/premium";
 import { TRYON_IMAGE_MAX_BYTES, TryonInput, decodeJpegLimited } from "@/lib/api/tryonInput";
 import { ENTITLEMENTS } from "@/lib/config/plans";
 import { createAdminClient } from "@/lib/db/admin";
+import { isUnlimitedQuota } from "@/lib/api/quota";
+import { effectiveLimit } from "@/lib/billing/entitlement";
 import { tryonUsage } from "@/lib/tryon/quota";
 
 export const runtime = "nodejs";
@@ -29,12 +31,13 @@ export const POST = withGuard(
     const provider = getTryonProvider();
     const admin = createAdminClient();
     const { windowDays, tryonsPerWindow } = ENTITLEMENTS.premium;
+    const unlimited = await isUnlimitedQuota(admin, user.id);
     const { data: reservedId, error } = await admin.rpc("reserve_tryon", {
       p_user: user.id,
       p_client_request_id: input.clientRequestId,
       p_preset: preset.id,
       p_model: provider.model,
-      p_limit: tryonsPerWindow,
+      p_limit: effectiveLimit(tryonsPerWindow, unlimited),
       p_since: new Date(Date.now() - windowDays * 86_400_000).toISOString(),
     });
     if (error) throw new Error("reserve_tryon failed");
