@@ -4,6 +4,7 @@ import { fal } from "@fal-ai/client";
 import { GoogleGenAI } from "@google/genai";
 import type { Preset } from "@/content/types";
 import { ApiError } from "@/lib/api/errors";
+import { aiErrorSummary, withTransientRetry } from "./retry";
 
 // SPEC 10.7 / 14.3: Gemini görsel varsayılan; TRYON_PROVIDER=fal ile maskeli inpainting (aynı arayüz).
 // Görsel yalnız çağrı süresince bellekte; loglanmaz, yazılmaz.
@@ -26,11 +27,16 @@ export class GeminiTryonProvider implements TryonProvider {
     if (!apiKey) throw new ApiError("AI_FAILED", "Deneme servisi yapılandırılmamış.");
     const ai = new GoogleGenAI({ apiKey });
     try {
-      const res = await ai.models.generateContent({
-        model: this.model,
-        contents: [{ role: "user", parts: [{ inlineData: { mimeType: "image/jpeg", data: req.imageBase64 } }, { text: req.prompt }] }],
-        config: { responseModalities: ["IMAGE"], httpOptions: { timeout: TIMEOUT_MS } },
-      });
+      // 503 yoğunlukta bir tekrar; kota (429 "limit: 0" = görsel modeli faturasız projede kapalı) tekrar edilmez, loglanır.
+      const res = await withTransientRetry(
+        () =>
+          ai.models.generateContent({
+            model: this.model,
+            contents: [{ role: "user", parts: [{ inlineData: { mimeType: "image/jpeg", data: req.imageBase64 } }, { text: req.prompt }] }],
+            config: { responseModalities: ["IMAGE"], httpOptions: { timeout: TIMEOUT_MS } },
+          }),
+        { retries: 1, baseDelayMs: 2_000, onRetry: (attempt, e) => console.warn(`[ai] deneme ${this.model} geçici hata, tekrar ${attempt}: ${aiErrorSummary(e)}`) },
+      );
       const parts = res.candidates?.[0]?.content?.parts ?? [];
       const img = parts.find((p) => p.inlineData?.data);
       if (!img?.inlineData?.data) throw new ApiError("AI_SAFETY_BLOCKED", "Model görsel üretmedi.");
@@ -38,6 +44,11 @@ export class GeminiTryonProvider implements TryonProvider {
     } catch (e) {
       if (e instanceof ApiError) throw e;
       if (e instanceof Error && /abort|timeout/i.test(e.message)) throw new ApiError("AI_TIMEOUT", "Deneme zaman aşımına uğradı.");
+      const summary = aiErrorSummary(e);
+      console.warn(`[ai] deneme ${this.model} hata: ${summary}`);
+      if (/free_tier|limit: 0/.test(e instanceof Error ? e.message : "")) {
+        throw new ApiError("AI_FAILED", "Görsel modeli bu Gemini projesinde kapalı (ücretsiz katman); Google Cloud'da faturalandırmayı aç.");
+      }
       throw new ApiError("AI_FAILED", "Deneme servisi yanıt vermedi.");
     }
   }
