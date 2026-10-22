@@ -3,6 +3,7 @@ import { isPremium } from "@/lib/billing/entitlement";
 import { PAST_DUE_GRACE_DAYS, applyRemoteStatus, periodEndFor, webhookEventKey, type SubscriptionRow } from "@/lib/billing/sync";
 
 const now = new Date("2026-10-09T12:00:00Z");
+// Testler sabit "now" ile çalışır; gerçek saat kullanılmaz (tarih geçince kırılmasın).
 const future = new Date("2026-10-20T12:00:00Z").toISOString();
 const row = (over: Partial<SubscriptionRow> = {}): SubscriptionRow => ({
   plan: "monthly",
@@ -15,9 +16,9 @@ const row = (over: Partial<SubscriptionRow> = {}): SubscriptionRow => ({
 
 describe("isPremium (SPEC 15.2)", () => {
   it("yalnız active/past_due ve dönem sonu gelecekte", () => {
-    expect(isPremium({ status: "active", current_period_end: future })).toBe(true);
-    expect(isPremium({ status: "past_due", current_period_end: future })).toBe(true);
-    expect(isPremium({ status: "canceled", current_period_end: future })).toBe(false);
+    expect(isPremium({ status: "active", current_period_end: future }, now)).toBe(true);
+    expect(isPremium({ status: "past_due", current_period_end: future }, now)).toBe(true);
+    expect(isPremium({ status: "canceled", current_period_end: future }, now)).toBe(false);
     expect(isPremium({ status: "active", current_period_end: "2020-01-01T00:00:00Z" })).toBe(false);
     expect(isPremium({ status: "active", current_period_end: null })).toBe(false);
     expect(isPremium(null)).toBe(false);
@@ -43,7 +44,7 @@ describe("applyRemoteStatus", () => {
   it("CANCELED: kullanıcı iptaliyse dönem sonuna kadar erişim sürer", () => {
     const r = applyRemoteStatus(row({ status: "active", current_period_end: future, cancel_at_period_end: true }), { status: "CANCELED" }, now);
     expect(r.status).toBe("active");
-    expect(isPremium({ status: r.status, current_period_end: r.current_period_end })).toBe(true);
+    expect(isPremium({ status: r.status, current_period_end: r.current_period_end }, now)).toBe(true);
     const r2 = applyRemoteStatus(row({ status: "active", current_period_end: future }), { status: "CANCELED" }, now);
     expect(r2.status).toBe("canceled");
   });
