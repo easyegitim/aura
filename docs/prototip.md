@@ -19,4 +19,4 @@ SUPABASE_ACCESS_TOKEN=sbp_... SUPABASE_PROJECT_REF=<ref> pnpm dev:bootstrap --pr
 
 Kamera yalnız `localhost` veya HTTPS'te açılır; telefonda denemek için `pnpm dev --hostname 0.0.0.0` yerine Vercel preview kullan (aynı 4 ortam değişkeni).
 
-Not: `dev:bootstrap` içindeki anonim giriş ve anahtar adımları Supabase Yönetim API'sini kullanır; bu ortamda doğrulanamadı. Başarısız olursa betik elle yapılacak adımı yazar (panelde 2 tıklama).
+Not: `dev:bootstrap` 22 Ekim 2026'da `spmplpgeeakucihumnzi` projesine karşı çalıştırıldı: 7 migration uygulandı, 14 tabloda RLS açık, 4 cron işi, `reserve_*` fonksiyonları yerinde, anonim giriş açık; `/api/health`, anonim oturum, `/api/analyses`, `/api/tryon/status`, `/api/billing/status` 200 döndü. Betik bir adımda başarısız olursa elle yapılacak adımı yazar.
