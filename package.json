@@ -26,7 +26,8 @@
     "mobile:typecheck": "pnpm --dir mobile typecheck",
     "mobile:lint": "pnpm --dir mobile lint",
     "mobile:test": "pnpm --dir mobile test",
-    "mobile:export": "pnpm --dir mobile export"
+    "mobile:export": "pnpm --dir mobile export",
+    "dev:bootstrap": "node scripts/dev-bootstrap.mjs"
   },
   "dependencies": {
     "@fal-ai/client": "^1.10.1",
