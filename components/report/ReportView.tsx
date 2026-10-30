@@ -10,6 +10,7 @@ import { HABITS } from "@/content/habits";
 import { getPreset } from "@/content/presets";
 import { SKIN_STEPS } from "@/content/skin-steps";
 import { FeedbackButtons } from "@/components/report/FeedbackButtons";
+import { PlanBasis } from "@/components/report/PlanBasis";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,18 +18,31 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { track } from "@/lib/analytics";
 import type { CoachReport, ReportPick } from "@/lib/ai/reportSchema";
 import { ApiClientError, postJson } from "@/lib/api/client";
+import type { BasisChip, PlanSkips, ReportSection } from "@/lib/coach/planBasis";
 import { addReportToRoutine } from "@/lib/routine/addFromReport";
+import type { ImproveItem } from "@/lib/score/contract";
 
-type Props = { analysisId: string; initial: { reportId: string; report: CoachReport; isFallback: boolean } | null; expertNetworkEnabled: boolean };
+type Props = {
+  analysisId: string;
+  initial: { reportId: string; report: CoachReport; isFallback: boolean } | null;
+  expertNetworkEnabled: boolean;
+  /** UI spec §7: planın dayandığı anket çipleri (beden/not içermez). */
+  basis?: BasisChip[];
+  improveFirst?: ImproveItem[] | null;
+  skipped?: PlanSkips;
+  /** Anket, kayıtlı rapordan sonra güncellendiyse true. */
+  basisStale?: boolean;
+};
 
 /** /plan/[analysisId] (F09). Rapor yoksa ilk açılışta üretilir (SPEC 9.1). */
-export function ReportView({ analysisId, initial, expertNetworkEnabled }: Props) {
+export function ReportView({ analysisId, initial, expertNetworkEnabled, basis, improveFirst = null, skipped = {}, basisStale = false }: Props) {
   const t = useTranslations("report");
   const tc = useTranslations("common");
   const [state, setState] = useState<{ reportId: string; report: CoachReport; isFallback: boolean } | null>(initial);
   const [status, setStatus] = useState<"idle" | "generating" | "error">(initial ? "idle" : "generating");
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [stale, setStale] = useState(basisStale);
 
   async function generate(regenerate = false) {
     setStatus("generating");
@@ -38,6 +52,8 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled }: Props)
       if (!r) throw new Error("empty");
       setState(r);
       setStatus("idle");
+      // Yeniden üretilen plan güncel cevaplarla hazırlandı.
+      if (regenerate) setStale(false);
       track("report_viewed");
     } catch (e) {
       setErrorCode(e instanceof ApiClientError ? e.code : "NETWORK");
@@ -83,16 +99,21 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled }: Props)
           <CardDescription>{errorCode && t.has(`errors.${errorCode}`) ? t(`errors.${errorCode}`) : t("errors.GENERIC")}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-2">
-          {errorCode === "PREMIUM_REQUIRED" ? <Button asChild><Link href="/premium">{t("goPremium")}</Link></Button> : <Button onClick={() => generate()}>{t("retry")}</Button>}
+          {errorCode === "PREMIUM_REQUIRED" ? <Button asChild><Link href={`/premium?analysis=${analysisId}`}>{t("goPremium")}</Link></Button> : <Button onClick={() => generate()}>{t("retry")}</Button>}
         </CardContent>
       </Card>
     );
   }
 
   const r = state.report;
+  const rendered = new Set<ReportSection>(["skin"]);
+  if (r.hair.length) rendered.add("hair");
+  if (r.beard.length) rendered.add("beard");
   return (
     <div className="space-y-4">
       {state.isFallback ? <p className="rounded-md border px-3 py-2 text-xs text-muted-foreground">{t("fallbackNote")}</p> : null}
+
+      {basis ? <PlanBasis analysisId={analysisId} basis={basis} improveFirst={improveFirst} rendered={rendered} stale={stale} /> : null}
 
       <Section id="summary" title={t("sections.summary")} reportId={state.reportId}>
         <p className="text-sm">{r.summary}</p>
@@ -103,11 +124,15 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled }: Props)
         <Section id="hair" title={t("sections.hair")} reportId={state.reportId}>
           {r.hair.map((p) => <PickCard key={p.presetId} pick={p} />)}
         </Section>
+      ) : skipped.hair ? (
+        <SkippedNote text={t("basis.skipped.hair")} />
       ) : null}
       {r.beard.length ? (
         <Section id="beard" title={t("sections.beard")} reportId={state.reportId}>
           {r.beard.map((p) => <PickCard key={p.presetId} pick={p} />)}
         </Section>
+      ) : skipped.beard ? (
+        <SkippedNote text={t("basis.skipped.beard")} />
       ) : null}
       {r.hairColor ? (
         <Section id="color" title={t("sections.color")} reportId={state.reportId}>
@@ -152,6 +177,8 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled }: Props)
           </ul>
           <p className="text-xs text-muted-foreground">{EXERCISE_SAFETY_TEXT}</p>
         </Section>
+      ) : skipped.exercises ? (
+        <SkippedNote text={t("basis.skipped.exercises")} />
       ) : null}
 
       {r.habits.length ? (
@@ -191,9 +218,13 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled }: Props)
   );
 }
 
+function SkippedNote({ text }: { text: string }) {
+  return <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">{text}</p>;
+}
+
 function Section({ id, title, reportId, children }: { id: string; title: string; reportId: string; children: React.ReactNode }) {
   return (
-    <Card>
+    <Card id={`section-${id}`} className="scroll-mt-16">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>

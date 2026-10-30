@@ -5,10 +5,12 @@ import { hasRequiredAnalysisConsents } from "@/lib/consent";
 import { createClient } from "@/lib/db/server";
 import { getLegalVersion } from "@/lib/legal/docs";
 import { AGE_GATE_PATH, CAPTURE_PATH, CONSENTS_PATH } from "@/lib/onboarding/gate";
+import { safeReturnPath } from "@/lib/onboarding/returnPath";
 import { QuestionnaireSchema } from "@/lib/questionnaire";
 
-/** F04: anket. 18+ ve üç zorunlu rıza olmadan açılmaz. */
-export default async function QuestionnairePage() {
+/** F04: anket. 18+ ve üç zorunlu rıza olmadan açılmaz. `next` yalnız /plan/<uuid> ise oraya dönülür (UI spec §7). */
+export default async function QuestionnairePage({ searchParams }: PageProps<"/baslangic/anket">) {
+  const { next } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,7 +30,7 @@ export default async function QuestionnairePage() {
       {/* SPEC 7.1: model onboarding sırasında arka planda yüklenir */}
       <link rel="prefetch" href="/mediapipe/face_landmarker.task" as="fetch" crossOrigin="anonymous" />
       <link rel="prefetch" href="/mediapipe/wasm/vision_wasm_module_internal.wasm" as="fetch" crossOrigin="anonymous" />
-      <QuestionnaireWizard nextPath={CAPTURE_PATH} initial={existing.success ? existing.data : undefined} />
+      <QuestionnaireWizard nextPath={safeReturnPath(next) ?? CAPTURE_PATH} initial={existing.success ? existing.data : undefined} />
     </div>
   );
 }
