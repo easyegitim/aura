@@ -86,7 +86,8 @@
       "i6": "Paylaşım kartı"
     },
     "freeNote": "Hesap başına 1 analiz hakkı ile yüz şeklini ve bir alt skorunu görürsün; genel skor, potansiyel, rapor ve deneme premiumdadır.",
-    "autoRenewNote": "Abonelik otomatik yenilenir. İptali hesap sayfasından tek tıkla yapabilirsin."
+    "autoRenewNote": "Abonelik otomatik yenilenir. İptali hesap sayfasından tek tıkla yapabilirsin.",
+    "vsWeekly": "haftalık plana göre"
   },
   "faq": {
     "q1": {
@@ -251,7 +252,8 @@
       "done": "Dosyan indirildi.",
       "rateLimited": "Günde en fazla 3 dışa aktarma yapabilirsin.",
       "error": "İndirilemedi. Tekrar dene.",
-      "shareTitle": "Aura verilerim"
+      "shareTitle": "Aura verilerim",
+      "kvkkNote": "Bu dosya analizlerini uygulamada gördüğün biçimde içerir. KVKK m. 11 kapsamında işlenen tüm verilerinin tam kopyası için {address} adresine başvurabilirsin; başvurun en geç 30 gün içinde yanıtlanır."
     },
     "delete": {
       "title": "Hesabımı sil",
@@ -517,7 +519,9 @@
       "processing": "İşleniyor…",
       "ready": "Yüzünü ovale yerleştir",
       "holdStill": "Sabit kal",
-      "cancel": "Vazgeç"
+      "cancel": "Vazgeç",
+      "manual": "Şimdi çek",
+      "manualHint": "Koşullar tam değil ama çekebilirsin; ışık yüzüne önden gelirse sonuç daha tutarlı olur."
     },
     "issues": {
       "no_face": "Yüz bulunamadı",
@@ -534,7 +538,7 @@
       "not_neutral": "Nötr bak, gülümseme"
     },
     "warnings": {
-      "hair_not_visible": "Saçının üst kısmı kadrajda olsun"
+      "hair_not_visible": "Başının üst kısmı da kadraja girsin"
     },
     "errors": {
       "bad_type": "Bu dosya türü desteklenmiyor (JPEG, PNG, WebP).",
@@ -548,7 +552,8 @@
       "okBody": "Bu fotoğrafı kullanmak ister misin?",
       "failTitle": "Bu fotoğraf uygun değil",
       "retake": "Yeniden çek",
-      "use": "Bu fotoğrafı kullan"
+      "use": "Bu fotoğrafı kullan",
+      "relaxedNote": "Işık, netlik veya kadraj ideal değildi. İstersen daha iyi ışıkta yeniden çekebilirsin; benzer koşullarda çekim daha tutarlı sonuç verir."
     },
     "captured": {
       "title": "Fotoğraf hazır",
@@ -563,7 +568,30 @@
       "frames": "Kararlı kare",
       "retake": "Yeniden çek",
       "saveProgress": "Bu fotoğrafı ilerlememe kaydet",
-      "saveProgressHint": "Yalnız bu cihazda saklanır; sunucuya gitmez. Varsayılan kapalı."
+      "saveProgressHint": "Yalnız bu cihazda saklanır; sunucuya gitmez. Varsayılan kapalı.",
+      "fromGallery": "Galeriden yüklendi",
+      "qualityAria": "Çekim kalitesi",
+      "quality": {
+        "light": {
+          "good": "Işık: iyi",
+          "ok": "Işık: idare eder"
+        },
+        "sharpness": {
+          "good": "Netlik: iyi",
+          "ok": "Netlik: idare eder"
+        },
+        "framing": {
+          "good": "Kadraj: ortalı",
+          "ok": "Kadraj: hafif kaymış"
+        }
+      }
+    },
+    "trust": {
+      "title": "Fotoğrafına ne oluyor?",
+      "device": "Yüzündeki 478 nokta telefonunda bulunur ve telefonundan çıkmaz; yalnız bunlardan hesaplanan oranlar analizinle saklanır.",
+      "sent": "Analiz için yalnız yüzünün kırpılmış bir kopyası, rızanla {provider} sağlayıcısına gider. Aura fotoğrafını saklamaz.",
+      "limits": "Skor kişisel değerini ya da sağlığını ölçmez; kimseyle kıyaslanmaz.",
+      "methodLink": "Skor nasıl hesaplanır?"
     }
   },
   "geometry": {
@@ -581,14 +609,15 @@
     },
     "canthalTilt": "Göz açısı",
     "tilt": {
-      "positive": "Pozitif yönde",
-      "neutral": "Nötr",
-      "negative": "Negatif yönde"
+      "positive": "Dış köşeler biraz yukarıda",
+      "neutral": "Yataya yakın",
+      "negative": "Dış köşeler biraz aşağıda"
     },
     "jawRatio": "Çene genişliği / elmacık genişliği",
     "fwhr": "Yüz genişlik-yükseklik oranı",
     "thirds": "Üçte birler (üst / orta / alt)",
-    "note": "Bu oranlar yalnız tarif eder; iyi ya da kötü anlamı taşımaz. Skorlamaya bağlam olarak gider."
+    "note": "Bu oranlar yalnız tarif eder; iyi ya da kötü anlamı taşımaz. Skorlamaya bağlam olarak gider.",
+    "noteV2": "Bu oranlar yüzünü tarif eder. Yapısal alt skorlarda herkes için aynı, geniş referans aralıklarıyla kullanılır; aralığın içindeki her değer aynı puanı alır. Yüz şekli ve genişlik–yükseklik oranı puana girmez."
   },
   "analysis": {
     "start": "Analizi başlat",
@@ -599,7 +628,19 @@
         "skinHair": "Cilt ve saç değerlendiriliyor",
         "calibrating": "Skor kalibre ediliyor"
       },
-      "hint": "Genellikle 5–10 saniye sürer."
+      "hint": "Genellikle 5–10 saniye sürer.",
+      "v2": {
+        "landmarks": "Yüz noktaları telefonunda çıkarıldı",
+        "ratios": "Oranlar telefonunda hesaplandı",
+        "prepare": "Fotoğrafın kırpıldı ve gönderiliyor",
+        "observe": "Görünür bakım ayrıntıları yapay zekâyla kategorilere ayrılıyor",
+        "observeLegacy": "Fotoğrafın yapay zekâyla değerlendiriliyor",
+        "score": "Skorlar herkes için aynı hesaplamayla çıkarılıyor",
+        "ready": "Sonucun hazır",
+        "doneSr": "tamamlandı",
+        "hint": "Genellikle 10–25 saniye sürer.",
+        "slow": "Biraz uzun sürüyor, bekliyoruz. Analiz tamamlanmazsa hakkın düşmez."
+      }
     },
     "errors": {
       "QUOTA_EXCEEDED": "Analiz hakkın kullanılmış.",
@@ -611,7 +652,9 @@
       "IMAGE_TOO_LARGE": "Görsel çok büyük; yeniden çek.",
       "NETWORK": "Bağlantı sorunu. Tekrar dene.",
       "GENERIC": "Bir sorun oluştu. Tekrar dene.",
-      "PREMIUM_REQUIRED": "Bu özellik premiumda."
+      "PREMIUM_REQUIRED": "Bu özellik premiumda.",
+      "CAPTURE_QUALITY": "Bu çekimde ışık, netlik veya açı analiz için yeterli değildi; hakkın düşmedi. Yeniden çekmeyi dene.",
+      "AI_SAFETY_BLOCKED": "Bu fotoğraf analiz edilemedi; farklı bir çekimle tekrar dene. Hakkın düşmedi."
     },
     "retryAt": "Yeni hakkın {date} tarihinde açılıyor.",
     "overallTitle": "Genel skorun",
@@ -648,7 +691,7 @@
     "ratiosTitle": "Oranların",
     "planTitle": "Sana özel plan",
     "planBody": "Sana uygun 3 saç kesimi, sakal ve cilt rutini; 60 stili kendi yüzünde dene.",
-    "seePlan": "Planını gör",
+    "seePlan": "Planı gör",
     "tryStyles": "Stilleri dene",
     "unlock": "Kilidi aç",
     "trend": {
@@ -659,6 +702,185 @@
       "needTwo": "Trend için en az iki analiz gerekir.",
       "aria": "{n} analizlik skor trendi çizgi grafiği",
       "calibrationNote": "Kalibrasyon sürümü bu aralıkta değişti; eski ve yeni skorlar birebir kıyaslanmayabilir."
+    },
+    "pageTitle": "Analiz sonucun",
+    "lockedAriaFor": "{name} kilitli; açmak için dokun",
+    "legacyNote": "Bu analiz önceki yöntemle hesaplandı; yeni analizler güncel yöntemi kullanır.",
+    "processingRefresh": "Sonuç hazır olunca bu sayfa kendiliğinden yenilenir.",
+    "disclaimerHybrid": "Bu skor telefonundaki ölçümlerden ve fotoğraftaki görünür bakım ayrıntılarından, herkes için aynı kurallarla hesaplanır; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
+    "hero": {
+      "potentialOpen": "Potansiyel {potential} · +{delta}",
+      "potentialLocked": "Potansiyel +●,●",
+      "potentialLockedName": "Potansiyel skorun",
+      "potentialAtTop": "Potansiyelin skoruna çok yakın",
+      "potentialCaption": "8–12 haftalık planla ulaşılabilecek tahmini fark",
+      "outOf": "/10"
+    },
+    "reference": {
+      "tick": "Referans {ref}",
+      "note": "{ref}, ölçeğin herkes için aynı olan referans noktasıdır. Sıralama ya da yüzdelik değildir; skorun kimseyle kıyaslanmaz, kendi değişimini izlemen içindir.",
+      "aria": "1 ile 10 arası ölçek; herkes için aynı referans {ref}; senin skorun {value}",
+      "ariaLocked": "1 ile 10 arası ölçek; herkes için aynı referans {ref}; skorun kilitli",
+      "methodLink": "Skor nasıl hesaplanır?"
+    },
+    "subsLegend": "Yapısal alanlar telefonunda ölçülen oranlardan, geliştirilebilir alanlar fotoğraftaki görünür bakım ayrıntılarından hesaplanır.",
+    "subWhat": {
+      "harmony": "Sağ–sol denge ve dikey oranlar; telefonunda ölçülür.",
+      "eyes": "Göz aralığı, göz ekseni ve iki göz arasındaki denge; telefonunda ölçülür.",
+      "jawline": "Çene ve elmacık genişliklerinin oranı ile alt yüz dengesi; telefonunda ölçülür. Sakal hattı bakım alanında değerlendirilir.",
+      "skin": "Fotoğrafta görünen yüzey: aktif sivilce, doku ve parlama. Tanı değildir; ten rengi, izler ve skarlar puanlanmaz.",
+      "hair": "Saçın düzeni ve kesimin formu; saç dokusu, yoğunluğu, rengi ve dökülmesi puanlanmaz.",
+      "grooming": "Kaşlarda belirgin dağınıklık, dudak kuruluğu ve varsa sakal hattının düzeni; sakal olup olmaması puanı değiştirmez."
+    },
+    "notAssessed": {
+      "value": "Değerlendirilmedi",
+      "excluded": "Bu analizde saç alanı puanlanmadı; genel skorda onun payı cilt ve bakım alanlarına eşit olarak aktarıldı.",
+      "not_visible": "Bu alan bu çekimde net görünmediği için değerlendirilmedi; genel skorda bu alan için herkese uygulanan sabit referans değeri kullanıldı."
+    },
+    "improveFirst": {
+      "title": "Önce odaklanacağın adımlar",
+      "gain": "Genel skora en fazla +{gain}",
+      "toPlan": "Planda nasıl yapılacağını gör",
+      "lockedBody": "En fazla 3 adımın sırası alt skorlarına göre hesaplanır. Premium ile sıralı listen ve planın açılır.",
+      "empty": "Görünür bakım alanlarında öne çıkan bir adım yok; planındaki rutini sürdürmen yeterli."
+    },
+    "levers": {
+      "lv_blemish_care": "Nazik temizleme ve haftalık arındırma",
+      "lv_texture_smooth": "Haftalık peeling ve nem desteği",
+      "lv_daily_spf": "Her sabah güneş koruyucu",
+      "lv_shine_balance": "Parlama dengesi: hafif nemlendirici ve kil maskesi",
+      "lv_hair_styling": "Günlük kısa bir şekillendirme",
+      "lv_haircut_refresh": "Yüz şekline uygun bir kesimle tazeleme",
+      "lv_brow_tidy": "Kaşlardaki dağınık telleri düzenlemek",
+      "lv_lip_care": "Dudak bakımı: nemlendirici balm",
+      "lv_beard_lineup": "Sakal hattını düzenli tutmak"
+    },
+    "captureHints": {
+      "title": "Bir sonraki çekim için",
+      "lighting": "Işık yüzüne önden gelirse cilt daha net değerlendirilir.",
+      "skin_visibility": "Yüzünün tamamı görünür olursa cilt alanı daha iyi değerlendirilir.",
+      "pose": "Kameraya tam düz bakmak oranları daha tutarlı yapar.",
+      "retouch": "Kameranın güzelleştirme modunu kapatmayı dene; cilt daha net değerlendirilir."
+    },
+    "overlay": {
+      "open": "Fotoğrafındaki ölçü çizgilerini büyüt",
+      "title": "Fotoğrafındaki ölçüler",
+      "toggle": "Çizgileri göster",
+      "canvasAria": "Fotoğrafının üzerinde ölçü çizgileri: {layers}",
+      "localNote": "Bu çizgiler yalnız bu cihazda, bellekteki fotoğrafının üzerine çizilir; hiçbir yere gönderilmez.",
+      "fallbackNote": "Fotoğrafın saklanmadığı için çizgiler yalnız çekimden hemen sonra, bu cihazda fotoğrafının üzerinde gösterilir.",
+      "layers": {
+        "oval": "Yüz hattı",
+        "midline": "Orta hat",
+        "vertical": "Dikey oranlar",
+        "eyeAxis": "Göz ekseni",
+        "spacing": "Göz aralığı",
+        "widths": "Elmacık ve çene genişliği"
+      },
+      "meaning": {
+        "oval": "Yüz şeklinin belirlendiği dış hat; puana girmez.",
+        "midline": "Sağ–sol dengenin ölçüldüğü dikey eksen.",
+        "vertical": "Orta yüz ve alt yüz yüksekliklerinin oranı.",
+        "eyeAxis": "Göz köşelerinden geçen eksen.",
+        "spacing": "İki göz bebeği arasındaki mesafe.",
+        "widths": "Elmacık ve çene genişliklerinin birbirine oranı."
+      }
+    },
+    "explain": {
+      "itemStatus": "{item}: {status}",
+      "items": {
+        "symmetry": "Sağ–sol denge",
+        "vertical": "Dikey oranlar",
+        "eyeMouth": "Göz–ağız mesafesi",
+        "spacing": "Göz aralığı",
+        "tilt": "Göz ekseni",
+        "jawWidth": "Çene–elmacık genişliği",
+        "blemishes": "Aktif sivilce",
+        "texture": "Doku",
+        "shine": "Parlama",
+        "hairNeat": "Saç düzeni",
+        "hairShape": "Kesimin formu",
+        "brows": "Kaşlar",
+        "lips": "Dudaklar",
+        "facialHairEdges": "Sakal hattı"
+      },
+      "status": {
+        "best": "İyi durumda",
+        "partial": "Geliştirilebilir",
+        "unclear": "Net görünmedi",
+        "not_measured": "bu çekimde ölçülmedi"
+      }
+    },
+    "reveal": {
+      "ready": "Sonucun hazır."
+    },
+    "obs": {
+      "zone": {
+        "none": "",
+        "forehead": "alında ",
+        "cheeks": "yanaklarda ",
+        "chin_jaw": "çene çevresinde ",
+        "t_zone": "T bölgesinde ",
+        "widespread": "geniş bir alanda "
+      },
+      "skin": {
+        "notAssessed": "Cilt bu çekimde net görünmediği için değerlendirilmedi.",
+        "blemishes": {
+          "none": "aktif sivilce görünmüyor",
+          "few": "{zone}birkaç küçük aktif sivilce var",
+          "several": "{zone}birden fazla aktif sivilce var",
+          "many": "geniş bir alanda aktif sivilce var"
+        },
+        "texture": {
+          "smooth": "doku pürüzsüz",
+          "slightly_uneven": "dokuda hafif pürüzlülük var",
+          "uneven": "dokuda belirgin pürüzlülük var"
+        },
+        "evenness": {
+          "even": "renk dağılımı eşit",
+          "mostly_even": "renk dağılımı büyük ölçüde eşit",
+          "uneven": "bazı alanlarda renk farkı var; günlük güneş koruyucu bu alanları korumaya yardımcı olur"
+        },
+        "shine": {
+          "balanced": "parlama dengeli",
+          "some": "{zone}hafif parlama var",
+          "very": "{zone}belirgin parlama var"
+        },
+        "retouch": "Telefonun güzelleştirme modu cildi düzleştirmiş olabilir; cilt bu çekimde temkinli değerlendirildi.",
+        "harshLight": "Işık sert ya da loş olduğu için parlama bu çekimde değerlendirilmedi."
+      },
+      "hair": {
+        "notVisible": "Saç bu çekimde değerlendirilmedi.",
+        "neatness": {
+          "neat": "saç düzenli",
+          "slightly_untidy": "saçta hafif dağınıklık var",
+          "untidy": "saç dağınık"
+        },
+        "shape": {
+          "defined": "kesimin formu belirgin",
+          "softening": "kesimin formu yumuşamaya başlamış",
+          "grown_out": "kesim formunu kaybetmiş"
+        }
+      },
+      "brows": {
+        "tidy": "Kaşlar düzenli.",
+        "few_strays": "Kaşlarda birkaç dağınık tel var.",
+        "unruly": "Kaşlarda dağınık teller belirgin.",
+        "unclear": "Kaşlar bu çekimde net görünmüyor."
+      },
+      "facialHair": {
+        "edges": {
+          "defined": "Sakal hatları net.",
+          "soft": "Sakal hatları yumuşamış.",
+          "untidy": "Sakal hatları düzensiz."
+        },
+        "lips": {
+          "smooth": "Dudaklar nemli görünüyor.",
+          "slightly_dry": "Dudaklar hafif kuru.",
+          "dry_cracked": "Dudaklar kuru ve çatlak."
+        }
+      },
+      "skinConcernNote": "{zone}belirgin alanlar için bir dermatoloğa göstermek faydalı olabilir."
     }
   },
   "paywall": {
@@ -668,7 +890,9 @@
       "i1": "Genel skor, potansiyel ve 6 alt skor",
       "i2": "Kişisel koç raporu ve rutin",
       "i3": "Her 7 günde 10 sanal deneme (60 stil)",
-      "i4": "Haftalık yeniden analiz ve skor trendi"
+      "i4": "Haftalık yeniden analiz ve skor trendi",
+      "i5": "Önce odaklanacağın adımlar ve fotoğrafındaki ölçülerin açıklaması",
+      "i6": "Ödeme sonrası bu analiz yeni çekim gerekmeden açılır"
     },
     "cta": "Devam et",
     "note": "Deneme süresi yok; dilediğin zaman tek tıkla iptal, erişim dönem sonuna kadar sürer.",
@@ -686,7 +910,23 @@
     "purchaseError": "Satın alma tamamlanamadı. Mağaza hesabını kontrol edip tekrar dene.",
     "pending": "Ödeme doğrulanıyor…",
     "storeNote": "Abonelik App Store / Google Play hesabından yönetilir ve faturalanır. İptal etsen de erişimin dönem sonuna kadar sürer.",
-    "alreadyPremium": "Premium hesabın açık."
+    "alreadyPremium": "Premium hesabın açık.",
+    "context": {
+      "score": "Genel skorun bu analizde hemen açılır.",
+      "potential": "Potansiyel skorun ve aradaki fark bu analizde hemen açılır.",
+      "sub": "{name} alt skorun ve açıklaması bu analizde hemen açılır.",
+      "improve": "Önce odaklanacağın adımlar ve kişisel planın açılır.",
+      "measurements": "Oranlarının değerleri ve açıklamaları açılır.",
+      "plan": "Saç, sakal ve cilt planın ödeme sonrası hemen hazırlanır."
+    },
+    "notAssessedNote": "Çekimde net görünmeyen bir alan, kilit açıldığında “Değerlendirilmedi” olarak gösterilebilir.",
+    "anchor": "Yıllık {yearly} · haftalık ~{weekly}",
+    "seePlans": "Planları gör",
+    "plansTitle": "Planını seç",
+    "backAria": "Faydalara geri dön",
+    "continueWith": "Devam et · {price}",
+    "backToAnalysis": "Analizine dön",
+    "methodLink": "Skor nasıl hesaplanır?"
   },
   "share": {
     "button": "Paylaşım kartı oluştur",
@@ -804,7 +1044,31 @@
     "addedToRoutine": "{n} adım rutinine eklendi.",
     "alreadyInRoutine": "Bu adımlar zaten rutininde.",
     "routineError": "Rutine eklenemedi.",
-    "regenerate": "Planı yeniden üret"
+    "regenerate": "Planı yeniden üret",
+    "basis": {
+      "title": "Planın şunlara göre hazırlandı",
+      "titleCurrent": "Güncel cevapların",
+      "staleNote": "Cevapların bu plan hazırlandıktan sonra güncellenmiş olabilir. Yeni cevaplarla görmek için “Planı yeniden üret”i kullanabilirsin; yeniden üretim hakkından düşer.",
+      "priorities": "Öncelik sırası",
+      "goalMatch": "Seçtiğin “{goal}” hedefi ilk adımınla örtüşüyor.",
+      "edit": "Cevaplarını değiştir",
+      "chip": {
+        "goal": "Hedef: {value}",
+        "skinType": "Cilt tipi: {value}",
+        "budget": "Bütçe: {value}",
+        "minutes": "Günde {n} dakika",
+        "hairType": "Saç tipi: {value}",
+        "beard": "Sakal tercihi: {value}",
+        "headCovering": "Başörtüsü: saç önerisi eklenmedi",
+        "glasses": "Gözlük kullanıyorsun",
+        "jawHealth": "Çene sağlığı cevabın: egzersiz eklenmedi"
+      },
+      "skipped": {
+        "hair": "Anket cevabına göre saç önerisi eklenmedi.",
+        "exercises": "Çene sağlığıyla ilgili cevabın nedeniyle egzersiz eklenmedi.",
+        "beard": "Sakal tercihine göre sakal bölümü eklenmedi."
+      }
+    }
   },
   "feedback": {
     "helpful": "Faydalı mı?",
@@ -975,5 +1239,60 @@
     "keepHint": "İptal etmezsen uygulamayı kullanmaya devam edemezsin; verilerin planlanan tarihte silinir.",
     "canceled": "Silme talebi iptal edildi. Hesabın açık.",
     "error": "İptal edilemedi. Tekrar dene."
+  },
+  "method": {
+    "metaTitle": "Skor nasıl hesaplanır?",
+    "metaDescription": "Aura skorunun yöntemi: telefonunda ölçülen oranlar, görünür bakım ayrıntıları ve herkes için aynı hesaplama.",
+    "title": "Skor nasıl hesaplanır?",
+    "legacyNote": "Bu sayfa yeni yöntemi anlatır. Şu an analizler önceki yöntemle hesaplanıyor; yeni yöntem açıldığında bu not kalkar.",
+    "summaryTitle": "Kısaca",
+    "summary": "Yapısal alt skorlar telefonunda ölçülen oranlardan gelir. Cilt, saç ve bakım skorları fotoğraftaki görünür ve değiştirilebilir ayrıntılardan gelir: yapay zekâ bu ayrıntıları yalnız kategorilere ayırır (ör. “hafif parlama”). Tüm sayılar kodda, herkes için aynı tablolarla hesaplanır.",
+    "stepsTitle": "Adım adım",
+    "steps": {
+      "s1": "Telefonun yüzünde 478 nokta bulur. Bu noktalar telefonundan çıkmaz.",
+      "s2": "Noktalardan oranlar hesaplanır: sağ–sol denge, dikey oranlar, göz ekseni ve aralığı, genişlikler. Bu oranlar analizinle saklanır.",
+      "s3": "Yüzünün kırpılmış bir kopyası {provider} sağlayıcısına gönderilir. Model yalnız görünür bakım ayrıntılarını kategorilere ayırır; puan vermez, yüz ya da beden şeklini değerlendirmez.",
+      "s4": "Kod, oranları ve kategorileri sabit tablolarla 1–10 arası alt skorlara çevirir. Yapısal alanların genel skordaki payı %{structuralShare}.",
+      "s5": "Potansiyel, değiştirilebilir alanlar 8–12 haftalık düzenli bakımla birer kademe iyileşirse skorun ne olacağını gösterir. Yapısal alanlar potansiyele eklenmez."
+    },
+    "subsTitle": "Alt skorlar ve kaynakları",
+    "subsColumns": {
+      "name": "Alan",
+      "source": "Kaynak",
+      "kind": "Tür"
+    },
+    "source": {
+      "device": "Telefonunda ölçülen oranlar",
+      "ai": "Görünür ayrıntıların kategorileri"
+    },
+    "dataTitle": "Ne nereye gider?",
+    "data": {
+      "landmarks": "Yüz noktaları: yalnız telefonunda kalır.",
+      "geometry": "Oranlar: analizinle birlikte saklanır.",
+      "photo": "Kırpılmış fotoğraf: yalnız bu analiz için {provider} sağlayıcısına iletilir. Aura saklamaz; sağlayıcı yalnız kötüye kullanım denetimi için sınırlı süre tutabilir.",
+      "tryon": "Deneme fotoğrafı: yalnız deneme için {tryonProvider} sağlayıcısına iletilir; Aura saklamaz.",
+      "progress": "İlerleme fotoğrafları: yalnız cihazında kalır.",
+      "analytics": "Kullanım ölçümü: yalnız çerez onayınla yapılır; fotoğraf, skor veya e-posta içermez.",
+      "retention": "Sağlayıcıların kendi saklama koşulları Aydınlatma Metni'nde yer alır."
+    },
+    "fairnessTitle": "Adalet",
+    "fairness": {
+      "f1": "Yapısal ölçülerin referans aralıkları herkes için aynıdır ve kadın ile erkek için yayımlanmış aralıkların ikisini de kapsar; ankette seçtiğin sunum dahil hiçbir kişisel bilgi yapısal puana girmez.",
+      "f2": "Yaş, etnik köken veya din çıkarımı yapılmaz; yüz tanıma yapılmaz.",
+      "f3": "Yapısal ölçülerde referans aralığın içindeki her değer aynı puanı alır; yalnız aralığın belirgin dışındaki ölçüler puanı sınırlı ölçüde etkiler.",
+      "lastRun": "Gruplar arası fark en son {date} tarihinde ölçüldü."
+    },
+    "limitsTitle": "Sınırlar",
+    "limits": {
+      "l1": "Işık ve açı sonucu değiştirebilir; benzer koşullarda çekim daha tutarlı sonuç verir.",
+      "l2": "Tıbbi değerlendirme değildir.",
+      "l3": "Sıralama veya yüzdelik yoktur; {ref} herkes için aynı referanstır.",
+      "l4": "Yapısal alanlar bir eksiklik göstermez; yalnız oranları tarif eder.",
+      "l5": "Doğal ten rengi, çil, ben, iz ve skarlar, yüz şekli, saç dokusu, yoğunluğu, rengi ve dökülmesi, kellik ve sakal olup olmaması puanlanmaz. Yüz şekli hesaba hiç girmez; diğerleri için yapay zekâya bunları dikkate almaması açıkça söylenir.",
+      "l6": "Başörtüsü kullandığını belirttiysen ya da fotoğrafta başının üstünde saç görünmüyorsa saç alanı puanlanmaz; payı cilt ve bakım alanlarına aktarılır, yapısal alanların payı değişmez. Bir alan çekimde net görünmezse o çekimde değerlendirilmez; ışığı ve kadrajı düzelterek yeniden çekebilirsin."
+    },
+    "versionTitle": "Sürüm",
+    "version": "Yöntem: {engine} · kalibrasyon: {calibration}",
+    "footerLink": "Skor nasıl hesaplanır?"
   }
 }
