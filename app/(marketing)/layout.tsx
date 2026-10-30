@@ -24,7 +24,12 @@ export default async function MarketingLayout({ children }: LayoutProps<"/">) {
       <main className="flex-1">{children}</main>
       <footer className="border-t">
         <div className="mx-auto w-full max-w-5xl space-y-3 px-4 py-6">
-          <LegalLinks />
+          <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+            <LegalLinks />
+            <Link href="/yontem?from=footer" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+              {t("method.footerLink")}
+            </Link>
+          </div>
           <p className="text-xs text-muted-foreground">{t("common.adultOnly")} {t("common.photoNotStored")}</p>
           <p className="text-xs text-muted-foreground">{t("legal.rights", { year: new Date().getFullYear(), appName: APP_NAME })}</p>
         </div>

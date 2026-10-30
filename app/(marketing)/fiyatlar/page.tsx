@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import { PricingCards } from "@/components/marketing/PricingCards";
 
 const INCLUDES = ["i1", "i2", "i3", "i4", "i5", "i6"] as const;
@@ -10,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PricingPage() {
-  const t = await getTranslations("pricing");
+  const [t, tm] = await Promise.all([getTranslations("pricing"), getTranslations("method")]);
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8 px-4 py-10">
       <header className="space-y-2">
@@ -29,6 +30,11 @@ export default async function PricingPage() {
             </li>
           ))}
         </ul>
+        <p className="text-sm">
+          <Link href="/yontem?from=pricing" className="underline underline-offset-4">
+            {tm("footerLink")}
+          </Link>
+        </p>
         <p className="text-xs text-muted-foreground">{t("freeNote")}</p>
         <p className="text-xs text-muted-foreground">{t("autoRenewNote")}</p>
       </section>
