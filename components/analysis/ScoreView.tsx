@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { usePaywall } from "@/components/paywall/PaywallSheet";
+import type { PaywallTrigger } from "@/lib/config/paywall";
 import { FeedbackButtons } from "@/components/report/FeedbackButtons";
 import { ShareCardButton } from "@/components/share/ShareCardButton";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ export function ScoreView({ a, premium }: { a: ClientAnalysis; premium: boolean 
   const t = useTranslations("analysis");
   const tg = useTranslations("geometry");
   const { open } = usePaywall();
-  const lockedTap = (trigger: string) => () => open(trigger);
+  const lockedTap = (trigger: PaywallTrigger) => () => open(trigger);
 
   const overall = a.overall.locked ? null : a.overall.value;
   const potential = a.potential.locked ? null : a.potential.value;
@@ -43,9 +44,9 @@ export function ScoreView({ a, premium }: { a: ClientAnalysis; premium: boolean 
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        <div><LockedValue v={a.overall} big onTap={lockedTap("overall")} aria={t("lockedAria")} /></div>
+        <div><LockedValue v={a.overall} big onTap={lockedTap("score_main")} aria={t("lockedAria")} /></div>
         <p className="flex items-center gap-1 text-sm">
-          {t("potentialTitle")}: <LockedValue v={a.potential} onTap={lockedTap("potential")} aria={t("lockedAria")} />
+          {t("potentialTitle")}: <LockedValue v={a.potential} onTap={lockedTap("score_potential")} aria={t("lockedAria")} />
           {overall !== null && potential !== null && potential > overall ? (
             <span className="inline-flex items-center text-muted-foreground"><ArrowUpRight className="size-4" aria-hidden="true" />+{fmt(potential - overall)}</span>
           ) : null}
@@ -86,7 +87,7 @@ export function ScoreView({ a, premium }: { a: ClientAnalysis; premium: boolean 
   );
 
   const ratiosCard = (
-    <LockedSection title={t("ratiosTitle")} locked={!metrics} onTap={lockedTap("ratios")}>
+    <LockedSection title={t("ratiosTitle")} locked={!metrics} onTap={lockedTap("measurements")}>
       {metrics ? (
         <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
           <dt className="text-muted-foreground">{tg("canthalTilt")}</dt>

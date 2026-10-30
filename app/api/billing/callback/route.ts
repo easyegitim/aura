@@ -5,6 +5,7 @@ import { parseRemoteSubscription, retrieveOneTimeCheckout, retrieveSubscriptionC
 import { periodEndFor } from "@/lib/billing/sync";
 import { APP_NAME, APP_URL } from "@/lib/config/app";
 import { PLANS } from "@/lib/config/plans";
+import { pickReturnAnalysis, readCheckoutPayload, type CandidateRow } from "@/lib/billing/returnAnalysis";
 import { createAdminClient } from "@/lib/db/admin";
 import { sendEmail } from "@/lib/email/resend";
 
@@ -21,13 +22,16 @@ export async function POST(req: Request) {
 
   const admin = createAdminClient();
   const { data: ev } = await admin.from("payment_events").select("payload").eq("event_key", `checkout:${token}`).maybeSingle();
-  const payload = (ev?.payload ?? {}) as { userId?: string; plan?: string; conversationId?: string };
+  const payload = readCheckoutPayload(ev?.payload);
   if (!payload.userId || !payload.plan) return redirectResult("failed");
+  const userId = payload.userId;
+  // Dönüş hedefi yalnız yönlendirme içindir; premium kararını etkilemez (UI spec §4.2).
+  const back = async (status: "ok" | "failed" | "pending") => redirectResult(status, await returnAnalysisFor(admin, userId, payload.analysisId));
 
   try {
     if (payload.plan === "week_pass") {
       const r = await retrieveOneTimeCheckout(token);
-      if (r.paymentStatus !== "SUCCESS") return redirectResult("failed");
+      if (r.paymentStatus !== "SUCCESS") return back("failed");
       const start = new Date();
       const end = new Date(start.getTime() + PLANS.week_pass.oneTimeDays * 86_400_000);
       await admin
@@ -37,7 +41,7 @@ export async function POST(req: Request) {
     } else {
       const r = await retrieveSubscriptionCheckout(token);
       const remote = parseRemoteSubscription(r.data);
-      if (!remote.ref) return redirectResult("pending");
+      if (!remote.ref) return back("pending");
       await admin.from("subscriptions").update({ provider_subscription_ref: remote.ref, provider_customer_ref: remote.customerRef, updated_at: new Date().toISOString() }).eq("user_id", payload.userId);
       const synced = await syncSubscriptionFromIyzico(remote.ref);
       if (!synced || synced.status !== "active") {
@@ -48,7 +52,7 @@ export async function POST(req: Request) {
             .from("subscriptions")
             .update({ status: "active", current_period_start: start.toISOString(), current_period_end: periodEndFor(payload.plan as "weekly" | "monthly" | "yearly", start).toISOString() })
             .eq("user_id", payload.userId);
-        } else return redirectResult("pending");
+        } else return back("pending");
       }
     }
 
@@ -62,10 +66,25 @@ export async function POST(req: Request) {
       await sendEmail({ to: email, subject: `${APP_NAME} — Mesafeli Satış Sözleşmesi ve Ön Bilgilendirme Formu`, html: c.html }).catch(() => undefined);
     }
 
-    const { data: last } = await admin.from("analyses").select("id").eq("user_id", payload.userId).eq("status", "completed").order("created_at", { ascending: false }).limit(1).maybeSingle();
-    return redirectResult("ok", last?.id ? String(last.id) : undefined);
+    return back("ok");
   } catch {
-    return redirectResult("pending");
+    return back("pending");
+  }
+}
+
+/** Checkout'taki analiz bu kullanıcıya ait ve tamamlanmışsa o; değilse en son tamamlanan analiz. Hata yönlendirmeyi bozmaz. */
+async function returnAnalysisFor(admin: ReturnType<typeof createAdminClient>, userId: string, candidate: string | undefined): Promise<string | undefined> {
+  try {
+    let candidateRow: CandidateRow = null;
+    if (candidate) {
+      const { data } = await admin.from("analyses").select("id, user_id, status").eq("id", candidate).eq("user_id", userId).maybeSingle();
+      candidateRow = data ? { id: String(data.id), user_id: String(data.user_id), status: String(data.status) } : null;
+    }
+    if (pickReturnAnalysis(candidate, candidateRow, null, userId)) return candidate;
+    const { data: last } = await admin.from("analyses").select("id").eq("user_id", userId).eq("status", "completed").order("created_at", { ascending: false }).limit(1).maybeSingle();
+    return pickReturnAnalysis(candidate, candidateRow, last?.id ? String(last.id) : null, userId);
+  } catch {
+    return undefined;
   }
 }
 
