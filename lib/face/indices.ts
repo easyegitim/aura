@@ -24,6 +24,12 @@ export const IDX = {
   irisL: 473,
   mouthR: 61,
   mouthL: 291,
+  // hybrid.v1 ek noktaları (engine spec §1.2). /debug/landmarks'ta doğrulanır.
+  stomionUpper: 13, // üst dudak iç orta
+  stomionLower: 14, // alt dudak iç orta
+  midBrow: 8, // kaş arası, 9'un hemen altı
+  noseBridge: 6, // burun sırtı, 168'in altı
+  foreheadMid: 151, // alın orta hattı, 10 ile 9 arası
 } as const;
 
 /** Yüz ovali (kompozit maskesi için, sırayla). */
