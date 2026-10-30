@@ -2,9 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnalysisProgress } from "@/components/analysis/AnalysisProgress";
+import { GeometryOverlay, type OverlaySource } from "@/components/analysis/GeometryOverlay";
 import { SelfieCamera, type CaptureResult } from "@/components/camera/SelfieCamera";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { track } from "@/lib/analytics";
@@ -12,7 +14,10 @@ import { submitAnalysis } from "@/lib/api/analysisClient";
 import { ApiClientError } from "@/lib/api/client";
 import { VisionClient } from "@/lib/face/client";
 import { cropForServer } from "@/lib/face/crop";
-import { setSessionSelfie } from "@/lib/face/sessionStore";
+import { qualitySummary } from "@/lib/face/quality";
+import { bindSessionSelfie, setSessionSelfie } from "@/lib/face/sessionStore";
+import { finishProgress, markDone, startProgress, type ProgressState } from "@/lib/analysis/progressModel";
+import type { EngineName } from "@/lib/score/contract";
 import { addProgressPhoto } from "@/lib/local/progressStore";
 import { Checkbox } from "@/components/ui/checkbox";
 import { findHairline, propagateHairline } from "@/lib/face/hairline";
@@ -33,30 +38,63 @@ async function computeGeometry(result: CaptureResult): Promise<GeometryResult> {
   return computeStableGeometry(frames);
 }
 
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+/** "Sonucun hazır" gösterim süresi ve skor adımının yanıttan sonraki gecikmesi (UI spec §3). */
+const READY_HOLD_MS = 700;
+const STEP_GAP_MS = 250;
+
 /**
- * /tara ekranı (F05). Faz 6'da çekim sonucu GeometryResult + 768 px JPEG ile POST /api/analyses'e gider;
- * şimdilik yalnız kalite ölçümleri gösterilir. Görüntü ve noktalar bellekte kalır, hiçbir yere gönderilmez.
+ * /tara ekranı (F05). Çekim sonucu GeometryResult + 768 px JPEG ile POST /api/analyses'e gider.
+ * Görüntü ve 478 nokta yalnız bellekte kalır; sunucuya yalnız kırpılmış görüntü ve oranlar gider.
  */
-export function CaptureScreen() {
+export function CaptureScreen({ engine, aiProviderName }: { engine: EngineName; aiProviderName: string }) {
   const t = useTranslations("camera.captured");
   const ta = useTranslations("analysis");
   const router = useRouter();
   const [result, setResult] = useState<CaptureResult | null>(null);
   const [geometry, setGeometry] = useState<GeometryResult | null>(null);
   const [phase, setPhase] = useState<"idle" | "submitting" | "done" | "error">("idle");
+  const [progress, setProgress] = useState<ProgressState | null>(null);
+  const capturedAtRef = useRef<number | null>(null);
   const [error, setError] = useState<{ code: string; retryAt?: string } | null>(null);
   const requestIdRef = useRef<string>(crypto.randomUUID());
   const [saveProgress, setSaveProgress] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const tg = useTranslations("geometry");
+  // Ölçü çizgisi kaynağı yalnız bellekteki çekimden (piksel koordinatı); hiçbir yere gönderilmez.
+  const source = useMemo<OverlaySource | null>(
+    () =>
+      result?.final.landmarks
+        ? {
+            bitmap: result.image.bitmap,
+            width: result.image.width,
+            height: result.image.height,
+            landmarks: result.final.landmarks.map((p) => ({ x: p.x * result.image.width, y: p.y * result.image.height })),
+          }
+        : null,
+    [result],
+  );
 
   async function runAnalysis(r: CaptureResult, g: GeometryResult) {
     setPhase("submitting");
     setError(null);
+    // Noktalar ve oranlar gönderimden önce hazır: ilk iki adım tamam (+0 ms, +250 ms).
+    let s = markDone(startProgress(Date.now()), "landmarks");
+    setProgress(s);
     try {
       const px = r.final.landmarks!.map((p) => ({ x: p.x * r.image.width, y: p.y * r.image.height }));
-      const { blob } = await cropForServer(r.image.bitmap, px);
-      const analysis = await submitAnalysis({ clientRequestId: requestIdRef.current, geometry: g, image: blob });
+      const cropping = cropForServer(r.image.bitmap, px);
+      cropping.catch(() => undefined); // hata aşağıdaki await'te yakalanır; bekleme sırasında "işlenmemiş ret" olmasın
+      await sleep(STEP_GAP_MS);
+      s = markDone(s, "ratios");
+      setProgress(s);
+      const { blob } = await cropping;
+      s = markDone(s, "prepare");
+      setProgress(s);
+      // relaxed yalnız saklanan üst veridir; hiçbir skoru değiştirmez (C7).
+      const geometry: GeometryResult = r.relaxed ? { ...g, quality: { ...g.quality, relaxed: true } } : g;
+      const analysis = await submitAnalysis({ clientRequestId: requestIdRef.current, geometry, image: blob });
+      s = markDone(s, "observe");
+      setProgress(s);
       track("analysis_completed", { tier: analysis.overall.locked ? "free" : "premium" });
       if (saveProgress) {
         // SPEC 11.2: yalnız cihazda (IndexedDB); sunucuya gitmez.
@@ -68,22 +106,25 @@ export function CaptureScreen() {
           // depolama kapalıysa sessizce geç
         }
       }
+      await sleep(STEP_GAP_MS);
+      s = finishProgress(markDone(s, "score"));
+      setProgress(s);
       setPhase("done");
+      await sleep(READY_HOLD_MS);
+      // Ölçü çizgileri sonuç ekranında yalnız bu analize bağlı selfie üzerinde çizilir (UI spec S1).
+      if (capturedAtRef.current !== null) bindSessionSelfie(analysis.id, capturedAtRef.current);
       router.push(`/analiz/${analysis.id}`);
     } catch (e) {
       const code = e instanceof ApiClientError ? e.code : "NETWORK";
       track("analysis_failed", { reason: code });
       setError({ code, retryAt: e instanceof ApiClientError ? e.retryAt : undefined });
+      setProgress(null);
       setPhase("error");
     }
   }
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!result || !canvas) return;
-    canvas.width = result.image.width;
-    canvas.height = result.image.height;
-    canvas.getContext("2d")?.drawImage(result.image.bitmap, 0, 0);
+    if (!result) return;
     let cancelled = false;
     computeGeometry(result)
       .then((g) => {
@@ -102,18 +143,23 @@ export function CaptureScreen() {
     return (
       <div className="mx-auto w-full max-w-lg px-4 py-6">
         <SelfieCamera
+          aiProviderName={aiProviderName}
           onCapture={async (r) => {
             requestIdRef.current = crypto.randomUUID();
             setPhase("idle");
+            setError(null);
+            setGeometry(null);
             setResult(r);
             // SPEC 10.3 adım 3: selfie + landmark'lar oturum boyunca bellekte (IndexedDB'ye yazılmaz).
             if (r.final.landmarks) {
+              const capturedAt = Date.now();
+              capturedAtRef.current = capturedAt;
               setSessionSelfie({
                 bitmap: await createImageBitmap(r.image.bitmap),
                 width: r.image.width,
                 height: r.image.height,
                 landmarks: r.final.landmarks.map((p) => ({ x: p.x * r.image.width, y: p.y * r.image.height })),
-                capturedAt: Date.now(),
+                capturedAt,
               });
             }
           }}
@@ -122,18 +168,18 @@ export function CaptureScreen() {
     );
   }
 
-  if (phase === "submitting" || phase === "done") {
+  if ((phase === "submitting" || phase === "done") && progress) {
     return (
       <div className="mx-auto w-full max-w-lg px-4 py-6">
-        <AnalysisProgress done={phase === "done"} />
+        <AnalysisProgress state={progress} engine={engine} source={source} />
       </div>
     );
   }
 
-  const m = result.quality.measures;
-  const fmt = (v: number | null, digits = 0) => (v === null ? "–" : v.toFixed(digits));
-  const pct = (v: number | null) => (v === null ? "–" : `%${Math.round(v * 100)}`);
-  const tiltLabel = (deg: number) => (deg > 2 ? tg("tilt.positive") : deg < -2 ? tg("tilt.negative") : tg("tilt.neutral"));
+  const quality = qualitySummary(result.quality.measures);
+  // Sunucu kalite kapısı reddettiyse (hak düşmedi) bu çekimle yeniden denemenin anlamı yok: yeniden çekim birincil.
+  const captureRejected = error?.code === "CAPTURE_QUALITY";
+  const startDisabled = !geometry || error?.code === "QUOTA_EXCEEDED" || captureRejected;
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-6">
@@ -143,44 +189,28 @@ export function CaptureScreen() {
           <CardDescription>{t("body")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <canvas ref={canvasRef} className="mx-auto max-h-[50dvh] w-auto rounded-lg" aria-label={t("previewAlt")} />
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-            <dt className="text-muted-foreground">{t("source")}</dt>
-            <dd>{result.source === "camera" ? t("sourceCamera") : t("sourceGallery")}</dd>
-            <dt className="text-muted-foreground">{t("pose")}</dt>
-            <dd className="tabular-nums">
-              {fmt(m.yaw)}° / {fmt(m.pitch)}° / {fmt(m.roll)}°
-            </dd>
-            <dt className="text-muted-foreground">{t("brightness")}</dt>
-            <dd className="tabular-nums">{fmt(m.brightness)}</dd>
-            <dt className="text-muted-foreground">{t("sharpness")}</dt>
-            <dd className="tabular-nums">{fmt(m.sharpness)}</dd>
-            <dt className="text-muted-foreground">{t("frames")}</dt>
-            <dd className="tabular-nums">{result.recentFrames.length}</dd>
-          </dl>
+          <GeometryOverlay source={source} variant="full" showLines={geometry !== null} />
+          <ul className="flex flex-wrap gap-1.5" aria-label={t("qualityAria")}>
+            {(["light", "sharpness", "framing"] as const).map((k) => (
+              <li key={k}>
+                <Badge variant="outline">{t(`quality.${k}.${quality[k]}`)}</Badge>
+              </li>
+            ))}
+            {result.source === "gallery" ? (
+              <li>
+                <Badge variant="outline">{t("fromGallery")}</Badge>
+              </li>
+            ) : null}
+          </ul>
           {geometry ? (
-            <section className="space-y-2 rounded-lg border p-3" aria-label={tg("title")}>
-              <h3 className="text-sm font-medium">{tg("title")}</h3>
-              <p className="text-sm">
-                {tg("faceShape")}: <strong>{tg(`shapes.${geometry.faceShape.primary}`)}</strong>
-                {geometry.faceShape.secondary ? ` (${tg("between", { other: tg(`shapes.${geometry.faceShape.secondary}`) })})` : null}
-              </p>
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <dt className="text-muted-foreground">{tg("canthalTilt")}</dt>
-                <dd>{tiltLabel(geometry.metrics.canthalTiltDeg)}</dd>
-                <dt className="text-muted-foreground">{tg("jawRatio")}</dt>
-                <dd className="tabular-nums">{geometry.metrics.jawRatio.toFixed(2)}</dd>
-                <dt className="text-muted-foreground">{tg("fwhr")}</dt>
-                <dd className="tabular-nums">{geometry.metrics.fwhr.toFixed(2)}</dd>
-                <dt className="text-muted-foreground">{tg("thirds")}</dt>
-                <dd className="tabular-nums">
-                  {pct(geometry.metrics.thirds.upper)} / {pct(geometry.metrics.thirds.middle)} / {pct(geometry.metrics.thirds.lower)}
-                </dd>
-              </dl>
-              <p className="text-xs text-muted-foreground">{tg("note")}</p>
-            </section>
+            <p className="text-sm">
+              {tg("faceShape")}: <strong>{tg(`shapes.${geometry.faceShape.primary}`)}</strong>
+              {geometry.faceShape.secondary ? ` (${tg("between", { other: tg(`shapes.${geometry.faceShape.secondary}`) })})` : null}
+            </p>
           ) : (
-            <p className="text-xs text-muted-foreground">{tg("computing")}</p>
+            <p className="text-xs text-muted-foreground" role="status">
+              {tg("computing")}
+            </p>
           )}
           <label className="flex items-start gap-3 rounded-md border px-3 py-2 text-sm">
             <Checkbox checked={saveProgress} onCheckedChange={(v) => setSaveProgress(v === true)} className="mt-0.5" />
@@ -196,10 +226,15 @@ export function CaptureScreen() {
             </p>
           ) : null}
           <div className="flex gap-2">
-            <Button variant="outline" className="flex-1" onClick={() => setResult(null)}>
+            <Button variant={captureRejected ? "default" : "outline"} className="min-h-11 flex-1" onClick={() => setResult(null)}>
               {t("retake")}
             </Button>
-            <Button className="flex-1" disabled={!geometry || error?.code === "QUOTA_EXCEEDED"} onClick={() => geometry && void runAnalysis(result, geometry)}>
+            <Button
+              variant={captureRejected ? "outline" : "default"}
+              className="min-h-11 flex-1"
+              disabled={startDisabled}
+              onClick={() => geometry && void runAnalysis(result, geometry)}
+            >
               {ta("start")}
             </Button>
           </div>
