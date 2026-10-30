@@ -5,9 +5,21 @@
  *   PRIVACY_E2E=1                       → playwright.config.ts "privacy" projesini ekler
  *   Sunucu gerçek (yerel) Supabase ile çalışıyor; Turnstile site anahtarı boş (captcha kapalı)
  *   PRIVACY_FACE_VIDEO=/sifreli/disk/face.y4m → Chrome sahte kamera kaynağı (rızalı yüz; depoya konmaz)
- *   GEMINI_API_KEY tanımlı (ücretli; onayla)
+ *   GEMINI_API_KEY tanımlı (ücretli; onayla); SCORE_ENGINE=hybrid.v1 ile koşuluyorsa ANTHROPIC_API_KEY de (ücretli; onayla)
  */
 import { expect, test, type Request } from "@playwright/test";
+
+type LockedJson = { value: unknown; locked: boolean };
+/** /api/analyses yanıtındaki ClientAnalysis'in kilitle ilgili alanları (lib/score/present.ts). */
+type AnalysisJson = {
+  overall?: LockedJson;
+  potential?: LockedJson;
+  potentialDelta?: LockedJson;
+  improveFirst?: LockedJson;
+  subscores?: Record<string, LockedJson>;
+  explain?: Record<string, LockedJson>;
+  notAssessed?: { sub: string; reason: string }[];
+};
 
 const IMAGE_SINKS = ["/api/analyses", "/api/tryon"];
 
@@ -94,14 +106,27 @@ test.describe("Gizlilik (tüm ağ trafiği)", () => {
       expect(b).not.toMatch(/\/9j\/|lengthRatio|overall|@/);
     }
 
-    // 4) Ücretsiz hesapta API yanıtlarında kilitli değerler yok
-    for (const res of analysisResponses as { overall?: { value: unknown; locked: boolean }; potential?: { value: unknown; locked: boolean } }[]) {
+    // 4) Ücretsiz hesapta API yanıtlarında kilitli değerler yok (UI spec §1.2 ve engine spec §8: tek birleşik liste)
+    for (const res of analysisResponses as AnalysisJson[]) {
       if (!res?.overall) continue;
       if (res.overall.locked) expect(res.overall.value).toBeNull();
       if (res.potential?.locked) expect(res.potential.value).toBeNull();
+      if (res.potentialDelta?.locked) expect(res.potentialDelta.value).toBeNull();
+      if (res.improveFirst?.locked) expect(res.improveFirst.value).toBeNull();
+      for (const [k, e] of Object.entries(res.explain ?? {})) if (e.locked) expect(e.value, `explain.${k}`).toBeNull();
+      for (const [k, s] of Object.entries(res.subscores ?? {})) {
+        if (s.locked) expect(s.value, `subscores.${k}`).toBeNull();
+        // "Değerlendirilmedi" + bilinen referans değeri kilitli değeri ele verir: kilitli alt skor için not_visible yok
+        if (s.locked) expect(res.notAssessed?.some((n) => n.sub === k && n.reason === "not_visible") ?? false, `notAssessed.${k}`).toBe(false);
+      }
     }
     const html = await page.content();
     expect(html).not.toMatch(/"potential":\{"value":\d/);
+    expect(html).not.toMatch(/"potentialDelta":\{"value":\d|"improveFirst":\{"value":\[/);
+    // Hiçbir hosta giden gövdede landmark dizisi yok
+    for (const r of requests) expect(r.postData() ?? "", new URL(r.url()).host).not.toMatch(/"landmarks"/);
+    // Analitik/hata olaylarında kaldıraç anahtarı yok
+    for (const r of requests.filter((q) => /posthog|sentry/.test(new URL(q.url()).host))) expect(r.postData() ?? "").not.toMatch(/lv_/);
 
     // 5) Supabase istemcisiyle analyses / coach_reports okunamıyor
     const cookies = await context.cookies();
