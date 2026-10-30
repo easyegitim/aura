@@ -1,8 +1,9 @@
 // SPEC 8.4. Kalibrasyon herkes için aynıdır; ödeme/plan/kampanya girdisi YOKTUR (D03).
-import { CALIBRATION_V0 } from "@/lib/config/scoring";
+import { CALIBRATION_H1, CALIBRATION_V0 } from "@/lib/config/scoring";
 import type { SubKey } from "@/lib/config/teaser";
 
-export type CalibrationVersion = "v0" | "v1";
+/** h1 (engine spec §5.1): hybrid.v1 için kimlik + kenetleme; referans profil 5,5 verir. */
+export type CalibrationVersion = "v0" | "v1" | "h1";
 
 /** v1: ham → hedef yüzdelik eşleme tablosu, parça parça doğrusal (content/score-calibration.v1.json). */
 export type CalibrationTable = { overall: [number, number][]; subscores?: Partial<Record<SubKey, [number, number][]>> };
@@ -35,11 +36,17 @@ export function calibrateV1(raw: number, table: CalibrationTable, sub?: SubKey):
   return clamp(interpolate(t, raw), CALIBRATION_V0.min, CALIBRATION_V0.max);
 }
 
+/** h1: round1(clamp(raw, 1,0, 9,8)). Alt skor veya kullanıcı girdisi yok; herkes için aynı. */
+export function calibrateH1(raw: number): number {
+  return clamp(raw, CALIBRATION_H1.min, CALIBRATION_H1.max);
+}
+
 /**
  * Kalibre skor (1 ondalık). v1 için tablo verilmelidir; verilmezse hata (sahte tablo kullanılmaz).
  */
 export function calibrate(raw: number, version: CalibrationVersion, opts: { sub?: SubKey; table?: CalibrationTable } = {}): number {
   if (version === "v0") return round1(calibrateV0(raw, opts.sub));
+  if (version === "h1") return round1(calibrateH1(raw));
   if (!opts.table) throw new Error("calibration_v1_table_missing");
   return round1(calibrateV1(raw, opts.table, opts.sub));
 }
