@@ -2,6 +2,23 @@
 import { eulerFromMatrix } from "./pose";
 import type { FrameAnalysis, Point } from "./types";
 
+export type QualityConfig = {
+  faceWidthRatio: { min: number; max: number };
+  centerOffsetMax: number;
+  yawMaxDeg: number;
+  pitchMaxDeg: number;
+  rollMaxDeg: number;
+  brightness: { min: number; max: number };
+  brightnessBalanceMax: number;
+  sharpnessMin: number;
+  eyeBlinkMax: number;
+  mouthSmileMax: number;
+  jawOpenMax: number;
+  stableMs: number;
+  countdownSeconds: number;
+  maxFps: number;
+};
+
 export const QUALITY_CONFIG = {
   faceWidthRatio: { min: 0.35, max: 0.75 },
   centerOffsetMax: 0.12,
@@ -19,9 +36,7 @@ export const QUALITY_CONFIG = {
   countdownSeconds: 3,
   /** Canlı önizlemede saniyede en fazla işlenen kare. */
   maxFps: 10,
-} as const;
-
-export type QualityConfig = typeof QUALITY_CONFIG;
+} as const satisfies QualityConfig;
 
 export type QualityIssue =
   | "no_face"
@@ -38,6 +53,25 @@ export type QualityIssue =
   | "not_neutral";
 
 export type QualityWarning = "hair_not_visible";
+
+/** Elle çekimde gevşetilebilen (yumuşak) sorunlar. Diğerleri (yüz yok, birden fazla yüz, uzak/yakın, baş açısı,
+ *  gözler kapalı, nötr olmayan ifade) her iki modda da çekimi engeller. */
+export const SOFT_ISSUES = ["uneven_light", "blurry", "too_dark", "too_bright", "off_center"] as const satisfies readonly QualityIssue[];
+
+/**
+ * SPEC 7.3 değişikliği (UI spec §6.1): 8 sn sonra yalnız yumuşak sorunlar kalmışsa "Şimdi çek". Gevşek değerler sunucu
+ * kapısının (C13: parlaklık 55–225, netlik ≥ 35) içinde kalır. relaxed yalnız saklanan üst veridir; hiçbir skoru
+ * değiştirmez (C7) — yüz kırpımı parlaklığı ten rengine bağlı olduğu için skora bağlanmaz.
+ */
+export const MANUAL_QUALITY_CONFIG: QualityConfig = {
+  ...QUALITY_CONFIG,
+  brightness: { min: 60, max: 215 },
+  brightnessBalanceMax: 50,
+  sharpnessMin: 40,
+  centerOffsetMax: 0.18,
+};
+
+export const MANUAL_CAPTURE = { offerAfterMs: 8_000 } as const;
 
 export type QualityReport = {
   passed: boolean;
@@ -130,4 +164,27 @@ export function checkQuality(frame: FrameAnalysis, cfg: QualityConfig = QUALITY_
   if (frame.hairVisible === false) warnings.push("hair_not_visible");
 
   return { passed: issues.length === 0, issues, warnings, measures };
+}
+
+const isSoft = (i: QualityIssue) => (SOFT_ISSUES as readonly QualityIssue[]).includes(i);
+
+/** Canlı akış ≥ offerAfterMs sürdüyse, sıkı kontrol YALNIZ yumuşak sorunlarla kalıyorsa ve gevşek kontrol geçiyorsa true. */
+export function manualOfferReady(frame: FrameAnalysis, liveMs: number): boolean {
+  if (liveMs < MANUAL_CAPTURE.offerAfterMs) return false;
+  const strict = checkQuality(frame);
+  if (strict.passed || !strict.issues.every(isSoft)) return false;
+  return checkQuality(frame, MANUAL_QUALITY_CONFIG).passed;
+}
+
+/** Çekim kartındaki kalite çipleri: sıkı eşiği geçen ölçü "good", yalnız gevşek eşiği geçen "ok". Ölçülemeyen değer sorun sayılmaz. */
+export function qualitySummary(m: QualityReport["measures"]): { light: "good" | "ok"; sharpness: "good" | "ok"; framing: "good" | "ok" } {
+  const c = QUALITY_CONFIG;
+  const lightOk =
+    (m.brightness === null || (m.brightness >= c.brightness.min && m.brightness <= c.brightness.max)) &&
+    (m.brightnessBalance === null || m.brightnessBalance <= c.brightnessBalanceMax);
+  return {
+    light: lightOk ? "good" : "ok",
+    sharpness: m.sharpness === null || m.sharpness >= c.sharpnessMin ? "good" : "ok",
+    framing: m.centerOffset === null || m.centerOffset <= c.centerOffsetMax ? "good" : "ok",
+  };
 }
