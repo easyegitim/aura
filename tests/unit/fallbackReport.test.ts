@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFallbackReport } from "@/content/fallback-report";
+import { buildFallbackReport, contourTips } from "@/content/fallback-report";
 import { CoachReport } from "@/lib/ai/reportSchema";
 import { scanReport } from "@/lib/ai/safety";
 import { bodyRules } from "@/lib/coach/bodyRules";
@@ -58,5 +58,24 @@ describe("fallback rapor (SPEC 9.7)", () => {
     expect(WEIGHT_CONTENT_RE.test(JSON.stringify(r.faceContours))).toBe(false);
     expect(r.seeProfessional?.specialty).toBe("diyetisyen");
     expect(r.seeProfessional?.text).toContain("olabilir");
+  });
+});
+
+describe("contourTips (engine spec §9.6: yüz hatları kodla)", () => {
+  it("yalnız deficit modunda dolu; fallback aynı diziyi kullanır", () => {
+    expect(contourTips(bodyRules({ bmi: 22, note: undefined }))).toEqual([]);
+    expect(contourTips(bodyRules({ bmi: null, note: undefined }))).toEqual([]);
+    expect(contourTips(bodyRules({ bmi: 17, note: undefined }))).toEqual([]);
+    expect(contourTips(bodyRules({ bmi: 28, note: "hızlı kilo vermek istiyorum" }))).toEqual([]);
+    const deficit = bodyRules({ bmi: 28, note: undefined });
+    const tips = contourTips(deficit);
+    expect(tips).toHaveLength(4);
+    expect(make({ body: { heightCm: 170, weightKg: 85, activity: "low" } }, 29.4).faceContours.tips).toEqual(tips);
+  });
+  it("VKİ ≥ 30 diyetisyen ipucunu ekler; her ipucu güvenlik filtresinden geçer ve ≤ 160 karakter", () => {
+    const tips = contourTips(bodyRules({ bmi: 31, note: undefined }));
+    expect(tips).toHaveLength(5);
+    for (const t of tips) expect(t.length).toBeLessThanOrEqual(160);
+    expect(scanReport({ faceContours: { enabled: true, tips } }, { faceContoursEnabled: true })).toEqual([]);
   });
 });

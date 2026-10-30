@@ -1,8 +1,13 @@
 import "server-only";
 
+import type Anthropic from "@anthropic-ai/sdk";
+import type { BetaMessage, MessageCreateParamsNonStreaming } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import { GoogleGenAI } from "@google/genai";
 import { ApiError } from "@/lib/api/errors";
+import { ZERO_USAGE, estUsd, getAiEnv, type AiEnv, type TokenUsage } from "@/lib/config/ai.server";
 import { SCORE_CALL_TIMEOUT_MS, SCORE_RETRIES, SCORE_RETRY_BASE_MS, getScoringEnv } from "@/lib/config/scoring";
+import { classifyAnthropicError, getAnthropic, readJsonText, readUsage, servedByFallback, summarizeAnthropicError, toAnthropicJsonSchema } from "./anthropic";
+import { SERVER_FALLBACK_BETA } from "./observeProvider";
 import { aiErrorSummary, isTransientAiError, withTransientRetry } from "./retry";
 import { COACH_REPORT_JSON_SCHEMA, CoachReport } from "./reportSchema";
 import { SCORE_OUTPUT_JSON_SCHEMA, ScoreOutput } from "./scoreSchema";
@@ -88,18 +93,44 @@ export function getScoringProvider(): ScoringProvider {
   return new GeminiScoringProvider();
 }
 
-export type ReportGeneration = { report: unknown; raw: string; inputTokens: number | null; outputTokens: number | null };
+/**
+ * Bir rapor denemesinin sonucu. report: JSON.parse(raw) ya da null (refusal, max_tokens, bozuk JSON); doğrulama
+ * çağıranda (CoachReport.safeParse). raw her durumda saklanır (log ve kırmızı takım incelemesi için; kullanıcıya gitmez).
+ */
+export type ReportGeneration = {
+  report: unknown;
+  raw: string;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  /** Tahmini maliyet (USD); fiyatı bilinmeyen sağlayıcıda (Gemini) yok, ops görünümü sabit tahmine düşer. */
+  estUsd?: number;
+  /** Yanıtı üreten model (sunucu taraflı yedek kullanıldıysa farklıdır). */
+  servedModel?: string;
+  /** Yanıtın bir kısmı sunucu taraflı yedek modelden geldiyse true (Claude). */
+  fallbackServed?: boolean;
+};
+
+/** Deneme başına kullanım bildirimi (engine spec §9.6, sözleşme C10). Başarısız denemelerde de bir kez çağrılır. */
+export type ReportUsageCallback = (u: TokenUsage, info: { model: string; estUsd: number | null }) => void;
+
+export type ReportCallOptions = { timeoutMs?: number; onUsage?: ReportUsageCallback };
 
 export interface ReportProvider {
   readonly model: string;
-  /** SPEC 14.3: systemInstruction = REPORT_SYSTEM_V1, temperature 0.4, JSON şema. Ham çıktıyı döndürür; doğrulama çağıranda. */
-  generateReport(systemPrompt: string, userMessage: string, signal?: AbortSignal): Promise<ReportGeneration>;
+  /** Ham çıktıyı döndürür; doğrulama çağıranda. onUsage deneme başına bir kez (hata dahil) çağrılır. */
+  generateReport(systemPrompt: string, userMessage: string, signal?: AbortSignal, opts?: ReportCallOptions): Promise<ReportGeneration>;
 }
+
+/** Koç raporu sınırları (engine spec §2.5 COACH). Rota maxDuration 120 s içinde kalır. */
+export const COACH = { maxTokens: 16_000, attemptTimeoutMs: 90_000, minRemainingForRetryMs: 45_000, deadlineMs: 110_000 } as const;
+
+const GEMINI_REPORT_TIMEOUT_MS = 45_000;
 
 export class GeminiReportProvider implements ReportProvider {
   readonly model = process.env.GEMINI_COACH_MODEL || "gemini-3.5-flash-lite";
 
-  async generateReport(systemPrompt: string, userMessage: string, signal?: AbortSignal): Promise<ReportGeneration> {
+  async generateReport(systemPrompt: string, userMessage: string, signal?: AbortSignal, opts: ReportCallOptions = {}): Promise<ReportGeneration> {
+    const timeout = Math.min(GEMINI_REPORT_TIMEOUT_MS, opts.timeoutMs ?? GEMINI_REPORT_TIMEOUT_MS);
     try {
       const res = await withTransientRetry(
         () =>
@@ -112,10 +143,17 @@ export class GeminiReportProvider implements ReportProvider {
               responseMimeType: "application/json",
               responseJsonSchema: COACH_REPORT_JSON_SCHEMA,
               abortSignal: signal,
-              httpOptions: { timeout: 45_000 },
+              httpOptions: { timeout },
             },
           }),
         { retries: 1, baseDelayMs: SCORE_RETRY_BASE_MS, signal, onRetry: (attempt, e) => console.warn(`[ai] rapor ${this.model} geçici hata, tekrar ${attempt}: ${aiErrorSummary(e)}`) },
+      );
+      const m = res.usageMetadata;
+      const cached = m?.cachedContentTokenCount ?? 0;
+      // Gemini fiyatı AI_PRICING'de yok: estUsd null, ops.daily_ai_cost rapor başına sabit tahmine düşer.
+      opts.onUsage?.(
+        { input: Math.max(0, (m?.promptTokenCount ?? 0) - cached), output: (m?.candidatesTokenCount ?? 0) + (m?.thoughtsTokenCount ?? 0), cacheRead: cached, cacheWrite5m: 0, cacheWrite1h: 0 },
+        { model: this.model, estUsd: null },
       );
       const raw = res.text ?? "";
       let report: unknown = null;
@@ -124,8 +162,9 @@ export class GeminiReportProvider implements ReportProvider {
       } catch {
         report = null;
       }
-      return { report, raw, inputTokens: res.usageMetadata?.promptTokenCount ?? null, outputTokens: res.usageMetadata?.candidatesTokenCount ?? null };
+      return { report, raw, inputTokens: m?.promptTokenCount ?? null, outputTokens: m?.candidatesTokenCount ?? null };
     } catch (e) {
+      opts.onUsage?.(ZERO_USAGE, { model: this.model, estUsd: null });
       if (signal?.aborted || (e instanceof Error && /abort|timeout/i.test(e.message))) throw new ApiError("AI_TIMEOUT", "Rapor üretimi zaman aşımına uğradı.");
       console.warn(`[ai] rapor hata: ${aiErrorSummary(e)}`);
       throw new ApiError("AI_FAILED", "Rapor servisi yanıt vermedi.");
@@ -133,8 +172,87 @@ export class GeminiReportProvider implements ReportProvider {
   }
 }
 
-export function getReportProvider(): ReportProvider {
-  return new GeminiReportProvider();
+/** Claude'a giden rapor şeması: sınırlar atılır (API desteklemez), enum ve required korunur; sınırlar sunucuda kalır. */
+export const COACH_JSON_SCHEMA = toAnthropicJsonSchema(CoachReport);
+
+/**
+ * Koç raporu Claude ile (engine spec §9.6). SDK ayrıştırma yardımcıları kullanılmaz: stop_reason her zaman görünür,
+ * JSON.parse ve CoachReport.safeParse bizim kodumuzda. temperature/top_p/top_k, thinking, tool_choice ve asistan ön
+ * doldurması gönderilmez (Opus 5.5). İstem, not ve model çıktısı loglanmaz; log yalnız neden, durum ve istek kimliği.
+ */
+export class ClaudeReportProvider implements ReportProvider {
+  readonly model: string;
+  private readonly env: AiEnv;
+  private readonly client?: Anthropic;
+  private readonly maxTokens: number;
+
+  /** client yalnız testte verilir (gerçek SDK + sahte fetch); üretimde getAnthropic() tekili kullanılır. */
+  constructor(opts: { env?: AiEnv; client?: Anthropic; maxTokens?: number } = {}) {
+    this.env = opts.env ?? getAiEnv();
+    this.model = this.env.claudeCoachModel;
+    this.client = opts.client;
+    this.maxTokens = opts.maxTokens ?? COACH.maxTokens;
+  }
+
+  buildParams(systemPrompt: string, userMessage: string): MessageCreateParamsNonStreaming {
+    const params: MessageCreateParamsNonStreaming = {
+      model: this.model,
+      max_tokens: this.maxTokens,
+      system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral", ttl: this.env.cacheTtl } }],
+      messages: [{ role: "user", content: userMessage }],
+      output_config: { effort: this.env.claudeCoachEffort, format: { type: "json_schema", schema: COACH_JSON_SCHEMA } },
+    };
+    if (this.env.claudeFallbacks === "default") {
+      params.betas = [SERVER_FALLBACK_BETA];
+      params.fallbacks = "default";
+    }
+    return params;
+  }
+
+  async generateReport(systemPrompt: string, userMessage: string, signal?: AbortSignal, opts: ReportCallOptions = {}): Promise<ReportGeneration> {
+    const timeout = Math.max(1, Math.min(COACH.attemptTimeoutMs, opts.timeoutMs ?? COACH.attemptTimeoutMs));
+    let res: BetaMessage;
+    try {
+      const anthropic = this.client ?? getAnthropic();
+      res = await anthropic.beta.messages.create(this.buildParams(systemPrompt, userMessage), { signal, timeout });
+    } catch (e) {
+      // Hata yanıtı kullanım taşımaz: deneme sıfır tokenla sayılır.
+      opts.onUsage?.(ZERO_USAGE, { model: this.model, estUsd: 0 });
+      if (e instanceof ApiError) throw e; // ANTHROPIC_API_KEY yok (yapılandırma)
+      const reason = classifyAnthropicError(e, signal);
+      console.warn(`[ai] rapor claude hata: ${summarizeAnthropicError(e)}`);
+      if (reason === "timeout" || reason === "aborted") throw new ApiError("AI_TIMEOUT", "Rapor üretimi zaman aşımına uğradı.");
+      throw new ApiError("AI_FAILED", "Rapor servisi yanıt vermedi.");
+    }
+    const usage = readUsage(res);
+    const cost = estUsd(usage, res.model);
+    opts.onUsage?.(usage, { model: res.model, estUsd: cost });
+    const raw = readJsonText(res).text ?? "";
+    let report: unknown = null;
+    if (res.stop_reason === "refusal" || res.stop_reason === "max_tokens") {
+      console.warn(`[ai] rapor claude ${res.stop_reason}${res.stop_reason === "refusal" ? ` ${res.stop_details?.category ?? "-"}` : ""}`);
+    } else {
+      try {
+        report = JSON.parse(raw);
+      } catch {
+        report = null;
+      }
+    }
+    return {
+      report,
+      raw,
+      inputTokens: usage.input + usage.cacheRead + usage.cacheWrite5m + usage.cacheWrite1h,
+      outputTokens: usage.output,
+      estUsd: cost,
+      servedModel: res.model,
+      fallbackServed: servedByFallback(res),
+    };
+  }
+}
+
+/** AI_COACH_PROVIDER: claude | gemini (kod varsayılanı gemini). Tek değiştirme noktası. */
+export function getReportProvider(env: AiEnv = getAiEnv()): ReportProvider {
+  return env.coachProvider === "claude" ? new ClaudeReportProvider({ env }) : new GeminiReportProvider();
 }
 
 export type { CoachReport };
