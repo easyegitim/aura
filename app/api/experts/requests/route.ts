@@ -4,7 +4,7 @@ import { getConsentState, withGuard } from "@/lib/api/guard";
 import { CONSENT_DOC } from "@/lib/consent";
 import { createAdminClient } from "@/lib/db/admin";
 import { sendEmail } from "@/lib/email/resend";
-import { partnerRequestEmail, type AnalysisSummary } from "@/lib/experts/email";
+import { expertAnalysisSummary, partnerRequestEmail, type AnalysisSummary, type ExpertSummaryRow } from "@/lib/experts/email";
 import { assertExpertNetworkEnabled } from "@/lib/experts/guard";
 import { generateRefCode } from "@/lib/experts/refCode";
 import { getLegalVersion } from "@/lib/legal/docs";
@@ -37,15 +37,14 @@ export const POST = withGuard({ schema: Input, requireAdult: true }, async ({ us
     const current = await getLegalVersion(CONSENT_DOC.expert_data_sharing);
     const c = state.expert_data_sharing;
     if (!c?.granted || c.textVersion !== current) throw new ApiError("CONSENT_REQUIRED", "Analiz özetini paylaşmak için expert_data_sharing rızası gerekli.");
-    const { data: a } = await admin.from("analyses").select("overall, potential, subscores, observations, face_shape, status").eq("id", input.shareAnalysisId).eq("user_id", user.id).maybeSingle();
+    // engine_version ve signals ile okunur (değerlendirilmeyen alanı ayıklamak için); migration 0009 uygulanmamış
+    // ortamda eski sütunlarla. Özet her satırda izin listesine göre kurulur (engine spec §8, F19).
+    const base = "overall, potential, subscores, observations, face_shape, status";
+    const full = await admin.from("analyses").select(`${base}, engine_version, signals`).eq("id", input.shareAnalysisId).eq("user_id", user.id).maybeSingle();
+    const missingColumn = full.error?.code === "42703" || full.error?.code === "PGRST204";
+    const a = missingColumn ? (await admin.from("analyses").select(base).eq("id", input.shareAnalysisId).eq("user_id", user.id).maybeSingle()).data : full.data;
     if (!a || a.status !== "completed") throw new ApiError("BAD_INPUT", "Analiz bulunamadı.");
-    summary = {
-      overall: a.overall === null ? null : Number(a.overall),
-      potential: a.potential === null ? null : Number(a.potential),
-      subscores: (a.subscores ?? null) as Record<string, number> | null,
-      observations: (a.observations ?? null) as Record<string, string> | null,
-      faceShape: a.face_shape ? String(a.face_shape) : null,
-    };
+    summary = expertAnalysisSummary(a as ExpertSummaryRow);
   }
 
   const specialty = (partner.specialties as string[])[0] ?? "genel";

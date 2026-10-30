@@ -19,6 +19,21 @@ export type FallbackInput = {
 
 const f1 = (n: number) => n.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
+/**
+ * Yüz hatları ipuçları (SPEC 9.4): yalnız VKİ ≥ 25 ve kısıtlama notu yokken (mode "deficit"), günlük açık ≤ 500 kcal.
+ * Kodla yazılır; koç raporunda da (report.v2, enforceRules) model metni yerine bu dizi kullanılır (engine spec §9.6).
+ */
+export function contourTips(body: BodyRules): string[] {
+  if (body.mode !== "deficit") return [];
+  return [
+    "Günlük ılımlı bir açık (en fazla 500 kcal) ve haftada vücut ağırlığının %0,5–1'i kadar kayıp sürdürülebilir hedeftir.",
+    "Her öğünde yeterli protein ve haftada 2–3 kuvvet antrenmanı kas kaybını önler.",
+    "Uyku, akşam tuzu ve alkolü azaltmak yüz şişliğini düşürür.",
+    "Yüz yağ oranı azaldıkça elmacık ve çene hatları belirginleşebilir.",
+    ...(body.dietitianSuggested ? ["Bir diyetisyenle planlamak daha güvenli ve kalıcı olur."] : []),
+  ];
+}
+
 export function buildFallbackReport(i: FallbackInput): CoachReport {
   const shape = FACE_SHAPES[i.faceShape];
   const hair = i.catalog.hair.slice(0, 3).map((p) => ({
@@ -42,16 +57,7 @@ export function buildFallbackReport(i: FallbackInput): CoachReport {
   const habitIds = i.body.mode === "deficit" ? ["hb_sleep", "hb_water", "hb_protein", "hb_strength", "hb_salt_alcohol"] : ["hb_sleep", "hb_water", "hb_sun", "hb_salt_alcohol"];
   const habits = i.catalog.habits.filter((h) => habitIds.includes(h.id)).map((h) => ({ id: h.id, target: h.defaultTargetTr }));
 
-  const contoursTips =
-    i.body.mode === "deficit"
-      ? [
-          "Günlük ılımlı bir açık (en fazla 500 kcal) ve haftada vücut ağırlığının %0,5–1'i kadar kayıp sürdürülebilir hedeftir.",
-          "Her öğünde yeterli protein ve haftada 2–3 kuvvet antrenmanı kas kaybını önler.",
-          "Uyku, akşam tuzu ve alkolü azaltmak yüz şişliğini düşürür.",
-          "Yüz yağ oranı azaldıkça elmacık ve çene hatları belirginleşebilir.",
-          ...(i.body.dietitianSuggested ? ["Bir diyetisyenle planlamak daha güvenli ve kalıcı olur."] : []),
-        ]
-      : [];
+  const contoursTips = contourTips(i.body);
 
   const seeProfessional = i.flags.visibleSkinConcern
     ? { specialty: "dermatoloji", text: `Cildinde belirgin bir durum görülüyor${i.flags.skinConcernNote ? ` (${i.flags.skinConcernNote})` : ""}; bir dermatoloğa göstermek faydalı olabilir.` }
