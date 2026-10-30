@@ -8,6 +8,7 @@ import { getPremiumStatus } from "@/lib/api/premium";
 import { createAdminClient } from "@/lib/db/admin";
 import { createClient } from "@/lib/db/server";
 import { toClientSummary, type AnalysisRow } from "@/lib/score/present";
+import { ANALYSIS_ROW_COLUMNS } from "@/lib/score/rowColumns";
 
 /** /analiz: geçmiş listesi (trend grafiği Faz 7). */
 export default async function AnalysesPage() {
@@ -20,7 +21,7 @@ export default async function AnalysesPage() {
   const admin = createAdminClient();
   const { data } = await admin
     .from("analyses")
-    .select("id, status, created_at, face_shape, overall, potential, subscores, gains, observations, geometry, calibration_version")
+    .select(ANALYSIS_ROW_COLUMNS)
     .eq("user_id", user.id)
     .neq("status", "failed")
     .order("created_at", { ascending: false })
