@@ -8,13 +8,22 @@
 
 Aşağıdakileri kullanıcının açık onayı olmadan yapma. İşi hazırla, dur, ne yapacağını söyle ve onay iste:
 
-- `git push`, `main`'e birleştirme, PR açma veya kapatma, geçmişi yeniden yazma (force push, rebase -i).
+- `main`'e (veya korumalı bir dala) doğrudan push, `main`'e birleştirme, PR açma veya kapatma, geçmişi yeniden yazma (force push, rebase -i). Kendi çalışma dalına push onay istemez; bkz. "Dal ve push kuralı".
 - Production deploy veya Vercel production ortam değişkeni değişikliği.
 - Staging veya production Supabase'e migration (`supabase db push --linked`), veri silme, tablo sıfırlama.
 - Canlı iyzico anahtarlarıyla herhangi bir istek; gerçek kartla ödeme.
 - Ücretli AI çağrısı yapan toplu betikler: `pnpm calibrate`, `pnpm fairness`, `pnpm test:ai`, `scripts/compare-tryon.ts`.
 - Yeni harici servis, hesap veya ücretli plan.
 - Mevcut kodu, belgeyi veya kullanıcının çalışmasını silme ya da baştan yazma.
+
+## Dal ve push kuralı (kurucu kararı, 2026-10-31 — bozulmaz)
+
+- Claude üzerinden yapılan her değişiklik (Claude Code terminal/web/mobil, Cowork veya başka bir Claude yüzeyi) GitHub'a **yeni bir dalda** aktarılır. Değişiklik yalnız konteynerde veya yerel diskte bırakılmaz; iş bitince commit + `git push -u origin <dal>`.
+- Dal: oturumun atadığı `claude/...` dalı; atanmamışsa `claude/<özellik-kimliği>-<kısa-açıklama>` (örn. `claude/F07-skor-metni`). `main`'den veya güncel varsayılan daldan açılır.
+- Kendi çalışma dalına commit ve push kullanıcı onayı beklemez; bu kural onu yetkilendirir.
+- `main`'e doğrudan push, birleştirme, PR açma/kapatma, force push ve başkasının dalını yeniden yazma hâlâ açık onay ister.
+- Birleştirilmiş PR'ın dalına yeni iş eklenmez; takip işi güncel varsayılan daldan yeni dalda yapılır.
+- Push ağ hatası dışında bir nedenle başarısızsa (yetki, koruma kuralı) dur ve raporla; kuralı aşmak için başka bir dala veya `main`'e yazma.
 
 ## Ortamlar
 
@@ -96,7 +105,8 @@ GÜVENLİK KONTROLÜ:   - SPEC 16.4'ten bu fazı ilgilendiren maddeler
 ÇIKIŞ KRİTERİ:       - SPEC Bölüm 19'daki kriter ve ölçülen değer
 BİLİNEN EKSİKLER:    - en fazla 3 madde
 ELLE DOĞRULAMA:      1. … (gerçek telefonda adımlar dahil)
-ONAY BEKLEYENLER:    - push, merge, migration, deploy vb. (yoksa "yok")
+PUSH EDİLEN DAL:     - claude/... (her görevde zorunlu)
+ONAY BEKLEYENLER:    - merge, PR, migration, deploy vb. (yoksa "yok")
 SONRAKİ ADIM:        …
 ```
 
