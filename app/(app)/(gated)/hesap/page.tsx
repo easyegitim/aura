@@ -8,6 +8,7 @@ import { LinkAccount } from "@/components/auth/LinkAccount";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { SubscriptionCard } from "@/components/billing/SubscriptionCard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { isFeatureEnabled } from "@/lib/config/flags";
 import { MANAGEABLE_CONSENTS, type ManageableConsent } from "@/lib/account/consents";
 import { getConsentState } from "@/lib/api/guard";
 import { getPremiumStatus } from "@/lib/api/premium";
@@ -63,7 +64,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/hesap">)
 
       <SubscriptionCard premium={sub.premium} plan={sub.plan} periodEnd={sub.periodEnd} cancelAtPeriodEnd={Boolean(subRow?.cancel_at_period_end)} />
 
-      <ConsentSettings initial={consentState} versions={versions} />
+      <ConsentSettings initial={consentState} versions={versions} expertNetwork={isFeatureEnabled("expertNetwork")} />
 
       <DataExportButton />
 

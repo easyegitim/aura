@@ -19,6 +19,8 @@ type Props = {
   initial: ConsentState;
   /** Her rıza türü için güncel metin sürümü (CONSENT_DOC → content/legal). */
   versions: Record<ManageableConsent, string>;
+  /** FEATURE_EXPERT_NETWORK: kapalıyken uzman paylaşımı rızası gösterilmez (yalnız önceden verilmişse geri alınabilsin diye kalır). */
+  expertNetwork: boolean;
 };
 
 /** Çerez banner'ıyla aynı teknik çerez; analytics_cookies rızası buradan da güncellenir. */
@@ -28,7 +30,7 @@ function setCookieConsent(value: "granted" | "denied") {
 }
 
 /** SPEC 16.2: /hesap rıza anahtarları; geri alma etkileri; biometric_processing için analiz silme sorusu. */
-export function ConsentSettings({ initial, versions }: Props) {
+export function ConsentSettings({ initial, versions, expertNetwork }: Props) {
   const t = useTranslations("account.consents");
   const [state, setState] = useState<Record<ManageableConsent, boolean>>(() => {
     const s = {} as Record<ManageableConsent, boolean>;
@@ -38,6 +40,9 @@ export function ConsentSettings({ initial, versions }: Props) {
     }
     return s;
   });
+  const [shown] = useState<ManageableConsent[]>(() =>
+    MANAGEABLE_CONSENTS.filter((k) => k !== "expert_data_sharing" || expertNetwork || Boolean(initial[k]?.granted)),
+  );
   const [busy, setBusy] = useState<ManageableConsent | null>(null);
   const [pending, setPending] = useState<ManageableConsent | null>(null); // biometric geri alma onayı
   const [deleteAnalyses, setDeleteAnalyses] = useState(true);
@@ -79,7 +84,7 @@ export function ConsentSettings({ initial, versions }: Props) {
       </CardHeader>
       <CardContent>
         <ul className="divide-y divide-border/60 overflow-hidden rounded-xl bg-muted/40">
-          {MANAGEABLE_CONSENTS.map((k) => (
+          {shown.map((k) => (
             <li key={k} className="space-y-1 px-3 py-3">
               <div className="flex items-start justify-between gap-3">
                 <label htmlFor={`acct-consent-${k}`} className="min-w-0 space-y-0.5">
