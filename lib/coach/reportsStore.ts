@@ -3,6 +3,7 @@ import "server-only";
 import { LEVERS } from "@/content/levers";
 import { ApiError } from "@/lib/api/errors";
 import { assertEngineReady } from "@/lib/config/ai.server";
+import { ENGINE_STATUS } from "@/lib/config/engine.server";
 import { ENTITLEMENTS } from "@/lib/config/plans";
 import { createAdminClient } from "@/lib/db/admin";
 import type { GeometryResult } from "@/lib/face/types";
@@ -100,8 +101,7 @@ export async function createReport(userId: string, analysisId: string, regenerat
   if (!q.success) throw new ApiError("BAD_INPUT", "Anket eksik; rapor için önce anketi tamamla.");
 
   // engine spec §9.2: üretimde Claude koçu, hukuki onay ve ölçüm durumu tamamlanmadan açılmaz (AI_FAILED).
-  // ENGINE_STATUS (lib/config/engine.server.ts, iz C) bağlanana kadar durum verilmez: üretimde kapalı kalır.
-  assertEngineReady(process.env, { path: "coach" });
+  assertEngineReady(process.env, { status: ENGINE_STATUS, path: "coach" });
 
   const geometry = a.geometry as GeometryResult | null;
   const flags = a.flags as { visibleSkinConcern?: boolean; skinConcernNote?: string | null } | null;

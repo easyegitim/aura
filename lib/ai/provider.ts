@@ -5,6 +5,7 @@ import type { BetaMessage, MessageCreateParamsNonStreaming } from "@anthropic-ai
 import { GoogleGenAI } from "@google/genai";
 import { ApiError } from "@/lib/api/errors";
 import { ZERO_USAGE, estUsd, getAiEnv, type AiEnv, type TokenUsage } from "@/lib/config/ai.server";
+import { COACH } from "@/lib/config/engine.server";
 import { SCORE_CALL_TIMEOUT_MS, SCORE_RETRIES, SCORE_RETRY_BASE_MS, getScoringEnv } from "@/lib/config/scoring";
 import { classifyAnthropicError, getAnthropic, readJsonText, readUsage, servedByFallback, summarizeAnthropicError, toAnthropicJsonSchema } from "./anthropic";
 import { SERVER_FALLBACK_BETA } from "./observeProvider";
@@ -121,8 +122,8 @@ export interface ReportProvider {
   generateReport(systemPrompt: string, userMessage: string, signal?: AbortSignal, opts?: ReportCallOptions): Promise<ReportGeneration>;
 }
 
-/** Koç raporu sınırları (engine spec §2.5 COACH). Rota maxDuration 120 s içinde kalır. */
-export const COACH = { maxTokens: 16_000, attemptTimeoutMs: 90_000, minRemainingForRetryMs: 45_000, deadlineMs: 110_000 } as const;
+/** Koç raporu sınırları (engine spec §2.5 COACH): tek kaynak lib/config/engine.server.ts. Rota maxDuration 120 s içinde kalır. */
+export { COACH };
 
 const GEMINI_REPORT_TIMEOUT_MS = 45_000;
 

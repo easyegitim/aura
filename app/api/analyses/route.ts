@@ -8,18 +8,20 @@ import { ENTITLEMENTS } from "@/lib/config/plans";
 import { getTeaserConfig } from "@/lib/config/teaser";
 import { REQUIRED_ANALYSIS_CONSENTS } from "@/lib/consent";
 import { createAdminClient } from "@/lib/db/admin";
-import { QuestionnaireSchema, deriveContext } from "@/lib/questionnaire";
 import { toClientAnalysis, toClientSummary, type AnalysisRow } from "@/lib/score/present";
-import { scoreImage } from "@/lib/score/service";
+import { ANALYSIS_ROW_COLUMNS } from "@/lib/score/rowColumns";
+import { analysisContextFromQuestionnaire, prepareScoring, scoreAnalysis, type AiUsage } from "@/lib/score/service";
 
 export const runtime = "nodejs";
+// hybrid.v1: gözlem son tarihi 40 s (engine spec §2.5) + DB; legacy Gemini bütçesi de bunun içinde (engine spec §10).
 export const maxDuration = 60;
 
-const ROW_COLUMNS = "id, status, created_at, face_shape, overall, potential, subscores, gains, observations, geometry, calibration_version";
+const ROW_COLUMNS = ANALYSIS_ROW_COLUMNS;
 
 /**
  * SPEC 14: POST /api/analyses { clientRequestId, geometry, image } → ClientAnalysis.
- * Sıra: oturum → Zod → 18+ → 3 rıza → JPEG imza/boyut → reserve_analysis (kota + idempotency) → skorlama → satır.
+ * Sıra: oturum → Zod → 18+ → 3 rıza → JPEG imza/boyut → motor ön kontrolü (hybrid.v1: üretim koruması, sağlayıcı
+ * anahtarı, sunucu çekim kapısı → CAPTURE_QUALITY; hak düşmez) → reserve_analysis (kota + idempotency) → skorlama → satır.
  * Görsel bellekte işlenir, AI sağlayıcısına iletilir, hiçbir yere yazılmaz/loglanmaz.
  */
 export const POST = withGuard(
@@ -29,6 +31,9 @@ export const POST = withGuard(
     if ("error" in decoded) {
       throw new ApiError(decoded.error, decoded.error === "IMAGE_TOO_LARGE" ? "Görsel 600 KB'ı aşıyor." : "Görsel JPEG değil.");
     }
+
+    // Kota harcanmadan önce (engine spec §3.6, UI spec C13). legacy'de geometri aynen kalır.
+    const prepared = prepareScoring(input.geometry);
 
     const admin = createAdminClient();
     const [{ premium }, unlimited] = await Promise.all([getPremiumStatus(supabase, user.id), isUnlimitedQuota(admin, user.id)]);
@@ -68,23 +73,22 @@ export const POST = withGuard(
     }
 
     const { data: profile } = await admin.from("profiles").select("questionnaire").eq("id", user.id).maybeSingle();
-    const q = QuestionnaireSchema.safeParse(profile?.questionnaire);
-    const presentation = q.success ? q.data.presentation : "unspecified";
-    const context = q.success ? deriveContext(q.data) : { bmi: null, bodyFatContextAllowed: false, exerciseEligible: false };
-    const beardOption = q.success ? q.data.beardPreference !== "none" : false;
+    const ctx = analysisContextFromQuestionnaire(profile?.questionnaire);
 
+    let aiUsage: AiUsage | null = null;
     try {
-      const scored = await scoreImage(input.image, input.geometry, {
-        presentation,
-        bodyFatContextAllowed: context.bodyFatContextAllowed,
-        beardOption,
+      const scored = await scoreAnalysis(input.image, prepared.geometry, ctx, {
+        engine: prepared.engine,
+        onUsage: (u) => {
+          aiUsage = u;
+        },
       });
       const { data: row, error } = await admin
         .from("analyses")
         .update({
           status: "completed",
-          geometry: input.geometry,
-          face_shape: input.geometry.faceShape.primary,
+          geometry: scored.geometry,
+          face_shape: scored.geometry.faceShape.primary,
           subscores: scored.subscores,
           gains: scored.gains,
           observations: scored.observations,
@@ -95,6 +99,10 @@ export const POST = withGuard(
           calibration_version: scored.calibrationVersion,
           scoring_model: scored.model,
           prompt_version: scored.promptVersion,
+          // Motor sütunları (migration 0009) yalnız hybrid.v1 satırlarına yazılır; legacy güncellemesi değişmedi.
+          ...(scored.engineVersion
+            ? { engine_version: scored.engineVersion, signals: scored.signals, ai_usage: scored.aiUsage }
+            : {}),
           completed_at: new Date().toISOString(),
         })
         .eq("id", reservedId)
@@ -103,8 +111,12 @@ export const POST = withGuard(
       if (error || !row) throw new Error("analysis update failed");
       return Response.json(toClientAnalysis(row as AnalysisRow, premium, teaser.mode, teaser.subscore));
     } catch (e) {
-      // Başarısız satır kotaya sayılmaz (reserve_analysis yalnız processing/completed sayar).
-      await admin.from("analyses").update({ status: "failed", completed_at: new Date().toISOString() }).eq("id", reservedId);
+      // Başarısız satır kotaya sayılmaz (reserve_analysis yalnız processing/completed sayar). hybrid.v1'de harcanan
+      // token yine kaydedilir (engine spec §7.2: ai_usage hatada da yazılır).
+      await admin
+        .from("analyses")
+        .update({ status: "failed", completed_at: new Date().toISOString(), ...(aiUsage ? { ai_usage: aiUsage } : {}) })
+        .eq("id", reservedId);
       throw e;
     }
   },

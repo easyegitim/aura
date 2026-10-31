@@ -8,25 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { track } from "@/lib/analytics";
 import type { PaywallTrigger } from "@/lib/config/paywall";
-import type { ImproveItem, LeverKey } from "@/lib/score/contract";
+import { leverSection } from "@/lib/coach/planBasis";
+import type { ImproveItem } from "@/lib/score/contract";
 import type { Locked } from "@/lib/score/present";
 import { fmtScore } from "@/components/analysis/LockedValue";
-
-/**
- * Plan bölümü (UI spec §7 leverSection ile aynı eşleme). T5'in lib/coach/planBasis.ts#leverSection'ı
- * birleşince bu yerel tablo onunla değiştirilmeli. lv_brow_tidy'nin plan yolu yok (C9: önce-odaklan listesine girmez).
- */
-const LEVER_SECTION: Record<LeverKey, "skin" | "hair" | "beard" | null> = {
-  lv_blemish_care: "skin",
-  lv_texture_smooth: "skin",
-  lv_daily_spf: "skin",
-  lv_shine_balance: "skin",
-  lv_lip_care: "skin",
-  lv_hair_styling: "hair",
-  lv_haircut_refresh: "hair",
-  lv_beard_lineup: "beard",
-  lv_brow_tidy: null,
-};
 
 /**
  * "Önce odaklanacağın adımlar" (UI spec §2.7). Veri yalnız sunucudan; sıra ve dışlamalar motorda (C9).
@@ -62,7 +47,7 @@ export function ImproveFirstCard({ v, analysisId, onLocked }: { v: Locked<Improv
         ) : v.value && v.value.length > 0 ? (
           <ol className="space-y-3">
             {v.value.slice(0, 3).map((item, i) => {
-              const section = LEVER_SECTION[item.lever];
+              const section = leverSection(item.lever);
               return (
                 <li key={item.lever} className="space-y-1 rounded-lg border p-3 text-sm">
                   <p className="flex flex-wrap items-center gap-2 font-medium">

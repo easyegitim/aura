@@ -3,14 +3,18 @@ import "server-only";
 // Kamuya açık yöntem bilgisi (UI spec S6): /yontem, kamera güven kartı ve ilerleme adımları için.
 // Gizli değer okumaz ve döndürmez; yalnız motor adı, kalibrasyon sürümü ve sağlayıcı görünen adları.
 import { isFeatureEnabled } from "@/lib/config/flags";
+import { WEIGHTS_H1 } from "@/lib/config/engine.server";
 import { getScoreEngine, getScoringEnv, type ScoreEngine } from "@/lib/config/scoring";
+
+/** hybrid.v1 yapısal pay (%): harmony + eyes + jawline. Saç hariç satırlarda da aynıdır (yapı 0,40 kalır). */
+const HYBRID_STRUCTURAL_SHARE_PCT = Math.round((WEIGHTS_H1.harmony + WEIGHTS_H1.eyes + WEIGHTS_H1.jawline) * 100);
 
 export type PublicEngineInfo = {
   engine: ScoreEngine;
   calibrationVersion: string;
   analysisProvider: string;
   tryonProvider: string;
-  /** Yapısal alanların genel skordaki payı (%). Motor ağırlıkları server-only motor yapılandırmasına bağlanana kadar null. */
+  /** Yapısal alanların genel skordaki payı (%). hybrid.v1'de motor ağırlıklarından; legacy'de yayımlanmaz (null). */
   structuralSharePct: number | null;
 };
 
@@ -27,6 +31,6 @@ export function getPublicEngineInfo(env: Record<string, string | undefined> = pr
     calibrationVersion: engine === "hybrid.v1" ? "h1" : getScoringEnv(env).calibrationVersion,
     analysisProvider: named ? analysisProvider : NEUTRAL_PROVIDER_NAME,
     tryonProvider: named ? tryonProvider : NEUTRAL_PROVIDER_NAME,
-    structuralSharePct: null,
+    structuralSharePct: engine === "hybrid.v1" ? HYBRID_STRUCTURAL_SHARE_PCT : null,
   };
 }

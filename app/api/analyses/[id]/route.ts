@@ -4,6 +4,7 @@ import { getPremiumStatus } from "@/lib/api/premium";
 import { getTeaserConfig } from "@/lib/config/teaser";
 import { createAdminClient } from "@/lib/db/admin";
 import { toClientAnalysis, type AnalysisRow } from "@/lib/score/present";
+import { ANALYSIS_ROW_COLUMNS } from "@/lib/score/rowColumns";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,7 @@ export const GET = withGuard({}, async ({ req, user, supabase }) => {
   const admin = createAdminClient();
   const { data } = await admin
     .from("analyses")
-    .select("id, status, created_at, face_shape, overall, potential, subscores, gains, observations, geometry, calibration_version")
+    .select(ANALYSIS_ROW_COLUMNS)
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();

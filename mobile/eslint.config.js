@@ -10,14 +10,15 @@ module.exports = defineConfig([
   { files: ["tests/setup/**/*.js"], languageOptions: { globals: { jest: "readonly", require: "readonly" } } },
   {
     rules: {
-      // SPEC-MOBILE M1: sunucu ve DOM'a bağlı modüller mobilden içe aktarılmaz.
+      // SPEC-MOBILE M1: sunucu ve DOM'a bağlı modüller mobilden içe aktarılmaz. hybrid.v1 motoru (bantlar, deltalar,
+      // ağırlıklar) yalnız sunucudadır: istemci kilitli bir alt skoru yeniden hesaplayamasın (engine spec §8).
       "no-restricted-imports": [
         "error",
         {
           paths: [{ name: "server-only", message: "Sunucu modülü; mobilde kullanılamaz." }],
           patterns: [
             { group: ["next", "next/*", "react-dom", "react-dom/*"], message: "Next/DOM modülü; mobilde kullanılamaz." },
-            { group: ["@/lib/db/*", "@/lib/api/guard", "@/lib/api/premium", "@/lib/api/admin", "@/lib/ai/*", "!@/lib/ai/reportSchema", "!@/lib/ai/scoreSchema", "@/lib/billing/*", "!@/lib/billing/revenuecat", "@/lib/coach/generate", "@/lib/coach/reportsStore", "@/lib/experts/*", "@/lib/legal/*", "@/lib/email/*", "@/lib/face/vision.worker", "@/lib/face/client", "@/lib/face/preprocess", "@/lib/local/*", "@/lib/share/*", "@/lib/security/*", "@/lib/monitoring/*", "!@/lib/monitoring/sentry", "@/app/*", "@/components/*"], message: "Sunucu/DOM modülü; SPEC-MOBILE M1 paylaşım listesine bak." },
+            { group: ["@/lib/db/*", "@/lib/api/guard", "@/lib/api/premium", "@/lib/api/admin", "@/lib/ai/*", "!@/lib/ai/reportSchema", "!@/lib/ai/scoreSchema", "@/lib/billing/*", "!@/lib/billing/revenuecat", "@/lib/coach/generate", "@/lib/coach/reportsStore", "@/lib/score/engine", "@/lib/score/engine/*", "@/lib/score/service", "@/lib/config/*.server", "@/lib/config/*.server.ts", "@/lib/experts/*", "@/lib/legal/*", "@/lib/email/*", "@/lib/face/vision.worker", "@/lib/face/client", "@/lib/face/preprocess", "@/lib/local/*", "@/lib/share/*", "@/lib/security/*", "@/lib/monitoring/*", "!@/lib/monitoring/sentry", "@/app/*", "@/components/*"], message: "Sunucu/DOM modülü; SPEC-MOBILE M1 paylaşım listesine bak." },
           ],
         },
       ],

@@ -97,9 +97,10 @@ describe("yöntem sayfası ve açıklama (UI spec S5, S6)", () => {
       calibrationVersion: "h1",
       analysisProvider: NEUTRAL_PROVIDER_NAME,
       tryonProvider: NEUTRAL_PROVIDER_NAME,
-      structuralSharePct: null,
+      structuralSharePct: 40,
     });
     expect(getPublicEngineInfo({}).engine).toBe("legacy");
+    expect(getPublicEngineInfo({}).structuralSharePct).toBeNull();
     expect(getPublicEngineInfo({}).calibrationVersion).toBe("v0");
   });
 

@@ -6,6 +6,7 @@ import { ScoreView } from "@/components/analysis/ScoreView";
 import { PaywallProvider } from "@/components/paywall/PaywallSheet";
 import { getPublicEngineInfo } from "@/lib/ai/disclosure.server";
 import { getPremiumStatus } from "@/lib/api/premium";
+import { isFeatureEnabled } from "@/lib/config/flags";
 import { getTeaserConfig } from "@/lib/config/teaser";
 import { createAdminClient } from "@/lib/db/admin";
 import { createClient } from "@/lib/db/server";
@@ -47,8 +48,7 @@ export default async function AnalysisPage({ params }: PageProps<"/analiz/[id]">
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-6">
       <h1 className="sr-only">{t("pageTitle")}</h1>
-      {/* S3: analysisId ve weekPassEnabled, T3 PaywallProvider imzasını genişletince buradan geçirilir. */}
-      <PaywallProvider teaserMode={teaser.mode}>
+      <PaywallProvider teaserMode={teaser.mode} analysisId={a.id} weekPassEnabled={isFeatureEnabled("weekPass")}>
         <ScoreView a={a} premium={premium} currentEngine={getPublicEngineInfo().engine} />
       </PaywallProvider>
     </div>
