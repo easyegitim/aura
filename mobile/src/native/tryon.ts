@@ -4,10 +4,10 @@ import { AlphaType, ColorType, matchFont, PaintStyle, Skia, type SkImage } from 
 import { File, Paths } from "expo-file-system";
 import { Platform } from "react-native";
 import type { Protect } from "@/content/types";
-import { ALIGN_POINTS, IDX } from "@/lib/face/indices";
+import { IDX } from "@/lib/face/indices";
 import type { Point } from "@/lib/face/types";
 import { alignmentResidual, estimateSimilarity } from "@/lib/tryon/align";
-import { geometryDrift, TRYON_LIMITS } from "@/lib/tryon/composite";
+import { alignPointsFor, geometryDrift, TRYON_LIMITS, type DriftPolicy } from "@/lib/tryon/composite";
 import { buildProtectMask } from "@/lib/tryon/mask";
 import { compositePixels } from "@/lib/tryon/pixels";
 import { toFrameAnalysis } from "@/mobile/src/features/capture/frame";
@@ -44,7 +44,7 @@ function readRgba(img: SkImage, W: number, H: number): Uint8ClampedArray | null 
  * C: 1024 px kare kırpım (uri) + C üzerindeki noktalar (piksel). gBase64: modelin ürettiği görsel.
  * Adımlar: G'de yüz bul → benzerlik dönüşümü → G' = hizalı G → maske → kompozit → kompozitte yüz bul → geometri sapması.
  */
-export async function compositeTryonNative(cUri: string, landmarksC: Point[], gBase64: string, protect: Protect): Promise<TryonOutcome> {
+export async function compositeTryonNative(cUri: string, landmarksC: Point[], gBase64: string, protect: Protect, policy: DriftPolicy): Promise<TryonOutcome> {
   const gFile = await writeTemp(gBase64, `aura-g-${Date.now()}.jpg`);
   let outFile: File | null = null;
   try {
@@ -58,8 +58,9 @@ export async function compositeTryonNative(cUri: string, landmarksC: Point[], gB
 
     // 1–2) G → C boyutu; benzerlik dönüşümü L_G → L_C (sabit noktalar), artık kontrolü
     const LG = scalePoints(g.points, W / gImg.width(), H / gImg.height());
-    const src = ALIGN_POINTS.map((i) => LG[i]);
-    const dst = ALIGN_POINTS.map((i) => landmarksC[i]);
+    const points = alignPointsFor(protect);
+    const src = points.map((i) => LG[i]);
+    const dst = points.map((i) => landmarksC[i]);
     const t = estimateSimilarity(src, dst);
     const ipd = Math.hypot(landmarksC[IDX.irisR].x - landmarksC[IDX.irisL].x, landmarksC[IDX.irisR].y - landmarksC[IDX.irisL].y);
     const residual = alignmentResidual(t, src, dst, ipd);
@@ -91,7 +92,7 @@ export async function compositeTryonNative(cUri: string, landmarksC: Point[], gB
     // 10.5) kompozitte tekrar yüz; geometri sapması ≤ %3
     const o = await landmarksPx(outFile.uri);
     if (!o) return { ok: false, reason: "no_face_in_output" };
-    const drift = geometryDrift(landmarksC, o.points);
+    const drift = geometryDrift(landmarksC, o.points, policy);
     if (!drift.ok) return { ok: false, reason: "geometry_drift" };
     const uri = outFile.uri;
     outFile = null; // başarı: dosya sonuç ekranında kullanılır, kullanıcı ayrılınca silinir

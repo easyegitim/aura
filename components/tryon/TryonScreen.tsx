@@ -22,7 +22,7 @@ import { blobToBase64 } from "@/lib/api/analysisClient";
 import { VisionClient } from "@/lib/face/client";
 import { cropForServer, landmarksToCrop } from "@/lib/face/crop";
 import { getSessionSelfie, setSessionSelfie } from "@/lib/face/sessionStore";
-import { stampAiLabel } from "@/lib/tryon/composite";
+import { driftPolicyFor, stampAiLabel } from "@/lib/tryon/composite";
 import { base64ToBlob } from "@/lib/tryon/base64";
 
 type Props = {
@@ -122,8 +122,9 @@ export function TryonScreen({ consentVersion, hasConsent, recommended, quota, in
       eventId = res.eventId;
       const gBlob = base64ToBlob(res.image, res.mimeType); // fetch("data:") CSP tarafından engellenir
       const g = await createImageBitmap(gBlob);
-      const out = await VisionClient.get().tryon(c, g, landmarksC, preset.protect);
+      const out = await VisionClient.get().tryon(c, g, landmarksC, preset.protect, driftPolicyFor(preset));
       if (!out.ok) {
+        console.warn("[tryon] kontrol başarısız:", out.reason); // yalnız neden kodu; görsel/nokta yok
         await postJson(`/api/tryon/${eventId}/drift`, {}).catch(() => undefined);
         track("tryon_result", { status: "identity_drift", durationMs: Math.round(nowMs() - start) });
         setError(t("driftMessage"));

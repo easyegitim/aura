@@ -19,6 +19,7 @@ import { useSession } from "@/mobile/src/features/session/SessionProvider";
 import { ApiClientError } from "@/mobile/src/lib/api";
 import { scoped, t as tt } from "@/mobile/src/lib/i18n";
 import { cropSquareBase64, deleteQuietly } from "@/mobile/src/native/images";
+import { driftPolicyFor } from "@/lib/tryon/composite";
 import { compositeTryonNative, stampAiLabelBase64 } from "@/mobile/src/native/tryon";
 import { shareBase64Jpeg } from "@/mobile/src/features/share/renderCard";
 import { radius, spacing, useTheme } from "@/mobile/src/theme";
@@ -121,7 +122,7 @@ export default function TryonTab() {
       const res = await api.post<{ eventId: string; image: string; mimeType: string }>("/api/tryon", { clientRequestId: newRequestId(), presetId: preset.id, image: crop.base64 });
       if (!res) throw new Error("empty");
       eventId = res.eventId;
-      const out = await compositeTryonNative(cUri, landmarksC, res.image, preset.protect);
+      const out = await compositeTryonNative(cUri, landmarksC, res.image, preset.protect, driftPolicyFor(preset));
       if (!out.ok) {
         await api.post(`/api/tryon/${eventId}/drift`, {}).catch(() => undefined);
         track("tryon_result", { status: "identity_drift", durationMs: epochNow() - start });

@@ -1,5 +1,5 @@
 // SPEC 10.4 adım 1–5 ve 10.5 kontrolleri. Worker'da OffscreenCanvas ile çalışır; ana iş parçacığında da kullanılabilir.
-import type { Protect } from "@/content/types";
+import type { PresetKind, Protect } from "@/content/types";
 import { ALIGN_POINTS, IDX } from "@/lib/face/indices";
 import { computeMetrics, rollCorrect } from "@/lib/face/metrics";
 import type { Point } from "@/lib/face/types";
@@ -12,6 +12,11 @@ export const TRYON_LIMITS = {
   maxResidual: 0.04,
   /** lengthRatio ve jawRatio sapması (SPEC 10.5). */
   maxGeometryDrift: 0.03,
+  /**
+   * Sakal stillerinde algılayıcı sakalın dış hattını çene sayar. Sakal yalnız hacim ekler (sakalsız stilde yalnız
+   * kaldırır); o yönde bu kadar sapmaya izin verilir, ters yön (kemik değişimi işareti) yine maxGeometryDrift ile sınırlı.
+   */
+  maxBeardVolumeDrift: 0.15,
   /** Kenar bandında parlaklık farkı eşiği (SPEC 10.4 adım 5; lib/tryon/pixels.ts). */
   edgeLumaDiff: 18,
   edgeBandPx: 12,
@@ -37,6 +42,30 @@ export type CompositeResult = {
   toneAdjusted: boolean;
 };
 
+/** Deneme türüne göre sapma kuralı: saç/renk iki yönlü %3; sakal eklemek büyümeye, sakalsız stil küçülmeye izin verir. */
+export type DriftPolicy = "symmetric" | "beard_add" | "beard_remove";
+
+export function driftPolicyFor(preset: { kind: PresetKind; id: string }): DriftPolicy {
+  if (preset.kind !== "beard") return "symmetric";
+  return preset.id === "clean_shaven" ? "beard_remove" : "beard_add";
+}
+
+/** Hizalama noktaları: sakal stillerinde çene ucu (152) sakalla yer değiştirir; yalnız üst yüz noktaları kullanılır. */
+export function alignPointsFor(protect: Protect): readonly number[] {
+  return protect === "above_lip" ? ALIGN_POINTS.filter((i) => i !== IDX.menton) : ALIGN_POINTS;
+}
+
+/** İşaretli göreli sapma (yeni − eski) / eski, kurala göre kabul. */
+export function driftOk(d: { length: number; jaw: number }, policy: DriftPolicy = "symmetric"): boolean {
+  const lim = TRYON_LIMITS.maxGeometryDrift, vol = TRYON_LIMITS.maxBeardVolumeDrift;
+  const within = (v: number) => {
+    if (policy === "beard_add") return v >= -lim && v <= vol;
+    if (policy === "beard_remove") return v <= lim && v >= -vol;
+    return Math.abs(v) <= lim;
+  };
+  return within(d.length) && within(d.jaw);
+}
+
 export class CompositeError extends Error {
   constructor(readonly reason: "no_face_in_output" | "alignment_residual" | "canvas") {
     super(reason);
@@ -51,8 +80,9 @@ export async function compositeTryon(input: CompositeInput): Promise<CompositeRe
   const LC = input.landmarksC;
 
   // 2) Benzerlik dönüşümü L_G → L_C (sabit noktalar), artık kontrolü.
-  const src = ALIGN_POINTS.map((i) => LG[i]);
-  const dst = ALIGN_POINTS.map((i) => LC[i]);
+  const points = alignPointsFor(input.protect);
+  const src = points.map((i) => LG[i]);
+  const dst = points.map((i) => LC[i]);
   const t = estimateSimilarity(src, dst);
   const ipd = Math.hypot(LC[IDX.irisR].x - LC[IDX.irisL].x, LC[IDX.irisR].y - LC[IDX.irisL].y);
   const residual = alignmentResidual(t, src, dst, ipd);
@@ -81,13 +111,20 @@ export async function compositeTryon(input: CompositeInput): Promise<CompositeRe
   return { image, residual, transform: t, edgeLumaDiff, toneAdjusted };
 }
 
-/** SPEC 10.5: kompozit sonrası tekrar landmark; lengthRatio ve jawRatio orijinalden %3'ten fazla sapmamalı. */
-export function geometryDrift(landmarksOriginal: Point[], landmarksComposite: Point[]): { length: number; jaw: number; ok: boolean } {
+/**
+ * SPEC 10.5: kompozit sonrası tekrar landmark; lengthRatio ve jawRatio orijinalden %3'ten fazla sapmamalı.
+ * Sakal stillerinde yalnız sakal yönündeki sapma maxBeardVolumeDrift'e kadar kabul edilir (driftOk).
+ */
+export function geometryDrift(
+  landmarksOriginal: Point[],
+  landmarksComposite: Point[],
+  policy: DriftPolicy = "symmetric",
+): { length: number; jaw: number; ok: boolean } {
   const a = computeMetrics(rollCorrect(landmarksOriginal).points, null);
   const b = computeMetrics(rollCorrect(landmarksComposite).points, null);
-  const length = Math.abs(b.lengthRatio - a.lengthRatio) / a.lengthRatio;
-  const jaw = Math.abs(b.jawRatio - a.jawRatio) / a.jawRatio;
-  return { length, jaw, ok: length <= TRYON_LIMITS.maxGeometryDrift && jaw <= TRYON_LIMITS.maxGeometryDrift };
+  const length = (b.lengthRatio - a.lengthRatio) / a.lengthRatio;
+  const jaw = (b.jawRatio - a.jawRatio) / a.jawRatio;
+  return { length: Math.abs(length), jaw: Math.abs(jaw), ok: driftOk({ length, jaw }, policy) };
 }
 
 /** "Yapay zekâ ile oluşturuldu" etiketini görsele gömer (SPEC 10.7 indirme). */

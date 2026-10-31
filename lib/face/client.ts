@@ -2,6 +2,7 @@
 
 // Worker'ı saran Promise API (SPEC Faz 4 madde 3). Tek örnek; sayfalar arasında paylaşılır.
 import type { Protect } from "@/content/types";
+import type { DriftPolicy } from "@/lib/tryon/composite";
 import type { FrameAnalysis, Point, SegmentationResult } from "./types";
 import type { InitResult, TryonWorkerResult, WorkerRequest, WorkerResponse } from "./vision.worker";
 
@@ -81,8 +82,8 @@ export class VisionClient {
   }
 
   /** c ve g worker'a devredilir ve orada kapatılır; başarıda kompozit bitmap geri devredilir. */
-  tryon(c: ImageBitmap, g: ImageBitmap, landmarksC: Point[], protect: Protect): Promise<TryonWorkerResult> {
-    return this.send<TryonWorkerResult>({ type: "tryon", id: this.nextId(), c, g, landmarksC, protect }, [c, g]);
+  tryon(c: ImageBitmap, g: ImageBitmap, landmarksC: Point[], protect: Protect, policy: DriftPolicy): Promise<TryonWorkerResult> {
+    return this.send<TryonWorkerResult>({ type: "tryon", id: this.nextId(), c, g, landmarksC, protect, policy }, [c, g]);
   }
 
   async terminate() {
