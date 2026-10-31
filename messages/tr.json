@@ -11,7 +11,14 @@
     "aiGenerated": "Yapay zekâ ile oluşturuldu.",
     "toggleTheme": "Açık ya da koyu temaya geç",
     "details": "Ayrıntılar",
-    "close": "Kapat"
+    "close": "Kapat",
+    "notFound": {
+      "eyebrow": "404",
+      "title": "Bu sayfa bulunamadı",
+      "body": "Bağlantı eskimiş ya da sayfa kaldırılmış olabilir.",
+      "toAnalyses": "Analizlerime dön",
+      "toHome": "Ana sayfaya dön"
+    }
   },
   "nav": {
     "analysis": "Analiz",
@@ -87,7 +94,7 @@
       },
       "yearly": {
         "name": "Yıllık",
-        "badge": "Yılda 4 ay bedava · En avantajlı"
+        "badge": "Yılda 4 ay bedava"
       }
     },
     "choose": "Bu planı seç",
@@ -101,8 +108,7 @@
       "i6": "Paylaşım kartı"
     },
     "freeNote": "Hesap başına 1 analiz hakkı ile yüz şeklini ve bir alt skorunu görürsün; genel skor, potansiyel, rapor ve deneme premiumdadır.",
-    "autoRenewNote": "Abonelik otomatik yenilenir. İptali hesap sayfasından tek tıkla yapabilirsin.",
-    "vsWeekly": "haftalık plana göre"
+    "autoRenewNote": "Abonelik otomatik yenilenir. İptali hesap sayfasından tek tıkla yapabilirsin."
   },
   "faq": {
     "q1": {
@@ -1140,7 +1146,8 @@
         "exercises": "Çene sağlığıyla ilgili cevabın nedeniyle egzersiz eklenmedi.",
         "beard": "Sakal tercihine göre sakal bölümü eklenmedi."
       }
-    }
+    },
+    "jumpNav": "Plan bölümleri"
   },
   "feedback": {
     "helpful": "Faydalı mı?",
@@ -1283,7 +1290,10 @@
     "newAnalysis": "Yeni analiz",
     "trendLockedTitle": "Skor trendi premiumda",
     "trendLockedBody": "Haftalık yeniden analizle genel ve potansiyel skorun zaman içinde.",
-    "goPremium": "Premium'a geç"
+    "goPremium": "Premium'a geç",
+    "trendEmptyTitle": "Skor trendin burada çizilecek",
+    "trendEmptyBody": "İkinci analizinle genel ve potansiyel skorun çizgiye dönüşür.",
+    "trendNextSlot": "İkinci analiz hakkın {date} tarihinde açılır."
   },
   "experts": {
     "title": "Uzman Ağı",

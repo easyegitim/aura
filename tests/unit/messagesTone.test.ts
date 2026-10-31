@@ -85,7 +85,6 @@ const WALKED = [
   "tryon.remainingLabel",
   "tryon.retry",
   "tryon.sliderHint",
-  "pricing.vsWeekly",
   "account.export.kvkkNote",
   "camera.trust",
   "camera.warnings",
@@ -96,6 +95,11 @@ const WALKED = [
   "camera.captured.qualityAria",
   "camera.captured.quality",
   "report.basis",
+  "report.jumpNav",
+  "common.notFound",
+  "progress.trendEmptyTitle",
+  "progress.trendEmptyBody",
+  "progress.trendNextSlot",
   "method",
 ];
 const walked = WALKED.flatMap(leaves);

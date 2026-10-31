@@ -7,6 +7,7 @@ import {
   Droplets,
   Dumbbell,
   ListChecks,
+  MessageSquareQuote,
   Moon,
   Palette,
   RefreshCw,
@@ -144,15 +145,42 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled, basis, i
   const rendered = new Set<ReportSection>(["skin"]);
   if (r.hair.length) rendered.add("hair");
   if (r.beard.length) rendered.add("beard");
+  const { lead, rest } = splitLead(r.summary);
+  // Atlama çipleri: yalnız ekranda olan bölümler, sayfadaki sırayla.
+  const nav: { id: string; label: string }[] = [
+    ...(r.hair.length ? [{ id: "hair", label: t("sections.hair") }] : []),
+    ...(r.beard.length ? [{ id: "beard", label: t("sections.beard") }] : []),
+    ...(r.hairColor ? [{ id: "color", label: t("sections.color") }] : []),
+    { id: "skin", label: t("sections.skin") },
+    ...(r.faceContours.enabled && r.faceContours.tips.length ? [{ id: "contours", label: t("sections.contours") }] : []),
+    ...(r.exercises.length ? [{ id: "exercises", label: t("sections.exercises") }] : []),
+    ...(r.habits.length ? [{ id: "habits", label: t("sections.habits") }] : []),
+    ...(r.style.length ? [{ id: "style", label: t("sections.style") }] : []),
+  ];
   return (
     <div className="space-y-3">
+      <nav aria-label={t("jumpNav")} className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 -mx-4 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+        <ul className="flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none]">
+          {nav.map((n) => (
+            <li key={n.id} className="shrink-0">
+              <a href={`#section-${n.id}`} className="group inline-flex min-h-11 items-center">
+                <span className="inline-flex h-8 items-center rounded-full border bg-card px-3 text-[13px] font-medium whitespace-nowrap transition-colors group-hover:bg-accent">
+                  {n.label}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
       {state.isFallback ? <Notice>{t("fallbackNote")}</Notice> : null}
 
-      <Section id="summary" title={t("sections.summary")} icon={<Sparkles className="size-4" />} reportId={state.reportId} feature>
-        <p className="text-[15px] leading-relaxed">{r.summary}</p>
-        {r.scoreNarrative ? (
+      <Section id="summary" title={t("sections.summary")} icon={<Sparkles className="size-4" />} feature>
+        <p className="text-[15px] leading-relaxed font-medium">{lead}</p>
+        {rest || r.scoreNarrative ? (
           <Details label={tc("details")}>
-            <p>{r.scoreNarrative}</p>
+            {rest ? <p>{rest}</p> : null}
+            {r.scoreNarrative ? <p>{r.scoreNarrative}</p> : null}
           </Details>
         ) : null}
       </Section>
@@ -160,26 +188,26 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled, basis, i
       {basis ? <PlanBasis analysisId={analysisId} basis={basis} improveFirst={improveFirst} rendered={rendered} stale={stale} /> : null}
 
       {r.hair.length ? (
-        <Section id="hair" title={t("sections.hair")} icon={<Scissors className="size-4" />} reportId={state.reportId}>
+        <Section id="hair" title={t("sections.hair")} icon={<Scissors className="size-4" />}>
           {r.hair.map((p) => <PickCard key={p.presetId} pick={p} />)}
         </Section>
       ) : skipped.hair ? (
         <Notice>{t("basis.skipped.hair")}</Notice>
       ) : null}
       {r.beard.length ? (
-        <Section id="beard" title={t("sections.beard")} icon={<UserRound className="size-4" />} reportId={state.reportId}>
+        <Section id="beard" title={t("sections.beard")} icon={<UserRound className="size-4" />}>
           {r.beard.map((p) => <PickCard key={p.presetId} pick={p} />)}
         </Section>
       ) : skipped.beard ? (
         <Notice>{t("basis.skipped.beard")}</Notice>
       ) : null}
       {r.hairColor ? (
-        <Section id="color" title={t("sections.color")} icon={<Palette className="size-4" />} reportId={state.reportId}>
+        <Section id="color" title={t("sections.color")} icon={<Palette className="size-4" />}>
           <PickCard pick={r.hairColor} />
         </Section>
       ) : null}
 
-      <Section id="skin" title={t("sections.skin")} icon={<Droplets className="size-4" />} reportId={state.reportId}>
+      <Section id="skin" title={t("sections.skin")} icon={<Droplets className="size-4" />}>
         {(["morning", "evening", "weekly"] as const).map((slot) =>
           r.skincare[slot].length ? (
             <div key={slot} className="space-y-2">
@@ -209,13 +237,13 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled, basis, i
       </Section>
 
       {r.faceContours.enabled && r.faceContours.tips.length ? (
-        <Section id="contours" title={t("sections.contours")} icon={<ScanFace className="size-4" />} reportId={state.reportId}>
+        <Section id="contours" title={t("sections.contours")} icon={<ScanFace className="size-4" />}>
           <Bullets items={r.faceContours.tips} />
         </Section>
       ) : null}
 
       {r.exercises.length ? (
-        <Section id="exercises" title={t("sections.exercises")} icon={<Dumbbell className="size-4" />} reportId={state.reportId}>
+        <Section id="exercises" title={t("sections.exercises")} icon={<Dumbbell className="size-4" />}>
           <ul className="space-y-2">
             {r.exercises.map((e) => {
               const def = EXERCISES.find((x) => x.id === e.id);
@@ -237,7 +265,7 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled, basis, i
       ) : null}
 
       {r.habits.length ? (
-        <Section id="habits" title={t("sections.habits")} icon={<ListChecks className="size-4" />} reportId={state.reportId}>
+        <Section id="habits" title={t("sections.habits")} icon={<ListChecks className="size-4" />}>
           <ul className="divide-y divide-border/60 rounded-xl bg-muted/60">
             {r.habits.map((h) => (
               <li key={h.id} className="px-3 py-2.5">
@@ -250,7 +278,7 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled, basis, i
       ) : null}
 
       {r.style.length ? (
-        <Section id="style" title={t("sections.style")} icon={<Shirt className="size-4" />} reportId={state.reportId}>
+        <Section id="style" title={t("sections.style")} icon={<Shirt className="size-4" />}>
           <Bullets items={r.style} />
         </Section>
       ) : null}
@@ -272,6 +300,10 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled, basis, i
         </section>
       ) : null}
 
+      <div className="rounded-2xl border bg-card px-4 py-1 shadow-card">
+        <FeedbackButtons targetType="report" targetId={state.reportId} compact />
+      </div>
+
       <div className="grid gap-2 pt-2">
         <Button size="lg" onClick={addToRoutine} disabled={busy}>
           <ListChecks aria-hidden="true" />
@@ -285,6 +317,14 @@ export function ReportView({ analysisId, initial, expertNetworkEnabled, basis, i
       <p className="text-center text-[11px] text-muted-foreground">{tc("notMedicalAdvice")}</p>
     </div>
   );
+}
+
+/** Özet: ilk cümle görünür (kısaysa iki cümle), kalanı "Ayrıntılar" altına. */
+function splitLead(text: string): { lead: string; rest: string } {
+  const parts = text.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g)?.map((x) => x.trim()) ?? [text];
+  let n = 1;
+  if (parts[0] && parts[0].length < 70 && parts.length > 2) n = 2;
+  return { lead: parts.slice(0, n).join(" "), rest: parts.slice(n).join(" ") };
 }
 
 function Notice({ children }: { children: React.ReactNode }) {
@@ -320,19 +360,17 @@ function Section({
   id,
   title,
   icon,
-  reportId,
   feature = false,
   children,
 }: {
   id: string;
   title: string;
   icon: React.ReactNode;
-  reportId: string;
   feature?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <Card id={`section-${id}`} className={cn("scroll-mt-16", feature && "border-brand-gradient bg-hero-glow")}>
+    <Card id={`section-${id}`} className={cn("scroll-mt-32", feature && "border-brand-gradient bg-hero-glow")}>
       <CardHeader>
         <h2 className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
           <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand" aria-hidden="true">
@@ -343,9 +381,6 @@ function Section({
       </CardHeader>
       <CardContent className="space-y-3">
         {children}
-        <div className="border-t border-border/60 pt-1">
-          <FeedbackButtons targetType="report" targetId={reportId} section={id} compact />
-        </div>
       </CardContent>
     </Card>
   );
@@ -353,22 +388,27 @@ function Section({
 
 function PickCard({ pick }: { pick: ReportPick }) {
   const t = useTranslations("report");
+  const tc = useTranslations("common");
   const preset = getPreset(pick.presetId);
   const [open, setOpen] = useState(false);
   return (
-    <div className="space-y-3 rounded-xl border bg-muted/40 p-4">
-      <div className="space-y-1">
-        <p className="text-[15px] font-semibold">{preset?.nameTr ?? pick.presetId}</p>
-        <p className="text-[13px] leading-relaxed text-muted-foreground">{pick.why}</p>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Button variant="outline" onClick={() => setOpen(true)}>
-          {t("showBarber")}
-        </Button>
-        <Button asChild>
+    <div className="space-y-2 rounded-xl border bg-muted/40 px-4 pt-3.5 pb-1">
+      <div className="flex items-center gap-2">
+        <p className="min-w-0 flex-1 text-[15px] font-semibold">{preset?.nameTr ?? pick.presetId}</p>
+        {/* İkincil eylemler: sayfadaki tek gradyan CTA "Rutinime ekle" kalır. */}
+        <Button asChild variant="outline" size="sm" className="h-11 rounded-full px-3.5 text-brand">
           <Link href={`/dene?preset=${pick.presetId}`}>
             <Scissors aria-hidden="true" /> {t("tryIt")}
           </Link>
+        </Button>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-x-3">
+        <Details label={tc("details")}>
+          <p>{pick.why}</p>
+        </Details>
+        <Button variant="ghost" size="sm" className="-mr-2 h-11 text-[13px]" onClick={() => setOpen(true)}>
+          <MessageSquareQuote aria-hidden="true" />
+          {t("showBarber")}
         </Button>
       </div>
       <Dialog open={open} onOpenChange={setOpen}>

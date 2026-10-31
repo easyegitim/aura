@@ -272,6 +272,9 @@ export function TryonScreen({ consentVersion, hasConsent, recommended, quota, in
       <ul className="grid grid-cols-2 gap-2.5">
         {list.map((p, i) => {
           const rec = recommended.includes(p.id);
+          // "Sana önerilen" sekmesinde her kart önerilen: rozet tekrarlanmaz, yalnız ilk öneri vurgulanır.
+          const inRec = tab === "recommended";
+          const highlight = inRec ? i === 0 : rec;
           const Icon = KIND_ICON[p.kind];
           return (
             <li key={p.id} className="motion-safe:animate-fade-up" style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}>
@@ -281,14 +284,14 @@ export function TryonScreen({ consentVersion, hasConsent, recommended, quota, in
                 onClick={() => choose(p)}
                 className={cn(
                   "flex h-full min-h-28 w-full flex-col items-start gap-2 rounded-2xl p-3.5 text-left transition-colors active:scale-[0.98] disabled:opacity-50",
-                  rec ? "border-brand-gradient shadow-glow" : "border bg-card shadow-card hover:bg-accent",
+                  highlight ? "border-brand-gradient shadow-glow" : "border bg-card shadow-card hover:bg-accent",
                 )}
               >
                 <span className="flex w-full items-center justify-between gap-2">
                   <span aria-hidden="true" className="grid size-8 place-items-center rounded-xl bg-brand-soft text-brand">
                     <Icon className="size-4" />
                   </span>
-                  {rec ? (
+                  {rec && !inRec ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">
                       <Sparkles aria-hidden="true" className="size-3" />
                       {t("recommendedBadge")}

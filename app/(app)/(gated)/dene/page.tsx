@@ -1,10 +1,8 @@
-import { Lock, ScanFace, Scissors, Timer, Wand2 } from "lucide-react";
+import { ScanFace, Scissors } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { LockedFeature } from "@/components/app/LockedFeature";
 import { TryonScreen } from "@/components/tryon/TryonScreen";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CoachReport } from "@/lib/ai/reportSchema";
 import { getConsentState } from "@/lib/api/guard";
 import { getPremiumStatus } from "@/lib/api/premium";
@@ -18,7 +16,6 @@ import { tryonUsage } from "@/lib/tryon/quota";
 const LOCKED_PERKS = [
   { k: "styles", icon: Scissors },
   { k: "face", icon: ScanFace },
-  { k: "quota", icon: Timer },
 ] as const;
 
 /** /dene (F11): premium; ilk kullanımda tryon_generation rızası; "Sana önerilen" rapordan; kalan hak. */
@@ -34,33 +31,11 @@ export default async function TryonPage({ searchParams }: PageProps<"/dene">) {
   if (!premium) {
     return (
       <div className="mx-auto w-full max-w-lg px-4 py-6">
-        <Card className="border-brand-gradient bg-hero-glow">
-          <CardHeader className="items-center text-center">
-            <span aria-hidden="true" className="mx-auto mb-1 grid size-14 place-items-center rounded-2xl bg-cta-gradient text-primary-foreground shadow-glow">
-              <Wand2 className="size-7" />
-            </span>
-            <p className="eyebrow">{t("lockedEyebrow")}</p>
-            <CardTitle className="text-2xl font-bold">{t("lockedTitle")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ul className="grid gap-2">
-              {LOCKED_PERKS.map(({ k, icon: Icon }) => (
-                <li key={k} className="flex min-h-12 items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-sm font-semibold">
-                  <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
-                    <Icon className="size-4" />
-                  </span>
-                  {t(`lockedPerks.${k}`)}
-                </li>
-              ))}
-            </ul>
-            <Button asChild size="lg" className="w-full">
-              <Link href="/premium?from=tryon">
-                <Lock aria-hidden="true" />
-                {t("goPremium")}
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <LockedFeature
+          title={t("lockedTitle")}
+          href="/premium?from=tryon"
+          perks={LOCKED_PERKS.map(({ k, icon: Icon }) => ({ icon: <Icon className="size-4" />, label: t(`lockedPerks.${k}`) }))}
+        />
       </div>
     );
   }

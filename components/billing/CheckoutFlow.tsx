@@ -14,6 +14,7 @@ import { track } from "@/lib/analytics";
 import { ApiClientError, postJson } from "@/lib/api/client";
 import { DEFAULT_PLAN_ID, PLANS, SUBSCRIPTION_PLAN_IDS, formatTry, weeklyEquivalentTry, type SubscriptionPlanId } from "@/lib/config/plans";
 import { cn } from "@/lib/utils";
+import { PlanBody, PlanCheck, PlanRibbon, planCardClass } from "@/components/billing/PlanOption";
 
 type PlanChoice = SubscriptionPlanId | "week_pass";
 type Props = { isAnonymous: boolean; initialPlan: PlanChoice; weekPassEnabled: boolean; alreadyPremium: boolean; analysisId?: string };
@@ -83,7 +84,7 @@ export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alread
           <span aria-hidden="true" className="grid size-14 place-items-center rounded-full bg-brand-soft text-brand">
             <BadgeCheck className="size-7" />
           </span>
-          <h2 className="text-lg font-semibold tracking-tight">{t("alreadyTitle")}</h2>
+          <h1 className="text-xl font-bold tracking-tight">{t("alreadyTitle")}</h1>
           <p className="text-[13px] text-muted-foreground">{t("alreadyBody")}</p>
           <Button asChild size="lg" className="mt-1 w-full"><Link href="/analiz">{t("goAnalyses")}</Link></Button>
         </CardContent>
@@ -275,42 +276,10 @@ function PlanButton({
   badge: string | null;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-      className={cn(
-        "relative flex min-h-16 w-full items-center gap-3 rounded-2xl px-4 py-4 text-left text-sm transition-shadow",
-        selected ? "border-brand-gradient shadow-glow" : "border bg-card hover:bg-accent",
-        featuredLabel && "mt-2.5",
-      )}
-    >
-      {featuredLabel ? (
-        <span aria-hidden="true" className="absolute -top-2.5 right-4 rounded-full bg-cta-gradient px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground shadow-glow">
-          {featuredLabel}
-        </span>
-      ) : null}
-      <span
-        aria-hidden="true"
-        className={cn("grid size-5 shrink-0 place-items-center rounded-full border-2", selected ? "border-transparent bg-cta-gradient text-primary-foreground" : "border-input")}
-      >
-        {selected ? <Check className="size-3" strokeWidth={3} /> : null}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-baseline justify-between gap-2">
-          <span className="text-[15px] font-semibold">{name}</span>
-          <span className="num text-right">
-            <span className="text-lg font-bold">{price}</span>
-            {per ? <span className="ml-1 text-xs text-muted-foreground">{per}</span> : null}
-          </span>
-        </span>
-        {detail || badge ? (
-        <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-muted-foreground">
-          {detail ? <span className="num">{detail}</span> : null}
-          {badge ? <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand">{badge}</span> : null}
-        </span>
-        ) : null}
-      </span>
+    <button type="button" onClick={onSelect} aria-pressed={selected} className={planCardClass(selected, Boolean(featuredLabel))}>
+      {featuredLabel ? <PlanRibbon>{featuredLabel}</PlanRibbon> : null}
+      <PlanCheck selected={selected} />
+      <PlanBody name={name} price={price} per={per} detail={detail} badge={badge} />
     </button>
   );
 }

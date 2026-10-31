@@ -21,10 +21,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0b0b12" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0b12" },
-  ],
+  // Varsayılan koyu tema; açık tema seçilince ThemeProvider (ThemeColorSync) meta etiketini günceller.
+  themeColor: "#0b0b12",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

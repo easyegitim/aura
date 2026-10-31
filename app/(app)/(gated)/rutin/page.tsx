@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { RoutineScreen } from "@/components/routine/RoutineScreen";
-import { StateCard, StateCardLink } from "@/components/routine/StateCard";
+import { LockedFeature } from "@/components/app/LockedFeature";
 import { getPremiumStatus } from "@/lib/api/premium";
 import { exerciseEligible } from "@/lib/coach/eligibility";
 import { createClient } from "@/lib/db/server";
@@ -25,11 +25,7 @@ export default async function RoutinePage() {
       {premium ? (
         <RoutineScreen userId={user.id} exerciseEligible={q.success ? exerciseEligible(q.data) : false} />
       ) : (
-        <StateCard locked feature title={t("lockedTitle")} body={t("lockedBody")}>
-          <StateCardLink href="/premium?from=routine" locked>
-            {t("goPremium")}
-          </StateCardLink>
-        </StateCard>
+        <LockedFeature title={t("lockedTitle")} body={t("lockedBody")} href="/premium?from=routine" />
       )}
     </div>
   );

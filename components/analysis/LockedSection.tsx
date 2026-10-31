@@ -19,6 +19,7 @@ export function LockedSection({
   onTap,
   preview,
   feature = false,
+  ctaVariant = "default",
   children,
 }: {
   title: string;
@@ -30,6 +31,8 @@ export function LockedSection({
   preview?: ReactNode;
   /** Öne çıkan kart: gradyan kenarlık ve parıltı. */
   feature?: boolean;
+  /** Ekranda tek birincil (gradyan) "Kilidi aç" kalsın diye ikincil kartlar "outline" kullanır. */
+  ctaVariant?: "default" | "outline";
   children: ReactNode;
 }) {
   const t = useTranslations("analysis");
@@ -51,7 +54,7 @@ export function LockedSection({
         {locked ? (
           <>
             {preview}
-            <Button className="w-full" onClick={onTap}>
+            <Button className="w-full" variant={ctaVariant} onClick={onTap}>
               <Lock aria-hidden="true" />
               {t("unlock")}
             </Button>

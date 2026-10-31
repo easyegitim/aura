@@ -47,6 +47,7 @@
   --color-kind-partial: var(--kind-partial);
   --color-kind-modifiable: var(--kind-modifiable);
   --color-track: var(--track);
+  --color-control: var(--control);
   --radius-2xl: calc(var(--radius) + 0.25rem);
   --radius-3xl: calc(var(--radius) + 0.75rem);
   --text-display: 4.5rem;
@@ -97,6 +98,8 @@
   --input: oklch(0.2 0.03 285 / 16%);
   --ring: oklch(0.52 0.22 290);
   --track: oklch(0.2 0.03 285 / 8%);
+  /* Seçilmemiş onay kutusu / radyo / anahtar kenarı: kart, sayfa ve muted zeminde ≥ 3:1 (WCAG 1.4.11). */
+  --control: oklch(0.6 0.02 285);
   /* Marka: menekşe → camgöbeği. from/to metin olarak beyaz zeminde AA (≥ 4,5). */
   --brand: oklch(0.52 0.22 290);
   --brand-from: oklch(0.5 0.22 292);
@@ -144,6 +147,7 @@
   --input: oklch(1 0 0 / 14%);
   --ring: oklch(0.72 0.17 295);
   --track: oklch(1 0 0 / 8%);
+  --control: oklch(0.56 0.02 285);
   --brand: oklch(0.72 0.17 295);
   --brand-from: oklch(0.72 0.17 295);
   --brand-to: oklch(0.84 0.13 205);

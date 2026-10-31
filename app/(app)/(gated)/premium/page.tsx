@@ -38,15 +38,18 @@ export default async function PremiumPage({ searchParams }: PageProps<"/premium"
           {t("backToAnalysis")}
         </Link>
       ) : null}
-      <header className="space-y-2">
-        <p className="eyebrow text-brand">{t("eyebrow")}</p>
-        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("pageLead")}</p>
-        <p className="inline-flex h-6 items-center gap-1.5 rounded-full bg-muted px-2.5 text-[11px] font-medium">
-          <ShieldCheck aria-hidden="true" className="size-3.5 text-success" />
-          {tc("secure")}
-        </p>
-      </header>
+      {/* Premium kullanıcıya satın alma başlığı ve ödeme rozeti gösterilmez; CheckoutFlow "Zaten premiumsun" kartını (h1) çizer. */}
+      {premium ? null : (
+        <header className="space-y-2">
+          <p className="eyebrow text-brand">{t("eyebrow")}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("pageLead")}</p>
+          <p className="inline-flex h-6 items-center gap-1.5 rounded-full bg-muted px-2.5 text-[11px] font-medium">
+            <ShieldCheck aria-hidden="true" className="size-3.5 text-success" />
+            {tc("secure")}
+          </p>
+        </header>
+      )}
       <CheckoutFlow isAnonymous={user.is_anonymous ?? false} initialPlan={initial} weekPassEnabled={weekPass} alreadyPremium={premium} analysisId={analysisId} />
     </div>
   );

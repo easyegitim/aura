@@ -128,6 +128,7 @@ export function ScoreView({ a, premium, currentEngine }: { a: ClientAnalysis; pr
       description={t("planBody")}
       icon={<Sparkles className="size-4" />}
       feature
+      ctaVariant="outline"
       locked={!premium}
       onTap={() => onLocked("plan")}
     >

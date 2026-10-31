@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { DEFAULT_PLAN_ID, PLANS, SUBSCRIPTION_PLAN_IDS, formatTry, weeklyEquivalentTry, type SubscriptionPlanId } from "@/lib/config/plans";
 import { cn } from "@/lib/utils";
+import { PLAN_BADGE_CLASS, PlanRibbon } from "@/components/billing/PlanOption";
 import { StartAnalysisButton } from "./StartAnalysisButton";
 
 const PERIOD_KEY: Record<SubscriptionPlanId, "perWeek" | "perMonth" | "perYear"> = {
@@ -12,6 +13,7 @@ const PERIOD_KEY: Record<SubscriptionPlanId, "perWeek" | "perMonth" | "perYear">
 /** Plan kartları; fiyatlar lib/config/plans.ts'ten gelir (SPEC 5.1). Mobilde kompakt satır, genişte üç sütun. */
 export function PricingCards({ withCta = false }: { withCta?: boolean }) {
   const t = useTranslations("pricing");
+  const tw = useTranslations("paywall");
   return (
     <div className="space-y-4">
       <ul className="grid gap-3 sm:grid-cols-3">
@@ -23,22 +25,17 @@ export function PricingCards({ withCta = false }: { withCta?: boolean }) {
             <li
               key={id}
               className={cn(
-                "relative space-y-3 overflow-hidden rounded-2xl p-4 shadow-card sm:p-5",
+                "relative space-y-3 rounded-2xl p-4 shadow-card sm:p-5",
+                highlighted && "mt-2.5 sm:mt-0",
                 highlighted ? "border-brand-gradient shadow-glow" : "border bg-card",
               )}
             >
-              {highlighted ? <div className="pointer-events-none absolute inset-0 bg-hero-glow" aria-hidden="true" /> : null}
+              {highlighted ? <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-hero-glow" aria-hidden="true" /> : null}
+              {highlighted ? <PlanRibbon>{tw("bestValue")}</PlanRibbon> : null}
               <div className="relative flex min-h-6 items-center justify-between gap-2">
                 <p className="text-[15px] font-semibold">{t(`plans.${id}.name`)}</p>
                 {badge ? (
-                  <span
-                    className={cn(
-                      "inline-flex h-6 items-center truncate rounded-full px-2.5 text-[11px] font-semibold",
-                      highlighted ? "bg-brand-soft text-brand" : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {badge}
-                  </span>
+                  <span className={cn(PLAN_BADGE_CLASS, "truncate")}>{badge}</span>
                 ) : null}
               </div>
               <div className="relative flex flex-wrap items-end justify-between gap-x-3 gap-y-1">

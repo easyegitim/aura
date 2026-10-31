@@ -12,6 +12,7 @@ import { TEASER_ANALYTICS_CODE, type PaywallTrigger } from "@/lib/config/paywall
 import { DEFAULT_PLAN_ID, PLANS, SUBSCRIPTION_PLAN_IDS, formatTry, weeklyEquivalentTry, type SubscriptionPlanId } from "@/lib/config/plans";
 import { SUB_KEYS, type SubKey, type TeaserMode } from "@/lib/config/teaser";
 import { cn } from "@/lib/utils";
+import { PlanBody, PlanCheck, PlanRibbon, planCardClass } from "@/components/billing/PlanOption";
 
 export type PlanChoice = SubscriptionPlanId | "week_pass";
 type Step = "benefits" | "plans";
@@ -219,7 +220,6 @@ export function PaywallProvider({
                       per={`/ ${tp(PER_KEY[id])}`}
                       detail={id === "weekly" ? null : tp("weeklyEquivalent", { amount: formatTry(weeklyEquivalentTry(id)) })}
                       badge={id === "weekly" ? null : tp(`plans.${id}.badge`)}
-                      badgeSuffix={id === "weekly" ? null : tp("vsWeekly")}
                     />
                   ))}
                   {weekPassEnabled ? (
@@ -258,7 +258,6 @@ function PlanOption({
   per,
   detail,
   badge,
-  badgeSuffix = null,
 }: {
   id: PlanChoice;
   selected: boolean;
@@ -269,41 +268,17 @@ function PlanOption({
   per?: string;
   detail: string | null;
   badge: string | null;
-  badgeSuffix?: string | null;
 }) {
   const base = useId();
   const nameId = `${base}-name`;
   const descId = `${base}-desc`;
+  // Radyo erişilebilirlik için gerçek (Radix) radyo; görünümü /premium ile aynı onay dairesi (PlanCheck).
   return (
-    <label
-      className={cn(
-        "relative flex min-h-11 w-full cursor-pointer items-start gap-3 rounded-2xl px-4 py-4 text-sm transition-shadow",
-        selected ? "border-brand-gradient shadow-glow" : "border bg-card hover:bg-accent",
-        featured && "mt-2.5",
-      )}
-    >
-      {featured && featuredLabel ? (
-        <span aria-hidden="true" className="absolute -top-2.5 right-4 rounded-full bg-cta-gradient px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground shadow-glow">
-          {featuredLabel}
-        </span>
-      ) : null}
-      <RadioGroupItem value={id} aria-labelledby={nameId} aria-describedby={descId} className="mt-1 size-5" />
-      <span className="min-w-0 flex-1">
-        <span className="flex items-baseline justify-between gap-2">
-          <span id={nameId} className="text-[15px] font-semibold">{name}</span>
-          <span className="num text-right">
-            <span className="text-lg font-bold">{price}</span>
-            {per ? <span className="ml-1 text-xs text-muted-foreground">{per}</span> : null}
-          </span>
-        </span>
-        <span id={descId} className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-muted-foreground">
-          {detail ? <span className="num">{detail}</span> : null}
-          {badge ? (
-            <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand">{badge}</span>
-          ) : null}
-          {badge && badgeSuffix ? <span className="text-[11px]">{badgeSuffix}</span> : null}
-        </span>
-      </span>
+    <label className={cn(planCardClass(selected, featured), "cursor-pointer has-[[role=radio]:focus-visible]:ring-[3px] has-[[role=radio]:focus-visible]:ring-ring/50")}>
+      {featured && featuredLabel ? <PlanRibbon>{featuredLabel}</PlanRibbon> : null}
+      <RadioGroupItem value={id} aria-labelledby={nameId} aria-describedby={detail || badge ? descId : undefined} className="absolute inset-0 size-full rounded-2xl border-0 opacity-0 shadow-none" />
+      <PlanCheck selected={selected} />
+      <PlanBody name={name} price={price} per={per} detail={detail} badge={badge} nameId={nameId} descId={descId} />
     </label>
   );
 }

@@ -8,6 +8,8 @@ import type { PaywallTrigger } from "@/lib/config/paywall";
 import type { ClientAnalysis } from "@/lib/score/present";
 
 const pct = (v: number | null) => (v === null ? "–" : `%${Math.round(v * 100)}`);
+/** Türkçe ondalık virgülü: "1,90" (diğer skorlarla aynı biçim). */
+const ratio = (v: number) => v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const ROWS = ["canthalTilt", "thirds", "fwhr", "jawRatio"] as const;
 
 function Tile({ label, children }: { label: string; children: ReactNode }) {
@@ -28,6 +30,7 @@ export function MeasurementsCard({ a, onLocked }: { a: ClientAnalysis; onLocked:
     <LockedSection
       title={t("ratiosTitle")}
       icon={<Ruler className="size-4" />}
+      ctaVariant="outline"
       locked={a.metrics.locked}
       onTap={() => onLocked("measurements")}
       preview={
@@ -54,8 +57,8 @@ export function MeasurementsCard({ a, onLocked }: { a: ClientAnalysis; onLocked:
               {pct(metrics.thirds.upper)} / {pct(metrics.thirds.middle)} / {pct(metrics.thirds.lower)}
             </span>
           </Tile>
-          <Tile label={tg("fwhr")}>{metrics.fwhr.toFixed(2)}</Tile>
-          <Tile label={tg("jawRatio")}>{metrics.jawRatio.toFixed(2)}</Tile>
+          <Tile label={tg("fwhr")}>{ratio(metrics.fwhr)}</Tile>
+          <Tile label={tg("jawRatio")}>{ratio(metrics.jawRatio)}</Tile>
         </dl>
       ) : (
         <p className="text-sm text-muted-foreground">–</p>

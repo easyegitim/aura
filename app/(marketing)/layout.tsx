@@ -34,9 +34,9 @@ export default async function MarketingLayout({ children }: LayoutProps<"/">) {
             <span className="size-4 rounded-full bg-brand-gradient" aria-hidden="true" />
             {APP_NAME}
           </Link>
-          <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+          <div className="flex flex-wrap items-start gap-x-4">
             <LegalLinks />
-            <Link href="/yontem?from=footer" className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+            <Link href="/yontem?from=footer" className="inline-flex min-h-11 items-center text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
               {t("method.footerLink")}
             </Link>
           </div>
