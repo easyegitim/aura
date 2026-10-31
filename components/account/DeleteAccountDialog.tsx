@@ -1,11 +1,12 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { DELETE_CONFIRM_WORD, DELETION_GRACE_DAYS, isDeleteConfirmed } from "@/lib/account/consents";
@@ -44,13 +45,18 @@ export function DeleteAccountDialog() {
   }
 
   return (
-    <Card className="border-destructive/40">
+    <Card className="border-destructive/30">
       <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description", { days: DELETION_GRACE_DAYS })}</CardDescription>
+        <h2 className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
+          <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-destructive/12 text-destructive" aria-hidden="true">
+            <Trash2 className="size-4" />
+          </span>
+          {t("title")}
+        </h2>
+        <CardDescription className="text-[13px]">{t("description", { days: DELETION_GRACE_DAYS })}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Button variant="destructive" className="w-full" onClick={() => setOpen(true)}>
+        <Button variant="outline" className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setOpen(true)}>
           {t("button")}
         </Button>
       </CardContent>

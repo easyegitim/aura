@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { OnboardingSteps } from "@/components/onboarding/OnboardingSteps";
 import { QuestionnaireWizard } from "@/components/onboarding/QuestionnaireWizard";
 import { getConsentState } from "@/lib/api/guard";
 import { hasRequiredAnalysisConsents } from "@/lib/consent";
@@ -24,13 +25,15 @@ export default async function QuestionnairePage({ searchParams }: PageProps<"/ba
   if (!hasRequiredAnalysisConsents(state, () => consentVersion)) redirect(CONSENTS_PATH);
 
   const existing = QuestionnaireSchema.safeParse(profile.questionnaire);
+  const returnPath = safeReturnPath(next);
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 py-6">
+    <div className="mx-auto w-full max-w-lg space-y-8 px-4 pt-6">
+      {returnPath ? null : <OnboardingSteps current="profile" />}
       {/* SPEC 7.1: model onboarding sırasında arka planda yüklenir */}
       <link rel="prefetch" href="/mediapipe/face_landmarker.task" as="fetch" crossOrigin="anonymous" />
       <link rel="prefetch" href="/mediapipe/wasm/vision_wasm_module_internal.wasm" as="fetch" crossOrigin="anonymous" />
-      <QuestionnaireWizard nextPath={safeReturnPath(next) ?? CAPTURE_PATH} initial={existing.success ? existing.data : undefined} />
+      <QuestionnaireWizard nextPath={returnPath ?? CAPTURE_PATH} initial={existing.success ? existing.data : undefined} />
     </div>
   );
 }

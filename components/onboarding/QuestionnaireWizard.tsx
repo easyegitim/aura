@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -155,17 +154,24 @@ function Wizard({ nextPath, initial }: { nextPath: string; initial?: Partial<Que
   const progress = Math.round(((index + 1) / STEPS.length) * 100);
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-1">
-        <Progress value={progress} aria-label={t("progress", { current: index + 1, total: STEPS.length })} />
-        <p className="text-xs text-muted-foreground">{t("progress", { current: index + 1, total: STEPS.length })}</p>
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="eyebrow">{t("progress", { current: index + 1, total: STEPS.length })}</span>
+          <span className="num font-semibold text-brand">{progress}%</span>
+        </div>
+        <Progress
+          value={progress}
+          aria-label={t("progress", { current: index + 1, total: STEPS.length })}
+          className="h-1.5 bg-track *:data-[slot=progress-indicator]:rounded-full *:data-[slot=progress-indicator]:bg-brand-gradient"
+        />
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t(`steps.${step}.title`)}</CardTitle>
-          <CardDescription>{t(`steps.${step}.description`)}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight">{t(`steps.${step}.title`)}</h1>
+          <p className="text-sm text-muted-foreground">{t(`steps.${step}.description`)}</p>
+        </div>
+        <div className="space-y-5">
           {step === "goals" ? (
             <CheckList
               options={GOALS}
@@ -260,34 +266,37 @@ function Wizard({ nextPath, initial }: { nextPath: string; initial?: Partial<Que
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">{t("fields.note")}</span>
               <textarea
-                className="min-h-28 w-full rounded-md border bg-background p-3 text-sm"
+                className="min-h-32 w-full rounded-xl border border-input bg-card p-4 text-[15px] shadow-card"
                 maxLength={300}
                 value={draft.note ?? ""}
                 onChange={(e) => patch({ note: e.target.value })}
                 placeholder={t("fields.notePlaceholder")}
               />
-              <span className="block text-right text-xs text-muted-foreground">{draft.note?.length ?? 0}/300</span>
+              <span className="num block text-right text-xs text-muted-foreground">{draft.note?.length ?? 0}/300</span>
             </label>
           ) : null}
 
-          <div className="flex gap-2 pt-2">
-            <Button type="button" variant="outline" className="flex-1" disabled={index === 0 || busy} onClick={() => setIndex(index - 1)}>
-              {t("back")}
-            </Button>
-            <Button type="button" className="flex-1" disabled={!canContinue || busy} onClick={next}>
-              {index === STEPS.length - 1 ? t("finish") : t("next")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+      <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-border/60 bg-background/85 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl">
+        <Button type="button" variant="outline" className="h-12 flex-1" disabled={index === 0 || busy} onClick={() => setIndex(index - 1)}>
+          {t("back")}
+        </Button>
+        <Button type="button" className="h-12 flex-[2]" disabled={!canContinue || busy} onClick={next}>
+          {index === STEPS.length - 1 ? t("finish") : t("next")}
+        </Button>
+      </div>
     </div>
   );
 }
 
+const OPTION_TILE =
+  "flex min-h-13 cursor-pointer items-center gap-3 rounded-xl border bg-card px-4 py-3 text-[15px] font-medium shadow-card transition-colors hover:bg-accent has-[[data-state=checked]]:border-brand has-[[data-state=checked]]:bg-brand-soft has-focus-visible:ring-2 has-focus-visible:ring-ring/50";
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm font-medium">{label}</legend>
+      <legend className="eyebrow mb-2">{label}</legend>
       {children}
     </fieldset>
   );
@@ -297,7 +306,7 @@ function Radio<T extends string>({ options, value, label, onChange }: { options:
   return (
     <RadioGroup value={value ?? ""} onValueChange={(v) => onChange(v as T)} className="grid gap-2">
       {options.map((k) => (
-        <label key={k} className="flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm has-[[data-state=checked]]:border-foreground">
+        <label key={k} className={OPTION_TILE}>
           <RadioGroupItem value={k} />
           {label(k)}
         </label>
@@ -311,13 +320,13 @@ function CheckList<T extends string>({ options, selected, label, onChange, noneL
   return (
     <div className="grid gap-2">
       {options.map((k) => (
-        <label key={k} className="flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm has-[[data-state=checked]]:border-foreground">
+        <label key={k} className={OPTION_TILE}>
           <Checkbox checked={selected.includes(k)} onCheckedChange={(v) => toggle(k, v === true)} />
           {label(k)}
         </label>
       ))}
       {noneLabel ? (
-        <label className="flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm has-[[data-state=checked]]:border-foreground">
+        <label className={OPTION_TILE}>
           <Checkbox checked={selected.length === 0} onCheckedChange={(v) => (v === true ? onChange([]) : undefined)} />
           {noneLabel}
         </label>
@@ -328,9 +337,9 @@ function CheckList<T extends string>({ options, selected, label, onChange, noneL
 
 function ToggleRow({ id, label, hint, checked, onChange }: { id: string; label: string; hint?: string; checked?: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border px-3 py-2.5">
-      <label htmlFor={id} className="space-y-0.5 text-sm">
-        <span className="block font-medium">{label}</span>
+    <div className="flex min-h-14 items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 shadow-card">
+      <label htmlFor={id} className="space-y-0.5">
+        <span className="block text-[15px] font-medium">{label}</span>
         {hint ? <span className="block text-xs text-muted-foreground">{hint}</span> : null}
       </label>
       <Switch id={id} checked={checked ?? false} onCheckedChange={onChange} />

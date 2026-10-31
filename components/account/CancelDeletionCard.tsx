@@ -1,12 +1,12 @@
 "use client";
 
+import { RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { postJson } from "@/lib/api/client";
 
 type Props = { requestedAt: string; purgeAt: string };
@@ -33,16 +33,21 @@ export function CancelDeletionCard({ requestedAt, purgeAt }: Props) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("body", { requested: fmt(requestedAt), purge: fmt(purgeAt) })}</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-2">
-        <Button size="lg" disabled={busy} onClick={cancel}>{t("cancelButton")}</Button>
-        <p className="text-xs text-muted-foreground">{t("keepHint")}</p>
+    <section className="flex flex-col items-center gap-4 rounded-2xl border bg-card bg-hero-glow px-5 py-7 text-center shadow-card">
+      <span className="grid size-14 place-items-center rounded-2xl bg-brand-soft text-brand" aria-hidden="true">
+        <RotateCcw className="size-6" />
+      </span>
+      <div className="space-y-1.5">
+        <h1 className="text-xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-[13px] leading-relaxed text-muted-foreground">{t("body", { requested: fmt(requestedAt), purge: fmt(purgeAt) })}</p>
+      </div>
+      <div className="grid w-full gap-2">
+        <Button size="lg" disabled={busy} onClick={cancel}>
+          {t("cancelButton")}
+        </Button>
+        <p className="text-[11px] text-muted-foreground">{t("keepHint")}</p>
         <SignOutButton />
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

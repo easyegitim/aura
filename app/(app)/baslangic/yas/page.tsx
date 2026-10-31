@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AgeGate } from "@/components/onboarding/AgeGate";
+import { OnboardingSteps } from "@/components/onboarding/OnboardingSteps";
 import { createClient } from "@/lib/db/server";
 import { currentYearIstanbul, selectableBirthYears } from "@/lib/onboarding/age";
 import { CONSENTS_PATH } from "@/lib/onboarding/gate";
@@ -15,7 +16,8 @@ export default async function AgeGatePage() {
   if (profile?.is_adult) redirect(CONSENTS_PATH);
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 py-6">
+    <div className="mx-auto w-full max-w-lg space-y-8 px-4 py-6">
+      <OnboardingSteps current="age" />
       <AgeGate years={selectableBirthYears(currentYearIstanbul())} nextPath={CONSENTS_PATH} />
     </div>
   );

@@ -1,13 +1,11 @@
 "use client";
 
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, ChevronDown, MapPin, Stethoscope } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { EXPERT_SPECIALTIES } from "@/content/expert-specialties";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -80,39 +78,55 @@ export function ExpertDirectory({ initialSpecialty, lastAnalysisId, sharingConse
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2">
-        <label className="text-sm">
-          <span className="mb-1 block font-medium">{t("specialty")}</span>
-          <select className="h-10 w-full rounded-md border bg-background px-2" value={specialty} onChange={(e) => setSpecialty(e.target.value)}>
-            <option value="">{t("all")}</option>
-            {EXPERT_SPECIALTIES.map((s) => <option key={s.id} value={s.id}>{s.nameTr}</option>)}
-          </select>
+        <label className="space-y-1.5">
+          <span className="eyebrow block">{t("specialty")}</span>
+          <span className="relative block">
+            <select
+              className="h-11 w-full appearance-none rounded-xl border border-input bg-card pr-8 pl-3 text-sm font-medium shadow-card"
+              value={specialty}
+              onChange={(e) => setSpecialty(e.target.value)}
+            >
+              <option value="">{t("all")}</option>
+              {EXPERT_SPECIALTIES.map((s) => <option key={s.id} value={s.id}>{s.nameTr}</option>)}
+            </select>
+            <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          </span>
         </label>
-        <label className="text-sm">
-          <span className="mb-1 block font-medium">{t("city")}</span>
-          <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t("cityPlaceholder")} />
+        <label className="space-y-1.5">
+          <span className="eyebrow block">{t("city")}</span>
+          <Input className="h-11 rounded-xl bg-card shadow-card" value={city} onChange={(e) => setCity(e.target.value)} placeholder={t("cityPlaceholder")} />
         </label>
       </div>
-      <p className="text-xs text-muted-foreground">{t("disclaimer")}</p>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">{t("disclaimer")}</p>
 
-      {partners === null ? <p className="text-sm text-muted-foreground">{t("loading")}</p> : partners.length === 0 ? <p className="text-sm text-muted-foreground">{t("empty")}</p> : null}
+      {partners === null ? <p className="text-sm text-muted-foreground">{t("loading")}</p> : partners.length === 0 ? <p className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">{t("empty")}</p> : null}
       <ul className="space-y-2">
         {(partners ?? []).map((p) => (
-          <li key={p.id}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
+          <li key={p.id} className="space-y-3 rounded-2xl border bg-card p-4 shadow-card">
+            <div className="flex items-start gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand" aria-hidden="true">
+                <Stethoscope className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1 space-y-1">
+                <h2 className="flex flex-wrap items-center gap-2 text-[15px] font-semibold">
                   {p.name}
-                  {p.verified_at ? <Badge variant="secondary"><BadgeCheck className="size-3" aria-hidden="true" /> {t("verified")}</Badge> : null}
-                </CardTitle>
-                <CardDescription>
-                  {p.specialties.map(specialtyName).join(" · ")} · {p.city}{p.institution ? ` · ${p.institution}` : ""}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex items-center justify-between gap-3">
-                <span className="text-xs text-muted-foreground">{t("license")}: {p.license_no}</span>
-                <Button size="sm" onClick={() => { setSelected(p); setDone(null); }}>{t("request")}</Button>
-              </CardContent>
-            </Card>
+                  {p.verified_at ? (
+                    <span className="inline-flex h-5 items-center gap-1 rounded-full bg-success/12 px-2 text-[10px] font-semibold text-success">
+                      <BadgeCheck className="size-3" aria-hidden="true" /> {t("verified")}
+                    </span>
+                  ) : null}
+                </h2>
+                <p className="text-[13px] text-muted-foreground">{p.specialties.map(specialtyName).join(" · ")}</p>
+                <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+                  {p.city}{p.institution ? ` · ${p.institution}` : ""}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-border/60 pt-3">
+              <span className="num text-[11px] text-muted-foreground">{t("license")}: {p.license_no}</span>
+              <Button onClick={() => { setSelected(p); setDone(null); }}>{t("request")}</Button>
+            </div>
           </li>
         ))}
       </ul>
@@ -134,10 +148,10 @@ export function ExpertDirectory({ initialSpecialty, lastAnalysisId, sharingConse
               <label className="block space-y-1 text-sm"><span className="font-medium">{t("contact")}</span><Input required placeholder={t("contactPlaceholder")} value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></label>
               <label className="block space-y-1 text-sm">
                 <span className="font-medium">{t("message")}</span>
-                <textarea className="min-h-20 w-full rounded-md border bg-background p-2 text-sm" maxLength={600} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+                <textarea className="min-h-20 w-full rounded-xl border border-input bg-background p-3 text-sm" maxLength={600} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
               </label>
               {lastAnalysisId ? (
-                <label className="flex items-start gap-3 rounded-md border px-3 py-2 text-sm">
+                <label className="flex items-start gap-3 rounded-xl border bg-muted/40 px-3 py-3 text-sm">
                   <Checkbox checked={share} onCheckedChange={(v) => setShare(v === true)} className="mt-0.5" />
                   <span>
                     {t("share")}

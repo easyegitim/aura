@@ -1,10 +1,11 @@
 "use client";
 
+import { Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { isApiErrorBody } from "@/lib/api/errors";
 
 /** F15 "Verimi indir": GET /api/me/export → JSON dosyası (günde 3). */
@@ -40,8 +41,13 @@ export function DataExportButton() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
+        <h2 className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
+          <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand" aria-hidden="true">
+            <Download className="size-4" />
+          </span>
+          {t("title")}
+        </h2>
+        <CardDescription className="text-[13px]">{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Button variant="outline" className="w-full" disabled={busy} onClick={download}>

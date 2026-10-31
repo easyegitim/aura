@@ -10,6 +10,7 @@
     "notMedicalAdvice": "Tıbbi tavsiye değildir.",
     "aiGenerated": "Yapay zekâ ile oluşturuldu.",
     "toggleTheme": "Açık ya da koyu temaya geç",
+    "details": "Ayrıntılar",
     "close": "Kapat"
   },
   "nav": {
@@ -25,11 +26,22 @@
     "heroTitle": "Skorunu öğren, potansiyelini gör, planla yükselt.",
     "heroSubtitle": "Bir selfie çek. Yapay zekâ görünüm skorunu, potansiyelini ve seni yükseltecek kişisel bakım planını çıkarsın.",
     "heroNote": "18 yaş ve üzeri içindir. Fotoğrafın saklanmaz; yalnız analiz sırasında işlenir.",
+    "heroEyebrow": "Yapay zekâ bakım koçu",
+    "trustLabel": "Güvenceler",
+    "trust": {
+      "photo": "Fotoğraf saklanmaz",
+      "adult": "18+",
+      "fair": "Herkese aynı ölçü"
+    },
+    "howEyebrow": "3 adım",
+    "pricingEyebrow": "Premium",
+    "faqEyebrow": "SSS",
     "sampleCard": {
       "badge": "Örnek sonuç",
       "overallLabel": "Genel skor",
       "potentialLabel": "Potansiyel",
       "illustrationNote": "Temsili illüstrasyon, gerçek bir yüz değildir.",
+      "gainNote": "8–12 haftada",
       "sub": {
         "skin": "Cilt",
         "hair": "Saç",
@@ -59,6 +71,7 @@
   },
   "pricing": {
     "title": "Fiyatlar",
+    "eyebrow": "Premium",
     "subtitle": "Tüm fiyatlar KDV dahildir. Ödeme iyzico güvencesiyle alınır; kart bilgin bize ulaşmaz.",
     "perWeek": "hafta",
     "perMonth": "ay",
@@ -313,6 +326,12 @@
     "reject": "Reddet"
   },
   "onboarding": {
+    "flow": {
+      "label": "Başlangıç adımları",
+      "age": "Yaş",
+      "consents": "İzinler",
+      "profile": "Profil"
+    },
     "age": {
       "title": "Kaç yaşındasın?",
       "description": "Hizmet yalnız 18 yaş ve üzeri içindir. Yalnız doğum yılını soruyoruz; tam doğum tarihini kaydetmiyoruz.",
@@ -1053,6 +1072,7 @@
   },
   "report": {
     "title": "Planın",
+    "eyebrow": "Kişisel plan",
     "generatingTitle": "Planın hazırlanıyor…",
     "generatingBody": "Skorların, yüz şeklin ve anket cevapların katalogdaki seçeneklerle eşleştiriliyor. 10–20 saniye sürebilir.",
     "errorTitle": "Plan oluşturulamadı",
@@ -1202,6 +1222,7 @@
   },
   "routine": {
     "title": "Rutin",
+    "eyebrow": "Her gün",
     "lockedTitle": "Rutin premiumda",
     "lockedBody": "Sabah/akşam bakım adımları, egzersiz zamanlayıcıları ve seri sayacı.",
     "goPremium": "Premium'a geç",
@@ -1212,6 +1233,8 @@
     "addManual": "Adım ekle",
     "today": "Bugün, {date}",
     "streak": "Seri: {n} gün",
+    "streakDays": "gün seri",
+    "doneCount": "Bugün {done}/{total} adım",
     "streakHint": "Günlük adımların en az %80'i yapılınca gün seriye sayılır.",
     "progressAria": "Bugünkü tamamlanma",
     "slots": {
@@ -1241,6 +1264,8 @@
   },
   "progress": {
     "title": "İlerleme",
+    "eyebrow": "Haftalık takip",
+    "photosTitle": "İlerleme fotoğrafların",
     "loading": "Yükleniyor…",
     "deviceNote": "Fotoğrafların yalnız bu cihazda. Tarayıcı verisini silersen kaybolur.",
     "storageUnavailable": "Bu tarayıcıda yerel depolama kapalı; ilerleme fotoğrafları kaydedilemez.",
@@ -1306,6 +1331,7 @@
     "metaTitle": "Skor nasıl hesaplanır?",
     "metaDescription": "Aura skorunun yöntemi: telefonunda ölçülen oranlar, görünür bakım ayrıntıları ve herkes için aynı hesaplama.",
     "title": "Skor nasıl hesaplanır?",
+    "eyebrow": "Şeffaflık",
     "legacyNote": "Bu sayfa yeni yöntemi anlatır. Şu an analizler önceki yöntemle hesaplanıyor; yeni yöntem açıldığında bu not kalkar.",
     "summaryTitle": "Kısaca",
     "summary": "Yapısal alt skorlar telefonunda ölçülen oranlardan gelir. Cilt, saç ve bakım skorları fotoğraftaki görünür ve değiştirilebilir ayrıntılardan gelir: yapay zekâ bu ayrıntıları yalnız kategorilere ayırır (ör. “hafif parlama”). Tüm sayılar kodda, herkes için aynı tablolarla hesaplanır.",

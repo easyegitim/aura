@@ -26,8 +26,10 @@ export default async function ExpertsPage({ searchParams }: PageProps<"/uzman">)
   const c = state.expert_data_sharing;
   return (
     <div className="mx-auto w-full max-w-lg space-y-4 px-4 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-      <p className="text-sm text-muted-foreground">{t("intro")}</p>
+      <header className="space-y-1.5">
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-[13px] text-muted-foreground">{t("intro")}</p>
+      </header>
       <ExpertDirectory
         initialSpecialty={typeof alan === "string" ? alan : undefined}
         lastAnalysisId={last.data?.id ? String(last.data.id) : null}

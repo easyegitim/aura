@@ -42,8 +42,8 @@ export default async function PlanPage({ params }: PageProps<"/plan/[analysisId]
 
   if (!premium) {
     return (
-      <div className="mx-auto w-full max-w-lg space-y-4 px-4 py-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <div className="mx-auto w-full max-w-lg space-y-5 px-4 py-6">
+        <PageTitle eyebrow={t("eyebrow")} title={t("title")} />
         <PaywallProvider teaserMode={teaser.mode} analysisId={analysisId} weekPassEnabled={isFeatureEnabled("weekPass")}>
           <PlanLocked skipped={skipped} />
         </PaywallProvider>
@@ -59,8 +59,8 @@ export default async function PlanPage({ params }: PageProps<"/plan/[analysisId]
   const basisStale = Boolean(stored) && !Number.isNaN(updatedAt) && updatedAt > Date.parse(stored?.createdAt ?? "");
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-4 px-4 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4 py-6">
+      <PageTitle eyebrow={t("eyebrow")} title={t("title")} />
       <ReportView
         analysisId={analysisId}
         initial={initial}
@@ -90,4 +90,13 @@ async function loadImproveFirst(
   if (row.status !== "completed") return null;
   const v = toClientAnalysis(row, true, teaser.mode, teaser.subscore).improveFirst;
   return v.locked ? null : v.value;
+}
+
+function PageTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <header className="space-y-1">
+      <p className="eyebrow">{eyebrow}</p>
+      <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+    </header>
+  );
 }

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { ConsentFlow } from "@/components/onboarding/ConsentFlow";
+import { OnboardingSteps } from "@/components/onboarding/OnboardingSteps";
 import { getConsentState } from "@/lib/api/guard";
 import { createClient } from "@/lib/db/server";
 import { getLegalDoc } from "@/lib/legal/docs";
@@ -20,7 +21,8 @@ export default async function ConsentsPage() {
   const noticeAcked = Boolean(ack?.granted && ack.textVersion === notice.version);
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 py-6">
+    <div className="mx-auto w-full max-w-lg space-y-8 px-4 py-6">
+      <OnboardingSteps current="consents" />
       <ConsentFlow
         notice={{ title: notice.title, version: notice.version, updatedAt: notice.updatedAt, body: notice.body }}
         consentVersion={consentDoc.version}

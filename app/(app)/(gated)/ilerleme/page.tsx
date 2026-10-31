@@ -1,10 +1,10 @@
 import { getTranslations } from "next-intl/server";
-import Link from "next/link";
+import { Camera } from "lucide-react";
 import { redirect } from "next/navigation";
 import { ScoreTrend } from "@/components/analysis/ScoreTrend";
 import { ProgressScreen } from "@/components/progress/ProgressScreen";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { StateCard, StateCardLink } from "@/components/routine/StateCard";
+import { Card, CardContent } from "@/components/ui/card";
 import { getPremiumStatus } from "@/lib/api/premium";
 import { ENTITLEMENTS } from "@/lib/config/plans";
 import { createAdminClient } from "@/lib/db/admin";
@@ -39,29 +39,28 @@ export default async function ProgressPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-4 px-4 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4 py-6">
+      <header className="space-y-1">
+        <p className="eyebrow">{t("eyebrow")}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+      </header>
       {premium && newSlot ? (
-        <Card className="border-foreground">
-          <CardHeader>
-            <CardTitle>{t("newSlotTitle")}</CardTitle>
-            <CardDescription>{t("newSlotBody")}</CardDescription>
-          </CardHeader>
-          <CardContent><Button asChild className="w-full"><Link href="/tara">{t("newAnalysis")}</Link></Button></CardContent>
-        </Card>
+        <StateCard feature icon={<Camera className="size-6" />} title={t("newSlotTitle")} body={t("newSlotBody")}>
+          <StateCardLink href="/tara">{t("newAnalysis")}</StateCardLink>
+        </StateCard>
       ) : null}
       {premium ? (
         <Card>
-          <CardContent className="pt-4"><ScoreTrend points={points} /></CardContent>
+          <CardContent>
+            <ScoreTrend points={points} />
+          </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("trendLockedTitle")}</CardTitle>
-            <CardDescription>{t("trendLockedBody")}</CardDescription>
-          </CardHeader>
-          <CardContent><Button asChild variant="outline" className="w-full"><Link href="/premium?from=progress">{t("goPremium")}</Link></Button></CardContent>
-        </Card>
+        <StateCard locked feature title={t("trendLockedTitle")} body={t("trendLockedBody")}>
+          <StateCardLink href="/premium?from=progress" locked>
+            {t("goPremium")}
+          </StateCardLink>
+        </StateCard>
       )}
       <ProgressScreen />
     </div>
