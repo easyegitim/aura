@@ -1,11 +1,11 @@
 "use client";
 
+import { BadgeCheck, Check, CreditCard, Lock, ReceiptText, RefreshCw, ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { LinkAccount } from "@/components/auth/LinkAccount";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,6 +22,7 @@ type Props = { isAnonymous: boolean; initialPlan: PlanChoice; weekPassEnabled: b
 export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alreadyPremium, analysisId }: Props) {
   const t = useTranslations("checkout");
   const tp = useTranslations("pricing");
+  const tw = useTranslations("paywall");
   const [plan, setPlan] = useState<PlanChoice>(initialPlan);
   const [linked, setLinked] = useState(!isAnonymous);
   const [busy, setBusy] = useState(false);
@@ -73,15 +74,18 @@ export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alread
     }
   }
 
+  const current: Step = formHtml ? "pay" : !linked ? "account" : "billing";
+
   if (alreadyPremium) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("alreadyTitle")}</CardTitle>
-          <CardDescription>{t("alreadyBody")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild className="w-full"><Link href="/analiz">{t("goAnalyses")}</Link></Button>
+      <Card className="bg-hero-glow">
+        <CardContent className="flex flex-col items-center gap-3 text-center">
+          <span aria-hidden="true" className="grid size-14 place-items-center rounded-full bg-brand-soft text-brand">
+            <BadgeCheck className="size-7" />
+          </span>
+          <h2 className="text-lg font-semibold tracking-tight">{t("alreadyTitle")}</h2>
+          <p className="text-[13px] text-muted-foreground">{t("alreadyBody")}</p>
+          <Button asChild size="lg" className="mt-1 w-full"><Link href="/analiz">{t("goAnalyses")}</Link></Button>
         </CardContent>
       </Card>
     );
@@ -89,52 +93,56 @@ export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alread
 
   if (formHtml) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("payTitle")}</CardTitle>
-          <CardDescription>{t("payBody")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div ref={formRef} />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Stepper current={current} />
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("payTitle")}</CardTitle>
+            <CardDescription>{t("payBody")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div ref={formRef} />
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <section aria-labelledby="plan-h" className="space-y-2">
-        <h2 id="plan-h" className="text-sm font-medium">{t("choosePlan")}</h2>
-        <div className="grid gap-2">
+    <div className="space-y-5">
+      <Stepper current={current} />
+      <section aria-labelledby="plan-h" className="space-y-2.5">
+        <h2 id="plan-h" className="eyebrow">{t("choosePlan")}</h2>
+        <div className="grid gap-2.5">
           {SUBSCRIPTION_PLAN_IDS.map((id) => (
-            <button
+            <PlanButton
               key={id}
-              type="button"
-              onClick={() => setPlan(id)}
-              aria-pressed={plan === id}
-              className={cn("flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm", plan === id ? "border-foreground ring-1 ring-foreground" : "hover:bg-accent")}
-            >
-              <span>
-                <span className="flex items-center gap-2 font-medium">
-                  {tp(`plans.${id}.name`)}
-                  {id !== "weekly" ? <Badge variant={id === DEFAULT_PLAN_ID ? "default" : "secondary"}>{tp(`plans.${id}.badge`)}</Badge> : null}
-                </span>
-                <span className="block text-xs text-muted-foreground">{tp("weeklyEquivalent", { amount: formatTry(weeklyEquivalentTry(id)) })}</span>
-              </span>
-              <span className="font-semibold tabular-nums">{formatTry(PLANS[id].priceTry)}</span>
-            </button>
+              selected={plan === id}
+              onSelect={() => setPlan(id)}
+              featuredLabel={id === DEFAULT_PLAN_ID ? tw("bestValue") : null}
+              name={tp(`plans.${id}.name`)}
+              price={formatTry(PLANS[id].priceTry)}
+              per={`/ ${tp(PER_KEY[id])}`}
+              detail={id === "weekly" ? null : tp("weeklyEquivalent", { amount: formatTry(weeklyEquivalentTry(id)) })}
+              badge={id !== "weekly" ? tp(`plans.${id}.badge`) : null}
+            />
           ))}
           {weekPassEnabled ? (
-            <button type="button" onClick={() => setPlan("week_pass")} aria-pressed={plan === "week_pass"} className={cn("flex items-center justify-between rounded-lg border px-4 py-3 text-left text-sm", plan === "week_pass" ? "border-foreground ring-1 ring-foreground" : "hover:bg-accent")}>
-              <span>
-                <span className="block font-medium">{t("weekPass")}</span>
-                <span className="block text-xs text-muted-foreground">{t("weekPassHint")}</span>
-              </span>
-              <span className="font-semibold tabular-nums">{formatTry(PLANS.week_pass.priceTry)}</span>
-            </button>
+            <PlanButton
+              selected={plan === "week_pass"}
+              onSelect={() => setPlan("week_pass")}
+              featuredLabel={null}
+              name={t("weekPass")}
+              price={formatTry(PLANS.week_pass.priceTry)}
+              detail={t("weekPassHint")}
+              badge={null}
+            />
           ) : null}
         </div>
-        <p className="text-xs text-muted-foreground">{t("bankCardNote")}</p>
+        <p className="flex items-start gap-2 px-1 text-[11px] leading-relaxed text-muted-foreground">
+          <CreditCard aria-hidden="true" className="mt-px size-3.5 shrink-0" />
+          <span>{t("bankCardNote")}</span>
+        </p>
       </section>
 
       {!linked ? (
@@ -143,40 +151,61 @@ export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alread
         <form onSubmit={submit} className="space-y-3">
           <Card>
             <CardHeader>
-              <CardTitle>{t("billingTitle")}</CardTitle>
+              <CardTitle className="flex items-center gap-2.5">
+                <span aria-hidden="true" className="grid size-8 place-items-center rounded-xl bg-brand-soft text-brand">
+                  <ReceiptText className="size-4" />
+                </span>
+                {t("billingTitle")}
+              </CardTitle>
               <CardDescription>{t("billingBody")}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
               <div className="grid grid-cols-2 gap-3">
-                <Field label={t("fields.name")}><Input required autoComplete="given-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-                <Field label={t("fields.surname")}><Input required autoComplete="family-name" value={form.surname} onChange={(e) => setForm({ ...form, surname: e.target.value })} /></Field>
+                <Field label={t("fields.name")}><Input className={INPUT} required autoComplete="given-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+                <Field label={t("fields.surname")}><Input className={INPUT} required autoComplete="family-name" value={form.surname} onChange={(e) => setForm({ ...form, surname: e.target.value })} /></Field>
               </div>
-              <Field label={t("fields.phone")}><Input required type="tel" inputMode="tel" autoComplete="tel" placeholder="+905xxxxxxxxx" value={form.gsmNumber} onChange={(e) => setForm({ ...form, gsmNumber: e.target.value })} /></Field>
-              <Field label={t("fields.identity")} hint={t("fields.identityHint")}><Input inputMode="numeric" maxLength={11} value={form.identityNumber} onChange={(e) => setForm({ ...form, identityNumber: e.target.value })} /></Field>
-              <Field label={t("fields.city")}><Input required autoComplete="address-level2" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></Field>
-              <Field label={t("fields.address")}><Input required autoComplete="street-address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
+              <Field label={t("fields.phone")}><Input className={INPUT} required type="tel" inputMode="tel" autoComplete="tel" placeholder="+905xxxxxxxxx" value={form.gsmNumber} onChange={(e) => setForm({ ...form, gsmNumber: e.target.value })} /></Field>
+              <Field label={t("fields.identity")} hint={t("fields.identityHint")}><Input className={INPUT} inputMode="numeric" maxLength={11} value={form.identityNumber} onChange={(e) => setForm({ ...form, identityNumber: e.target.value })} /></Field>
+              <Field label={t("fields.city")}><Input className={INPUT} required autoComplete="address-level2" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></Field>
+              <Field label={t("fields.address")}><Input className={INPUT} required autoComplete="street-address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="space-y-3 pt-4">
-              <label className="flex items-start gap-3 text-sm">
-                <Checkbox checked={terms} onCheckedChange={(v) => setTerms(v === true)} className="mt-0.5" />
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2.5">
+                <span aria-hidden="true" className="grid size-8 place-items-center rounded-xl bg-brand-soft text-brand">
+                  <ShieldCheck className="size-4" />
+                </span>
+                {t("consentTitle")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border bg-muted/40 p-3 text-[13px] leading-relaxed">
+                <Checkbox checked={terms} onCheckedChange={(v) => setTerms(v === true)} className="mt-0.5 size-5" />
                 <span>
                   {t.rich("terms", {
-                    sale: (c) => <Link href="/yasal/mesafeli-satis" target="_blank" className="underline">{c}</Link>,
-                    info: (c) => <Link href="/yasal/on-bilgilendirme" target="_blank" className="underline">{c}</Link>,
+                    sale: (c) => <Link href="/yasal/mesafeli-satis" target="_blank" className="font-medium text-brand underline underline-offset-2">{c}</Link>,
+                    info: (c) => <Link href="/yasal/on-bilgilendirme" target="_blank" className="font-medium text-brand underline underline-offset-2">{c}</Link>,
                   })}
                 </span>
               </label>
-              <label className="flex items-start gap-3 text-sm">
-                <Checkbox checked={waiver} onCheckedChange={(v) => setWaiver(v === true)} className="mt-0.5" />
+              <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border bg-muted/40 p-3 text-[13px] leading-relaxed">
+                <Checkbox checked={waiver} onCheckedChange={(v) => setWaiver(v === true)} className="mt-0.5 size-5" />
                 <span>{t("waiver")}</span>
               </label>
-              <p className="text-xs text-muted-foreground">{t("renewalNote")}</p>
+              <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+                <RefreshCw aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+                <span>{t("renewalNote")}</span>
+              </p>
               <Button type="submit" size="lg" className="w-full" disabled={!terms || !waiver || busy}>
+                <Lock aria-hidden="true" />
                 {t("continue", { amount: formatTry(PLANS[plan].priceTry) })}
               </Button>
+              <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+                <ShieldCheck aria-hidden="true" className="size-3.5" />
+                {t("secure")}
+              </p>
             </CardContent>
           </Card>
         </form>
@@ -185,12 +214,113 @@ export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alread
   );
 }
 
+const INPUT = "h-11 rounded-xl bg-background/60 text-[15px]";
+const PER_KEY: Record<SubscriptionPlanId, "perWeek" | "perMonth" | "perYear"> = { weekly: "perWeek", monthly: "perMonth", yearly: "perYear" };
+const STEPS = ["plan", "account", "billing", "pay"] as const;
+type Step = (typeof STEPS)[number];
+
+/** Ödeme adımları göstergesi (SPEC 15.2 sırası): yalnız görsel yönlendirme; hiçbir kontrolü değiştirmez. */
+function Stepper({ current }: { current: Step }) {
+  const t = useTranslations("checkout");
+  const at = STEPS.indexOf(current);
+  return (
+    <ol aria-label={t("stepsAria")} className="flex items-start">
+      {STEPS.map((s, i) => {
+        const done = i < at;
+        const active = i === at;
+        return (
+          <li key={s} aria-current={active ? "step" : undefined} className="relative flex flex-1 flex-col items-center gap-1.5">
+            {i > 0 ? (
+              <span aria-hidden="true" className={cn("absolute top-3.5 right-[calc(50%+20px)] left-[calc(-50%+20px)] h-0.5 rounded-full", i <= at ? "bg-brand-gradient" : "bg-track")} />
+            ) : null}
+            <span
+              aria-hidden="true"
+              className={cn(
+                "relative grid size-7 place-items-center rounded-full text-xs font-bold",
+                done && "bg-cta-gradient text-primary-foreground",
+                active && "bg-card text-brand ring-2 ring-brand shadow-glow",
+                !done && !active && "bg-muted text-muted-foreground",
+              )}
+            >
+              {done ? <Check className="size-4" /> : i + 1}
+            </span>
+            <span className={cn("text-[11px] font-medium", active ? "text-foreground" : "text-muted-foreground")}>
+              {t(`steps.${s}`)}
+              {done ? <span className="sr-only"> {t("stepDone")}</span> : null}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function PlanButton({
+  selected,
+  onSelect,
+  featuredLabel,
+  name,
+  price,
+  per,
+  detail,
+  badge,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  featuredLabel: string | null;
+  name: string;
+  price: string;
+  per?: string;
+  detail: string | null;
+  badge: string | null;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={cn(
+        "relative flex min-h-16 w-full items-center gap-3 rounded-2xl px-4 py-4 text-left text-sm transition-shadow",
+        selected ? "border-brand-gradient shadow-glow" : "border bg-card hover:bg-accent",
+        featuredLabel && "mt-2.5",
+      )}
+    >
+      {featuredLabel ? (
+        <span aria-hidden="true" className="absolute -top-2.5 right-4 rounded-full bg-cta-gradient px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground shadow-glow">
+          {featuredLabel}
+        </span>
+      ) : null}
+      <span
+        aria-hidden="true"
+        className={cn("grid size-5 shrink-0 place-items-center rounded-full border-2", selected ? "border-transparent bg-cta-gradient text-primary-foreground" : "border-input")}
+      >
+        {selected ? <Check className="size-3" strokeWidth={3} /> : null}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-baseline justify-between gap-2">
+          <span className="text-[15px] font-semibold">{name}</span>
+          <span className="num text-right">
+            <span className="text-lg font-bold">{price}</span>
+            {per ? <span className="ml-1 text-xs text-muted-foreground">{per}</span> : null}
+          </span>
+        </span>
+        {detail || badge ? (
+        <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-muted-foreground">
+          {detail ? <span className="num">{detail}</span> : null}
+          {badge ? <span className="inline-flex items-center rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand">{badge}</span> : null}
+        </span>
+        ) : null}
+      </span>
+    </button>
+  );
+}
+
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5 text-sm">
-      <span className="font-medium">{label}</span>
+      <span className="text-[13px] font-medium">{label}</span>
       {children}
-      {hint ? <span className="block text-xs text-muted-foreground">{hint}</span> : null}
+      {hint ? <span className="block text-[11px] leading-relaxed text-muted-foreground">{hint}</span> : null}
     </label>
   );
 }

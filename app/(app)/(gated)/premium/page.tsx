@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -18,7 +18,7 @@ export default async function PremiumPage({ searchParams }: PageProps<"/premium"
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
-  const [t, { premium }] = await Promise.all([getTranslations("paywall"), getPremiumStatus(supabase, user.id)]);
+  const [t, tc, { premium }] = await Promise.all([getTranslations("paywall"), getTranslations("checkout"), getPremiumStatus(supabase, user.id)]);
   const weekPass = isFeatureEnabled("weekPass");
   const initial = typeof plan === "string" && ((SUBSCRIPTION_PLAN_IDS as readonly string[]).includes(plan) || (plan === "week_pass" && weekPass)) ? (plan as SubscriptionPlanId | "week_pass") : DEFAULT_PLAN_ID;
 
@@ -31,15 +31,22 @@ export default async function PremiumPage({ searchParams }: PageProps<"/premium"
   if (premium && analysisId) redirect(`/analiz/${analysisId}`);
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-4 px-4 py-6">
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4 py-6">
       {analysisId ? (
-        <Link href={`/analiz/${analysisId}`} className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link href={`/analiz/${analysisId}`} className="-ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-xl px-1 text-sm font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft aria-hidden="true" className="size-4" />
           {t("backToAnalysis")}
         </Link>
       ) : null}
-      <h1 className="text-2xl font-semibold tracking-tight">{t("pageTitle")}</h1>
-      <p className="text-sm text-muted-foreground">{t("pageBody")}</p>
+      <header className="space-y-2">
+        <p className="eyebrow text-brand">{t("eyebrow")}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("pageLead")}</p>
+        <p className="inline-flex h-6 items-center gap-1.5 rounded-full bg-muted px-2.5 text-[11px] font-medium">
+          <ShieldCheck aria-hidden="true" className="size-3.5 text-success" />
+          {tc("secure")}
+        </p>
+      </header>
       <CheckoutFlow isAnonymous={user.is_anonymous ?? false} initialPlan={initial} weekPassEnabled={weekPass} alreadyPremium={premium} analysisId={analysisId} />
     </div>
   );

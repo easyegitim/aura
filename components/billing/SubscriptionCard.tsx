@@ -1,5 +1,6 @@
 "use client";
 
+import { Crown, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { postJson } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 
 type Props = { premium: boolean; plan: string | null; periodEnd: string | null; cancelAtPeriodEnd: boolean };
 
@@ -34,24 +36,35 @@ export function SubscriptionCard(props: Props) {
     }
   }
 
+  const planName = props.premium && props.plan ? (props.plan === "week_pass" ? t("weekPass") : tp(`plans.${props.plan}.name`)) : t("free");
+  const statusKey = !props.premium ? "statusFree" : cancelAtPeriodEnd ? "statusCanceling" : "statusActive";
   return (
-    <Card>
+    <Card className={cn(props.premium && "bg-hero-glow")}>
       <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>
-          {props.premium && props.plan ? (props.plan === "week_pass" ? t("weekPass") : tp(`plans.${props.plan}.name`)) : t("free")}
-          {end ? ` · ${cancelAtPeriodEnd ? t("endsOn", { date: end }) : t("renewsOn", { date: end })}` : ""}
-        </CardDescription>
+        <p className="eyebrow">{t("title")}</p>
+        <CardTitle className="flex flex-wrap items-center gap-2.5">
+          <span className="flex items-center gap-2.5">
+            <span aria-hidden="true" className={cn("grid size-8 place-items-center rounded-xl", props.premium ? "bg-cta-gradient text-primary-foreground" : "bg-brand-soft text-brand")}>
+              <Crown className="size-4" />
+            </span>
+            {planName}
+          </span>
+          <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-muted px-2.5 text-[11px] font-medium">
+            <span aria-hidden="true" className={cn("size-1.5 rounded-full", !props.premium ? "bg-muted-foreground" : cancelAtPeriodEnd ? "bg-warn" : "bg-success")} />
+            {t(statusKey)}
+          </span>
+        </CardTitle>
+        {end ? <CardDescription className="num text-[13px]">{cancelAtPeriodEnd ? t("endsOn", { date: end }) : t("renewsOn", { date: end })}</CardDescription> : null}
       </CardHeader>
       <CardContent className="grid gap-2">
         {props.premium ? (
           cancelAtPeriodEnd ? (
-            <p className="text-sm text-muted-foreground">{t("cancelScheduled")}</p>
+            <p className="text-[13px] text-muted-foreground">{t("cancelScheduled")}</p>
           ) : (
             <Button variant="outline" onClick={() => setOpen(true)}>{t("cancel")}</Button>
           )
         ) : (
-          <Button asChild><Link href="/premium">{t("upgrade")}</Link></Button>
+          <Button asChild><Link href="/premium"><Sparkles aria-hidden="true" />{t("upgrade")}</Link></Button>
         )}
       </CardContent>
       <Dialog open={open} onOpenChange={setOpen}>

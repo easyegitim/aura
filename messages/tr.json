@@ -9,7 +9,8 @@
     "scoreDisclaimer": "Bu skor yapay zekânın fotoğraf üzerinden tahminidir; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
     "notMedicalAdvice": "Tıbbi tavsiye değildir.",
     "aiGenerated": "Yapay zekâ ile oluşturuldu.",
-    "toggleTheme": "Açık ya da koyu temaya geç"
+    "toggleTheme": "Açık ya da koyu temaya geç",
+    "close": "Kapat"
   },
   "nav": {
     "analysis": "Analiz",
@@ -189,7 +190,10 @@
       "cancelError": "İptal iletilemedi. Tekrar dene veya destekle iletişime geç.",
       "manageInStore": "Aboneliği mağazada yönet",
       "storeManaged": "Bu abonelik App Store / Google Play üzerinden yönetilir.",
-      "restore": "Satın almaları geri yükle"
+      "restore": "Satın almaları geri yükle",
+      "statusActive": "Aktif",
+      "statusCanceling": "Dönem sonunda biter",
+      "statusFree": "Ücretsiz"
     },
     "legalTitle": "Yasal metinler",
     "consents": {
@@ -503,7 +507,16 @@
       },
       "open": "Kamerayı aç",
       "upload": "Galeriden yükle",
-      "privacy": "Görüntü telefonunda analiz edilir. Çekilen fotoğraf yalnız skorlama için, rızanla, geçici olarak gönderilir; saklanmaz."
+      "privacy": "Görüntü telefonunda analiz edilir. Çekilen fotoğraf yalnız skorlama için, rızanla, geçici olarak gönderilir; saklanmaz.",
+      "eyebrow": "Adım 1 / 2",
+      "lead": "Koşullar uygun olunca fotoğraf kendiliğinden çekilir.",
+      "tipsShort": {
+        "light": "Işık önden",
+        "neutral": "Nötr ifade",
+        "frame": "Baş ve çene kadrajda",
+        "alone": "Karede yalnız sen"
+      },
+      "tipsMore": "Çekim ipuçları"
     },
     "denied": {
       "title": "Kameraya erişilemedi",
@@ -585,14 +598,20 @@
           "good": "Kadraj: ortalı",
           "ok": "Kadraj: hafif kaymış"
         }
-      }
+      },
+      "eyebrow": "Adım 2 / 2",
+      "lead": "Kalite kapısından geçti.",
+      "sendNote": "Analizi başlatınca fotoğraf yalnız skorlama için, rızanla, geçici olarak gönderilir."
     },
     "trust": {
       "title": "Fotoğrafına ne oluyor?",
       "device": "Yüzündeki 478 nokta telefonunda bulunur ve telefonundan çıkmaz; yalnız bunlardan hesaplanan oranlar analizinle saklanır.",
       "sent": "Analiz için yalnız yüzünün kırpılmış bir kopyası, rızanla {provider} sağlayıcısına gider. Aura fotoğrafını saklamaz.",
       "limits": "Skor kişisel değerini ya da sağlığını ölçmez; kimseyle kıyaslanmaz.",
-      "methodLink": "Skor nasıl hesaplanır?"
+      "methodLink": "Skor nasıl hesaplanır?",
+      "deviceShort": "478 yüz noktası telefonunda kalır; yalnız oranlar saklanır.",
+      "sentShort": "Yüzünün kırpılmış kopyası rızanla {provider} sağlayıcısına gider; Aura saklamaz.",
+      "limitsShort": "Skor kişisel değerini ölçmez; kimseyle kıyaslanmaz."
     }
   },
   "geometry": {
@@ -640,7 +659,8 @@
         "ready": "Sonucun hazır",
         "doneSr": "tamamlandı",
         "hint": "Genellikle 10–25 saniye sürer.",
-        "slow": "Biraz uzun sürüyor, bekliyoruz. Analiz tamamlanmazsa hakkın düşmez."
+        "slow": "Biraz uzun sürüyor, bekliyoruz. Analiz tamamlanmazsa hakkın düşmez.",
+        "title": "Analiz ediliyor"
       }
     },
     "errors": {
@@ -934,7 +954,21 @@
     "backAria": "Faydalara geri dön",
     "continueWith": "Devam et · {price}",
     "backToAnalysis": "Analizine dön",
-    "methodLink": "Skor nasıl hesaplanır?"
+    "methodLink": "Skor nasıl hesaplanır?",
+    "eyebrow": "Premium",
+    "lead": "Bu analizin hemen açılır; yeni çekim yok.",
+    "perksAria": "Premium ile açılanlar",
+    "perks": {
+      "score": "Genel skor ve potansiyel",
+      "subs": "6 alt skorun tamamı",
+      "plan": "Kişisel koç planı",
+      "tryon": "Haftada 10 sanal deneme",
+      "trend": "Haftalık analiz ve trend",
+      "steps": "Odak adımları ve ölçüler"
+    },
+    "details": "Ayrıntılar",
+    "bestValue": "En avantajlı",
+    "pageLead": "Planını seç; sonucunun tamamı hemen açılsın."
   },
   "share": {
     "button": "Paylaşım kartı oluştur",
@@ -1005,7 +1039,17 @@
         "body": "Ödeme kuruluşundan onay bekleniyor; birkaç saniye içinde güncellenecek."
       },
       "account": "Hesap"
-    }
+    },
+    "secure": "Güvenli ödeme · iyzico",
+    "stepsAria": "Ödeme adımları",
+    "steps": {
+      "plan": "Plan",
+      "account": "Hesap",
+      "billing": "Fatura",
+      "pay": "Ödeme"
+    },
+    "stepDone": "tamamlandı",
+    "consentTitle": "Onaylar"
   },
   "report": {
     "title": "Planın",
@@ -1104,7 +1148,8 @@
       "b2": "Sunucumuz görseli saklamaz; yalnız bellekte iletir.",
       "b3": "Yüzün telefonunda orijinal piksellerle geri yazılır; kontrol başarısızsa sonuç gösterilmez ve hakkın düşmez.",
       "b4": "Sonuç görselleri yalnız telefonunda kalır; indirdiğinde 'Yapay zekâ ile oluşturuldu' etiketi gömülür.",
-      "accept": "İzin veriyorum ve devam et"
+      "accept": "İzin veriyorum ve devam et",
+      "eyebrow": "Bir kez sorulur"
     },
     "consentError": "İzin kaydedilemedi.",
     "needSelfie": "Bu oturumda bellekte selfie yok; deneme için yeni bir çekim yap. Fotoğraf cihazından çıkmadan önce kalite kapısından geçer.",
@@ -1144,7 +1189,16 @@
     "sliderAria": "Önce/sonra karşılaştırma",
     "download": "İndir",
     "tryAnother": "Başka stil dene",
-    "resultNote": "Görsel temsilidir; gerçek sonuç berber/kuaför uygulamasına bağlıdır. Yüzün orijinal piksellerinle korundu."
+    "resultNote": "Görsel temsilidir; gerçek sonuç berber/kuaför uygulamasına bağlıdır. Yüzün orijinal piksellerinle korundu.",
+    "lockedEyebrow": "Sanal deneme",
+    "lockedPerks": {
+      "styles": "60 saç, sakal ve renk stili",
+      "face": "Kendi fotoğrafında, yüzün değişmeden",
+      "quota": "Her 7 günde 10 deneme"
+    },
+    "remainingLabel": "Kalan deneme",
+    "retry": "Tekrar dene",
+    "sliderHint": "Kaydırarak karşılaştır"
   },
   "routine": {
     "title": "Rutin",
