@@ -154,11 +154,28 @@ describe("ClaudeReportProvider yanıtı", () => {
     expect(g.report).toBeNull();
     expect(g.raw).toBe("{bozuk");
   });
-  it("sunucu taraflı yedek usage.iterations'tan algılanır", async () => {
-    const { p } = mocked([() => jsonResponse(message(JSON.stringify(REPORT), { model: "claude-opus-5" }, { iterations: [{ type: "fallback_message", input_tokens: 10, output_tokens: 5 }] }))]);
-    const g = await p.generateReport("S", "U");
+  it("sunucu taraflı yedek usage.iterations'tan algılanır; reddeden deneme de kendi fiyatıyla faturalanır", async () => {
+    const iter = { input_tokens: 4500, cache_read_input_tokens: 0, cache_creation_input_tokens: 0, cache_creation: null };
+    const iterations = [
+      { type: "message", model: "claude-opus-5-5", output_tokens: 400, ...iter },
+      { type: "fallback_message", model: "claude-opus-5", output_tokens: 3000, ...iter },
+    ];
+    const { p } = mocked([
+      () =>
+        jsonResponse(
+          message(JSON.stringify(REPORT), { model: "claude-opus-5" }, { input_tokens: 4500, output_tokens: 3000, cache_read_input_tokens: 0, iterations }),
+        ),
+    ]);
+    const spy = usageSpy();
+    const g = await p.generateReport("S", "U", undefined, { onUsage: spy.onUsage });
     expect(g.fallbackServed).toBe(true);
     expect(g.servedModel).toBe("claude-opus-5");
+    const declined = estUsd({ input: 4500, output: 400, cacheRead: 0, cacheWrite5m: 0, cacheWrite1h: 0 }, "claude-opus-5-5");
+    const served = estUsd({ input: 4500, output: 3000, cacheRead: 0, cacheWrite5m: 0, cacheWrite1h: 0 }, "claude-opus-5");
+    expect(g.estUsd).toBeCloseTo(declined + served, 6);
+    expect(g.inputTokens).toBe(9000);
+    expect(g.outputTokens).toBe(3400);
+    expect(spy.seen[0].u).toEqual({ input: 9000, output: 3400, cacheRead: 0, cacheWrite5m: 0, cacheWrite1h: 0 });
   });
   it("HTTP hatası → ApiError AI_FAILED, onUsage sıfır tokenla bir kez; zaman aşımı → AI_TIMEOUT", async () => {
     const { p } = mocked([() => jsonResponse({ type: "error", error: { type: "api_error", message: "x" } }, 500)]);

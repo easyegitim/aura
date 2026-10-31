@@ -10,7 +10,7 @@ import type { ModSub } from "@/lib/score/contract";
 // erişim kuralları istemciye gitmez; mobil ESLint "@/lib/config/*.server" içe aktarımını engeller. Böylece kilitli bir
 // alt skor cihazda yeniden hesaplanamaz. Kullanıcı başına değişen hiçbir değer yoktur: herkes için aynı kurallar.
 
-export const ENGINE = { version: "hybrid.v1", promptVersion: "observe.v1", calibrationVersion: "h1" } as const;
+export const ENGINE = { version: "hybrid.v1", promptVersion: "observe.v2", calibrationVersion: "h1" } as const;
 
 /**
  * Ölçüm ve hukuk hazırlığı (engine spec §9.2). Üretimde motor yalnız norms ve categories "fitted", legal "approved"

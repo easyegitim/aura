@@ -9,14 +9,12 @@ import { getTeaserConfig } from "@/lib/config/teaser";
 import { REQUIRED_ANALYSIS_CONSENTS } from "@/lib/consent";
 import { createAdminClient } from "@/lib/db/admin";
 import { toClientAnalysis, toClientSummary, type AnalysisRow } from "@/lib/score/present";
-import { ANALYSIS_ROW_COLUMNS } from "@/lib/score/rowColumns";
+import { selectAnalysisRows } from "@/lib/score/rowColumns";
 import { analysisContextFromQuestionnaire, prepareScoring, scoreAnalysis, type AiUsage } from "@/lib/score/service";
 
 export const runtime = "nodejs";
 // hybrid.v1: gözlem son tarihi 40 s (engine spec §2.5) + DB; legacy Gemini bütçesi de bunun içinde (engine spec §10).
 export const maxDuration = 60;
-
-const ROW_COLUMNS = ANALYSIS_ROW_COLUMNS;
 
 /**
  * SPEC 14: POST /api/analyses { clientRequestId, geometry, image } → ClientAnalysis.
@@ -67,9 +65,10 @@ export const POST = withGuard(
     }
 
     // Idempotency: aynı clientRequestId ile önceden tamamlanmış satır varsa onu döndür.
-    const { data: existing } = await admin.from("analyses").select(ROW_COLUMNS).eq("id", reservedId).single();
+    const { data: existingRaw } = await selectAnalysisRows((cols) => admin.from("analyses").select(cols).eq("id", reservedId).single());
+    const existing = existingRaw as AnalysisRow | null;
     if (existing && existing.status !== "processing") {
-      return Response.json(toClientAnalysis(existing as AnalysisRow, premium, teaser.mode, teaser.subscore));
+      return Response.json(toClientAnalysis(existing, premium, teaser.mode, teaser.subscore));
     }
 
     const { data: profile } = await admin.from("profiles").select("questionnaire").eq("id", user.id).maybeSingle();
@@ -83,31 +82,28 @@ export const POST = withGuard(
           aiUsage = u;
         },
       });
-      const { data: row, error } = await admin
-        .from("analyses")
-        .update({
-          status: "completed",
-          geometry: scored.geometry,
-          face_shape: scored.geometry.faceShape.primary,
-          subscores: scored.subscores,
-          gains: scored.gains,
-          observations: scored.observations,
-          flags: scored.flags,
-          raw_overall: scored.rawOverall,
-          overall: scored.overall,
-          potential: scored.potential,
-          calibration_version: scored.calibrationVersion,
-          scoring_model: scored.model,
-          prompt_version: scored.promptVersion,
-          // Motor sütunları (migration 0009) yalnız hybrid.v1 satırlarına yazılır; legacy güncellemesi değişmedi.
-          ...(scored.engineVersion
-            ? { engine_version: scored.engineVersion, signals: scored.signals, ai_usage: scored.aiUsage }
-            : {}),
-          completed_at: new Date().toISOString(),
-        })
-        .eq("id", reservedId)
-        .select(ROW_COLUMNS)
-        .single();
+      const update = {
+        status: "completed",
+        geometry: scored.geometry,
+        face_shape: scored.geometry.faceShape.primary,
+        subscores: scored.subscores,
+        gains: scored.gains,
+        observations: scored.observations,
+        flags: scored.flags,
+        raw_overall: scored.rawOverall,
+        overall: scored.overall,
+        potential: scored.potential,
+        calibration_version: scored.calibrationVersion,
+        scoring_model: scored.model,
+        prompt_version: scored.promptVersion,
+        // Motor sütunları (migration 0009) yalnız hybrid.v1 satırlarına yazılır; legacy güncellemesi değişmedi.
+        ...(scored.engineVersion
+          ? { engine_version: scored.engineVersion, signals: scored.signals, ai_usage: scored.aiUsage }
+          : {}),
+        completed_at: new Date().toISOString(),
+      };
+      // 0009 yoksa select hatası güncellemeyi de geri alır; eski listeyle aynı güncelleme yeniden denenir (idempotent).
+      const { data: row, error } = await selectAnalysisRows((cols) => admin.from("analyses").update(update).eq("id", reservedId).select(cols).single());
       if (error || !row) throw new Error("analysis update failed");
       return Response.json(toClientAnalysis(row as AnalysisRow, premium, teaser.mode, teaser.subscore));
     } catch (e) {
@@ -126,12 +122,8 @@ export const POST = withGuard(
 export const GET = withGuard({}, async ({ user, supabase }) => {
   const admin = createAdminClient();
   const { premium } = await getPremiumStatus(supabase, user.id);
-  const { data } = await admin
-    .from("analyses")
-    .select(ROW_COLUMNS)
-    .eq("user_id", user.id)
-    .neq("status", "failed")
-    .order("created_at", { ascending: false })
-    .limit(50);
-  return Response.json((data ?? []).map((r) => toClientSummary(r as AnalysisRow, premium)));
+  const { data } = await selectAnalysisRows((cols) =>
+    admin.from("analyses").select(cols).eq("user_id", user.id).neq("status", "failed").order("created_at", { ascending: false }).limit(50),
+  );
+  return Response.json(((data as AnalysisRow[] | null) ?? []).map((r) => toClientSummary(r, premium)));
 });

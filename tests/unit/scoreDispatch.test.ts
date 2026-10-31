@@ -132,7 +132,7 @@ describe("scoreAnalysis dağıtımı", () => {
     const r = await p;
     expect(r.engineVersion).toBe("hybrid.v1");
     expect(r.calibrationVersion).toBe("h1");
-    expect(r.promptVersion).toBe("observe.v1");
+    expect(r.promptVersion).toBe("observe.v2");
     // Referans profil: her alt skor ve genel 5,5 (UI C10).
     expect(r.overall).toBe(5.5);
     for (const v of Object.values(r.subscores)) expect(v).toBe(5.5);

@@ -4,7 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { BetaMessage } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import { z } from "zod";
 import { ApiError } from "@/lib/api/errors";
-import type { TokenUsage } from "@/lib/config/ai.server";
+import { ZERO_USAGE, addTokenUsage, type ModelUsage, type TokenUsage } from "@/lib/config/ai.server";
 
 // Anthropic (Claude) istemcisi ve yanıt/hata yardımcıları (engine spec §2.3, §9.3, §9.4; sözleşme C3).
 // Görsel, istem, oylar ve model çıktısı asla loglanmaz: özetler yalnız durum kodu, hata tipi ve istek kimliği taşır.
@@ -87,6 +87,7 @@ export function toAnthropicJsonSchema(schema: z.ZodType): Record<string, unknown
 
 type ContentOnly = Pick<BetaMessage, "content">;
 type UsageOnly = Pick<BetaMessage, "usage">;
+type UsageAndModel = Pick<BetaMessage, "usage" | "model">;
 
 /**
  * İlk "text" bloğu. Opus 5.5 thinking parametresi gönderilmese de önce bir thinking bloğu döndürür; bu yüzden
@@ -99,9 +100,16 @@ export function readJsonText(res: ContentOnly): { text: string | null } {
   return { text: null };
 }
 
-/** Yanıt kullanımı. cache_creation kırılımı yoksa yazım 1 sa fiyatıyla sayılır (maliyet eksik değil, fazla tahmin). */
-export function readUsage(res: UsageOnly): TokenUsage {
-  const u = res.usage;
+type UsageFields = {
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_input_tokens: number | null;
+  cache_creation_input_tokens: number | null;
+  cache_creation: { ephemeral_5m_input_tokens: number; ephemeral_1h_input_tokens: number } | null;
+};
+
+/** cache_creation kırılımı yoksa yazım 1 sa fiyatıyla sayılır (maliyet eksik değil, fazla tahmin). */
+function toTokenUsage(u: UsageFields): TokenUsage {
   const created = u.cache_creation_input_tokens ?? 0;
   return {
     input: u.input_tokens ?? 0,
@@ -110,6 +118,29 @@ export function readUsage(res: UsageOnly): TokenUsage {
     cacheWrite5m: u.cache_creation ? u.cache_creation.ephemeral_5m_input_tokens : 0,
     cacheWrite1h: u.cache_creation ? u.cache_creation.ephemeral_1h_input_tokens : created,
   };
+}
+
+/**
+ * Model başına kullanım (fiyatlama için). Sunucu taraflı yedekte üst düzey `usage` yalnız dönen mesajı üreten denemeyi
+ * kapsar; reddeden deneme (ör. Opus 5.5'in çıktı ortasında reddi) yalnız `usage.iterations` içinde `message` girdisi
+ * olarak görünür ve normal fiyatla faturalanır. Bu yüzden iterations doluysa faturanın kaynağı odur: `message` ve
+ * `fallback_message` girdileri kendi `model`leriyle toplanır. iterations yoksa üst düzey alanlar `res.model` ile.
+ * Modeli bildirilmeyen `message` girdisi `res.model`e yazılır.
+ */
+export function readUsageByModel(res: UsageAndModel): ModelUsage[] {
+  const iterations = (res.usage.iterations ?? []).filter((i) => i.type === "message" || i.type === "fallback_message");
+  if (iterations.length === 0) return [{ model: res.model, usage: toTokenUsage(res.usage) }];
+  const byModel = new Map<string, TokenUsage>();
+  for (const it of iterations) {
+    const model = it.model ?? res.model;
+    byModel.set(model, addTokenUsage(byModel.get(model) ?? ZERO_USAGE, toTokenUsage(it)));
+  }
+  return [...byModel].map(([model, usage]) => ({ model, usage }));
+}
+
+/** Yanıtın toplam kullanımı (tüm denemeler; readUsageByModel'in toplamı). Fiyatlama için readUsageByModel kullanılır. */
+export function readUsage(res: UsageAndModel): TokenUsage {
+  return readUsageByModel(res).reduce((acc, m) => addTokenUsage(acc, m.usage), ZERO_USAGE);
 }
 
 /** Yanıtın bir kısmı sunucu taraflı yedek modelden geldiyse true (usage.iterations içinde fallback_message). */

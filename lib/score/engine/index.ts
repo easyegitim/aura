@@ -4,7 +4,7 @@ import { DEADLINE_ABORT_REASON, abortReason, type SampleReason } from "@/lib/ai/
 import type { Observation } from "@/lib/ai/observationSchema";
 import { SampleError, getObservationProvider, type ObservationProvider, type ObservationSample } from "@/lib/ai/observeProvider";
 import { ApiError } from "@/lib/api/errors";
-import { ZERO_USAGE, assertEngineReady, estUsd, getAiEnv, type TokenUsage } from "@/lib/config/ai.server";
+import { ZERO_USAGE, assertEngineReady, estUsd, getAiEnv, type ModelUsage, type TokenUsage } from "@/lib/config/ai.server";
 import { ENGINE, ENGINE_NORMS_ID, ENGINE_STATUS, MOD_GAIN, OBSERVE, POTENTIAL_H1 } from "@/lib/config/engine.server";
 import { SUB_KEYS, type SubKey } from "@/lib/config/teaser";
 import type { GeometryResult } from "@/lib/face/types";
@@ -103,8 +103,11 @@ async function collectSamples(
   let fatal: SampleError | null = null;
   let stopped = false;
 
-  const bill = (model: string, u: TokenUsage | undefined) => {
-    if (u) usageByModel.set(model, addUsage(usageByModel.get(model) ?? ZERO_USAGE, u));
+  const billOne = (model: string, u: TokenUsage) => usageByModel.set(model, addUsage(usageByModel.get(model) ?? ZERO_USAGE, u));
+  /** Model kırılımı varsa (sunucu taraflı yedekte reddeden deneme dahil) her halka kendi modeline; yoksa toplam `model`e. */
+  const bill = (model: string, u: TokenUsage | undefined, byModel?: readonly ModelUsage[]) => {
+    if (byModel && byModel.length > 0) byModel.forEach((m) => billOne(m.model, m.usage));
+    else if (u) billOne(model, u);
   };
   const stopAll = (reason: string) => {
     stopped = true;
@@ -136,7 +139,7 @@ async function collectSamples(
       if (stopped) return;
       const r = await attempt();
       if (r.ok) {
-        bill(r.sample.model, r.sample.usage);
+        bill(r.sample.model, r.sample.usage, r.sample.usageByModel);
         if (stopped && !earlyStop) return;
         const twin = samples.some((s) => samplesIdentical(s.obs, r.sample.obs));
         samples.push(r.sample);
@@ -147,7 +150,7 @@ async function collectSamples(
         return;
       }
       const err = r.error;
-      bill(err.model ?? provider.model, err.usage);
+      bill(err.model ?? provider.model, err.usage, err.usageByModel);
       reasons.push(err.reason);
       if (err.reason === "fatal" || err.reason === "too_large") {
         if (!fatal) fatal = err;

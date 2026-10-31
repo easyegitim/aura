@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { MethodViewTracker, parseMethodFrom } from "@/components/marketing/MethodViewTracker";
+import { MethodViewTracker } from "@/components/marketing/MethodViewTracker";
 import { getPublicEngineInfo } from "@/lib/ai/disclosure.server";
-import { FAIRNESS_LAST_RUN } from "@/lib/config/method";
+import { FAIRNESS_LAST_RUN, parseMethodFrom } from "@/lib/config/method";
 import { CALIBRATION_REFERENCE, SUB_KIND_HYBRID } from "@/lib/config/scoring";
 import { SUB_KEYS, type SubKey } from "@/lib/config/teaser";
 

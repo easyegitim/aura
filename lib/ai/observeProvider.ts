@@ -5,20 +5,21 @@ import type { BetaMessage, MessageCreateParamsNonStreaming } from "@anthropic-ai
 import { GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { z } from "zod";
 import { ApiError } from "@/lib/api/errors";
-import { OBSERVE_MAX_TOKENS, getAiEnv, type AiEnv, type TokenUsage } from "@/lib/config/ai.server";
+import { OBSERVE_MAX_TOKENS, getAiEnv, type AiEnv, type ModelUsage, type TokenUsage } from "@/lib/config/ai.server";
 import {
   abortReason,
   classifyAnthropicError,
   getAnthropic,
   readJsonText,
   readUsage,
+  readUsageByModel,
   servedByFallback,
   summarizeAnthropicError,
   toAnthropicJsonSchema,
   type SampleReason,
 } from "./anthropic";
 import { ObservationOutput, type Observation } from "./observationSchema";
-import { OBSERVE_SYSTEM, OBSERVE_USER_TEXT } from "./prompts/observe.v1";
+import { OBSERVE_SYSTEM, OBSERVE_USER_TEXT } from "./prompts/observe.v2";
 import { aiErrorSummary, isTransientAiError } from "./retry";
 
 // Gözlem sağlayıcıları (engine spec §2.3, §9.5; sözleşme C3). Tek çağrı = tek örnek; yeniden deneme, yeter sayı, erken
@@ -27,7 +28,11 @@ import { aiErrorSummary, isTransientAiError } from "./retry";
 
 export type { SampleReason, TokenUsage };
 
-export type ObservationSample = { obs: Observation; model: string; fallbackServed: boolean; usage: TokenUsage };
+/**
+ * usage: tüm denemelerin toplamı. usageByModel: model başına kırılım (sunucu taraflı yedekte reddeden deneme dahil);
+ * verilirse motor her halkayı kendi modelinin fiyatıyla sayar, verilmezse usage `model` fiyatıyla sayılır.
+ */
+export type ObservationSample = { obs: Observation; model: string; fallbackServed: boolean; usage: TokenUsage; usageByModel?: ModelUsage[] };
 
 /**
  * Başarısız örnek. HTTP 200 dönen ama kontrolden geçmeyen yanıtlarda (refusal, max_tokens, schema) faturalanan
@@ -38,10 +43,11 @@ export class SampleError extends Error {
   readonly status?: number;
   readonly category?: string | null;
   readonly usage?: TokenUsage;
+  readonly usageByModel?: ModelUsage[];
   readonly model?: string;
   constructor(
     reason: SampleReason,
-    opts: { status?: number; category?: string | null; usage?: TokenUsage; model?: string; detail?: string } = {},
+    opts: { status?: number; category?: string | null; usage?: TokenUsage; usageByModel?: ModelUsage[]; model?: string; detail?: string } = {},
   ) {
     super(opts.detail ? `observe ${reason}: ${opts.detail}` : `observe ${reason}`);
     this.name = "SampleError";
@@ -49,6 +55,7 @@ export class SampleError extends Error {
     this.status = opts.status;
     this.category = opts.category;
     this.usage = opts.usage;
+    this.usageByModel = opts.usageByModel;
     this.model = opts.model;
   }
 }
@@ -60,7 +67,7 @@ export interface ObservationProvider {
   observeOnce(imageBase64: string, signal: AbortSignal, timeoutMs: number): Promise<ObservationSample>;
 }
 
-function parseObservation(text: string | null | undefined, meta: { usage: TokenUsage; model: string }): Observation {
+function parseObservation(text: string | null | undefined, meta: { usage: TokenUsage; usageByModel?: ModelUsage[]; model: string }): Observation {
   if (!text) throw new SampleError("schema", { ...meta, detail: "no text" });
   let json: unknown;
   try {
@@ -140,12 +147,12 @@ export class ClaudeObservationProvider implements ObservationProvider {
       const status = typeof e === "object" && e !== null && "status" in e && typeof e.status === "number" ? e.status : undefined;
       throw new SampleError(reason, { status, detail: summarizeAnthropicError(e) });
     }
-    const meta = { usage: readUsage(res), model: res.model };
+    const meta = { usage: readUsage(res), usageByModel: readUsageByModel(res), model: res.model };
     // stop_reason her zaman metin okunmadan önce: refusal'da kısmi metin olsa bile örnek başarısızdır.
     if (res.stop_reason === "refusal") throw new SampleError("refusal", { ...meta, category: res.stop_details?.category ?? null });
     if (res.stop_reason === "max_tokens") throw new SampleError("max_tokens", meta);
     const obs = parseObservation(readJsonText(res).text, meta);
-    return { obs, model: res.model, fallbackServed: servedByFallback(res), usage: meta.usage };
+    return { obs, model: res.model, fallbackServed: servedByFallback(res), usage: meta.usage, usageByModel: meta.usageByModel };
   }
 }
 

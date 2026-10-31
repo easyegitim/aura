@@ -5,12 +5,14 @@ import { signStatusLink } from "./refCode";
 import { APP_NAME, APP_URL } from "@/lib/config/app";
 import { ClientSignals } from "@/lib/score/contract";
 
+/**
+ * Partner özeti: yalnız izinli gözlemler ve değerlendirilmiş bakım alt skorları. Genel skor ve potansiyel gitmez
+ * (hybrid.v1'de genelin %40'ı yapısaldır; potansiyel ücretsizde kilitlidir ve sunucudan çıkmaz); yüz şekli de gitmez
+ * (SPEC 12.3 "yüz şekli yargısı asla gitmez").
+ */
 export type AnalysisSummary = {
-  overall: number | null;
-  potential: number | null;
   subscores: Record<string, number> | null;
   observations: Record<string, string> | null;
-  faceShape: string | null;
 };
 
 /**
@@ -23,11 +25,8 @@ export const EXPERT_SUB_KEYS = ["skin", "hair", "grooming"] as const;
 
 /** Partner özeti için okunan satır (eski ve hybrid.v1 satırları). */
 export type ExpertSummaryRow = {
-  overall: number | string | null;
-  potential: number | string | null;
   subscores: unknown;
   observations: unknown;
-  face_shape: string | null;
   engine_version?: string | null;
   signals?: unknown;
 };
@@ -61,11 +60,8 @@ export function expertAnalysisSummary(row: ExpertSummaryRow): AnalysisSummary {
     }
   }
   return {
-    overall: row.overall === null ? null : Number(row.overall),
-    potential: row.potential === null ? null : Number(row.potential),
     subscores: Object.keys(subs).length ? subs : null,
     observations: Object.keys(obs).length ? obs : null,
-    faceShape: row.face_shape ? String(row.face_shape) : null,
   };
 }
 
@@ -86,8 +82,6 @@ export function partnerRequestEmail(input: {
   const summary = input.summary
     ? `<h3>Analiz özeti (kullanıcının rızasıyla; fotoğraf paylaşılmaz)</h3>
 <ul>
-<li>Yüz şekli: ${esc(input.summary.faceShape ?? "-")}</li>
-<li>Genel skor: ${input.summary.overall ?? "-"} · Potansiyel: ${input.summary.potential ?? "-"}</li>
 <li>Alt skorlar: ${esc(JSON.stringify(input.summary.subscores ?? {}))}</li>
 <li>Gözlemler: ${esc(JSON.stringify(input.summary.observations ?? {}))}</li>
 </ul>`

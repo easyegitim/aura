@@ -8,7 +8,7 @@ import { getPremiumStatus } from "@/lib/api/premium";
 import { createAdminClient } from "@/lib/db/admin";
 import { createClient } from "@/lib/db/server";
 import { toClientSummary, type AnalysisRow } from "@/lib/score/present";
-import { ANALYSIS_ROW_COLUMNS } from "@/lib/score/rowColumns";
+import { selectAnalysisRows } from "@/lib/score/rowColumns";
 
 /** /analiz: geçmiş listesi (trend grafiği Faz 7). */
 export default async function AnalysesPage() {
@@ -19,14 +19,10 @@ export default async function AnalysesPage() {
   if (!user) redirect("/");
   const [t, tg, { premium }] = await Promise.all([getTranslations("analysis"), getTranslations("geometry"), getPremiumStatus(supabase, user.id)]);
   const admin = createAdminClient();
-  const { data } = await admin
-    .from("analyses")
-    .select(ANALYSIS_ROW_COLUMNS)
-    .eq("user_id", user.id)
-    .neq("status", "failed")
-    .order("created_at", { ascending: false })
-    .limit(50);
-  const items = (data ?? []).map((r) => toClientSummary(r as AnalysisRow, premium));
+  const { data } = await selectAnalysisRows((cols) =>
+    admin.from("analyses").select(cols).eq("user_id", user.id).neq("status", "failed").order("created_at", { ascending: false }).limit(50),
+  );
+  const items = ((data as AnalysisRow[] | null) ?? []).map((r) => toClientSummary(r, premium));
   const fmt = (n: number | null) => (n === null ? "●,●" : n.toLocaleString("tr-TR", { minimumFractionDigits: 1 }));
 
   return (

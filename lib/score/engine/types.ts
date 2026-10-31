@@ -43,7 +43,7 @@ export type SignalsV1 = ClientSignals & {
   model: string;
   servedModels: string[];
   effort: string;
-  promptVersion: "observe.v1";
+  promptVersion: "observe.v2";
   norms: string;
   modGain: number;
   weights: Record<SubKey, number>;
@@ -75,7 +75,7 @@ export type HybridScored = {
   samples: number;
   /** analyses.scoring_model: model veya "model+fallback:<sunulan>". */
   model: string;
-  promptVersion: "observe.v1";
+  promptVersion: "observe.v2";
   calibrationVersion: "h1";
   engineVersion: "hybrid.v1";
   signals: SignalsV1;

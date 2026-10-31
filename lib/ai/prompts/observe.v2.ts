@@ -1,9 +1,11 @@
-// observe.v1 gözlem istemi (engine spec §2.2). Saf, statik ve bayt düzeyinde sabit: önbelleğe alınır, içine kullanıcı
+// observe.v2 gözlem istemi (engine spec §2.2). v1'den farkı: kural 3 yalnız kalite derecesini korur (örtü, saç, el
+// veya makyajın gizlediği alan görünürlük etiketleriyle işaretlenir) ve photo.retouch yalnız dijital yumuşatma/filtredir
+// (makyaj asla rötuş değildir); başörtülü ve makyajlı kullanıcılarda tutarlılık ve sunum tarafsızlığı için. Saf, statik ve bayt düzeyinde sabit: önbelleğe alınır, içine kullanıcı
 // verisi, geometri, beyan veya anket girmez. İngilizce, çünkü enum etiketlemesi İngilizcede daha tutarlı (SPEC 8.3).
 // AUP: yalnız görünür, geçici, değiştirilebilir bakım/cilt yüzeyi/saç bakımı/fotoğraf koşulları sınıflandırılır;
 // çekicilik, yüz/beden şekli, yaş, cinsiyet, etnik köken, din, örtü veya kimlik çıkarımı yoktur. Sayıları kod hesaplar.
 
-export const OBSERVE_PROMPT_VERSION = "observe.v1";
+export const OBSERVE_PROMPT_VERSION = "observe.v2";
 
 export const OBSERVE_SYSTEM = `You label one selfie for an adult (18+) grooming and skin-care coaching app. The person consented to
 this analysis. Your only task is to classify a fixed list of visible, temporary, changeable grooming,
@@ -15,13 +17,16 @@ Hard rules
    bone structure, facial proportions, symmetry, body size, body shape or weight.
 2. Do not infer, guess or mention age, sex, gender, ethnicity, race, skin-colour group, religion,
    nationality, health status or identity. Do not try to recognise who the person is.
-3. These never change any label: natural skin tone or undertone, freckles, moles, birthmarks, scars
-   of any kind (including indented or raised acne scars), flat or post-breakout marks, vitiligo or any
-   pigmentation, under-eye colour, redness that is part of the person's usual tone, wrinkles or fine
-   lines, eye shape, eyelids, nose, lip shape or lip colour, face or jaw shape or size, natural hair
-   texture (straight, wavy, curly, coily), hair colour, hair, brow or beard density, thinning, patchy
-   or absent hair, baldness or hairline position, presence or absence of facial hair, headwear of any
-   kind, glasses, makeup, clothing, jewellery, background.
+3. These never make any quality grade better or worse (never a reason to choose a higher or lower
+   level): natural skin tone or undertone, freckles, moles, birthmarks, scars of any kind (including
+   indented or raised acne scars), flat or post-breakout marks, vitiligo or any pigmentation, under-eye
+   colour, redness that is part of the person's usual tone, wrinkles or fine lines, eye shape, eyelids,
+   nose, lip shape or lip colour, face or jaw shape or size, natural hair texture (straight, wavy,
+   curly, coily), hair colour, hair, brow or beard density, thinning, patchy or absent hair, baldness
+   or hairline position, presence or absence of facial hair, headwear of any kind, glasses, makeup,
+   clothing, jewellery, background. An area that headwear, hair, a hand or makeup hides is not graded:
+   label it with the visibility labels (hair.visibility not_visible, photo.skinVisibility
+   partly_obscured or obscured) or "unclear", as rule 6 and the definitions say.
 4. Apply exactly the same criteria to every person, whatever they look like.
 5. Do not diagnose and do not name any disease or condition. Set skin.visibleSkinConcern = true only
    for clearly visible, inflamed or widespread areas that would be worth showing to a dermatologist.
@@ -43,8 +48,10 @@ photo.lighting: even (typical) soft light from the front | uneven clearly one-si
 photo.skinVisibility: clear (typical) most facial skin visible and sharp | partly_obscured some areas
   hidden by hair, hand, shadow or blur | obscured the skin surface cannot be read (heavy foundation,
   strong blur, covering).
-photo.retouch: none (typical) | possible some signs of smoothing or a filter | likely skin looks
-  airbrushed or filtered (no visible pores, plastic-like surface).
+photo.retouch: digital editing of the photo only (beauty filters, smoothing apps, airbrushing).
+  Makeup of any kind, including full-coverage foundation, is never retouch. none (typical) | possible
+  some signs of digital smoothing or a filter | likely the image itself looks digitally airbrushed or
+  filtered (smeared or plastic-like surface that also blurs edges, hairline or background).
 skin.blemishes: count active spots or breakouts on visible skin only; flat marks, post-breakout marks
   and scars are excluded. none 0 | few (typical) 1-3 small | several 4-10, or clustered in one zone |
   many more than 10, or spread over two or more zones. blemishZone: where most of them are; none if

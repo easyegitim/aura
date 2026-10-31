@@ -39,7 +39,7 @@ export const POST = withGuard({ schema: Input, requireAdult: true }, async ({ us
     if (!c?.granted || c.textVersion !== current) throw new ApiError("CONSENT_REQUIRED", "Analiz özetini paylaşmak için expert_data_sharing rızası gerekli.");
     // engine_version ve signals ile okunur (değerlendirilmeyen alanı ayıklamak için); migration 0009 uygulanmamış
     // ortamda eski sütunlarla. Özet her satırda izin listesine göre kurulur (engine spec §8, F19).
-    const base = "overall, potential, subscores, observations, face_shape, status";
+    const base = "subscores, observations, status";
     const full = await admin.from("analyses").select(`${base}, engine_version, signals`).eq("id", input.shareAnalysisId).eq("user_id", user.id).maybeSingle();
     const missingColumn = full.error?.code === "42703" || full.error?.code === "PGRST204";
     const a = missingColumn ? (await admin.from("analyses").select(base).eq("id", input.shareAnalysisId).eq("user_id", user.id).maybeSingle()).data : full.data;

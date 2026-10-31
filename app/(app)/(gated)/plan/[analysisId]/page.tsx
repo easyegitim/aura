@@ -14,7 +14,7 @@ import { createAdminClient } from "@/lib/db/admin";
 import { createClient } from "@/lib/db/server";
 import { QuestionnaireSchema } from "@/lib/questionnaire";
 import { toClientAnalysis, type AnalysisRow } from "@/lib/score/present";
-import { ANALYSIS_ROW_COLUMNS } from "@/lib/score/rowColumns";
+import { selectAnalysisRows } from "@/lib/score/rowColumns";
 import type { ImproveItem } from "@/lib/score/contract";
 
 /** /plan/[analysisId]: koç raporu (premium) ve dayandığı anket cevapları (UI spec §7). Rapor yoksa istemci ilk açılışta üretir. */
@@ -75,7 +75,7 @@ export default async function PlanPage({ params }: PageProps<"/plan/[analysisId]
 }
 
 /**
- * Öncelik sırası (premium): satır ANALYSIS_ROW_COLUMNS ile okunur, improveFirst toClientAnalysis'ten gelir.
+ * Öncelik sırası (premium): satır ANALYSIS_ROW_COLUMNS ile okunur (0009 yoksa eski listeyle), improveFirst toClientAnalysis'ten gelir.
  * Migration 0009 uygulanmamış ortamda yeni sütunlar yoktur; sorgu hata verirse öncelik listesi gösterilmez.
  */
 async function loadImproveFirst(
@@ -84,7 +84,7 @@ async function loadImproveFirst(
   userId: string,
   teaser: ReturnType<typeof getTeaserConfig>,
 ): Promise<ImproveItem[] | null> {
-  const { data, error } = await admin.from("analyses").select(ANALYSIS_ROW_COLUMNS).eq("id", analysisId).eq("user_id", userId).maybeSingle();
+  const { data, error } = await selectAnalysisRows((cols) => admin.from("analyses").select(cols).eq("id", analysisId).eq("user_id", userId).maybeSingle());
   if (error || !data) return null;
   const row = data as AnalysisRow;
   if (row.status !== "completed") return null;

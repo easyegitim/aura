@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/errors";
-import { assertEngineReady } from "@/lib/config/ai.server";
+import { assertEngineReady, estUsd } from "@/lib/config/ai.server";
 import { ENGINE_STATUS, OBSERVE } from "@/lib/config/engine.server";
 import { scoreHybrid, type AiUsage } from "@/lib/score/engine";
 import { CTX, FakeProvider, GEO, IMG, REF_OBS, USAGE, fail, obs, ok } from "../helpers/engineFixtures";
@@ -127,6 +127,25 @@ describe("scoreHybrid orkestrasyonu (engine spec §2.5)", () => {
     expect(r.value!.model).toBe("claude-opus-5-5+fallback:claude-opus-5");
     expect(r.value!.signals.servedModels).toEqual(["claude-opus-5", "claude-opus-5-5"]);
     expect(r.value!.signals.samples.fallbackServed).toBe(1);
+  });
+
+  it("yedek zincirinde reddeden deneme ai_usage'a kendi modelinin fiyatıyla girer (başarı ve refusal)", async () => {
+    const declined = { model: "claude-opus-5-5", usage: { input: 2000, output: 150, cacheRead: 0, cacheWrite5m: 0, cacheWrite1h: 0 } };
+    const servedPart = { model: "claude-opus-5", usage: { input: 2000, output: 220, cacheRead: 0, cacheWrite5m: 0, cacheWrite1h: 0 } };
+    const total = { input: 4000, output: 370, cacheRead: 0, cacheWrite5m: 0, cacheWrite1h: 0 };
+    const p = new FakeProvider([
+      ok(A, 10, { fallbackServed: true, model: "claude-opus-5", usage: total, usageByModel: [declined, servedPart] }),
+      ok(B, 20),
+      fail("refusal", 30, { usage: total, usageByModel: [declined, { ...servedPart, model: "claude-opus-4-8" }], model: "claude-opus-4-8" }),
+    ]);
+    const r = await run(p);
+    const u = r.usage[0];
+    expect(u.input).toBe(USAGE.input + 2 * total.input);
+    expect(u.output).toBe(USAGE.output + 2 * total.output);
+    expect(u.servedModels).toEqual(["claude-opus-4-8", "claude-opus-5", "claude-opus-5-5"]);
+    const expected =
+      estUsd(USAGE, "claude-opus-5-5") + 2 * estUsd(declined.usage, "claude-opus-5-5") + estUsd(servedPart.usage, "claude-opus-5") + estUsd(servedPart.usage, "claude-opus-4-8");
+    expect(u.estUsd).toBeCloseTo(expected, 5);
   });
 });
 

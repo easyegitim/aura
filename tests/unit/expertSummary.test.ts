@@ -4,9 +4,11 @@ import { EXPERT_OBS_KEYS, EXPERT_SUB_KEYS, expertAnalysisSummary, partnerRequest
 // engine spec §8 / §11 #18 (F19): partner e-postası yalnız izinli gözlem anahtarlarını ve değerlendirilmiş bakım alt
 // skorlarını taşır; yapısal skor, yapısal metin, oran veya fotoğraf koşulu yok.
 
-const fullRow = (over: Partial<ExpertSummaryRow> = {}): ExpertSummaryRow => ({
+// Satırda genel skor, potansiyel ve yüz şekli olsa bile (eski select veya ileride geniş bir okuma) özete girmez.
+const fullRow = (over: Partial<ExpertSummaryRow> = {}): ExpertSummaryRow & Record<string, unknown> => ({
   overall: "5.6",
   potential: 6.4,
+  face_shape: "oval",
   subscores: { harmony: 4.1, eyes: 4.4, jawline: 3.9, skin: 5.2, hair: 5.5, grooming: 5.9, extra: 9 },
   observations: {
     skin: "Yanaklarda birkaç küçük aktif sivilce var.",
@@ -18,7 +20,6 @@ const fullRow = (over: Partial<ExpertSummaryRow> = {}): ExpertSummaryRow => ({
     jawline: "Çene hattı dar.",
     photo: "Işık loş.",
   },
-  face_shape: "oval",
   ...over,
 });
 
@@ -40,10 +41,11 @@ describe("expertAnalysisSummary (izin listesi)", () => {
     const s = expertAnalysisSummary(fullRow());
     expect(s.subscores).toEqual({ skin: 5.2, hair: 5.5, grooming: 5.9 });
     expect(Object.keys(s.observations ?? {})).toEqual(["skin", "hair", "brows", "facialHair"]);
-    expect(s.overall).toBe(5.6);
-    expect(s.faceShape).toBe("oval");
+    expect(Object.keys(s).sort()).toEqual(["observations", "subscores"]);
     const json = JSON.stringify(s);
-    for (const banned of ["harmony", "eyes", "jawline", "photo", "Simetri", "Göz aralığı", "Çene hattı dar", "extra"]) expect(json).not.toContain(banned);
+    for (const banned of ["harmony", "eyes", "jawline", "photo", "Simetri", "Göz aralığı", "Çene hattı dar", "extra", "overall", "potential", "5.6", "6.4", "oval"]) {
+      expect(json).not.toContain(banned);
+    }
   });
   it("hybrid.v1: hariç tutulan ve bu çekimde görünmeyen alan gönderilmez", () => {
     const s = expertAnalysisSummary(
@@ -53,13 +55,7 @@ describe("expertAnalysisSummary (izin listesi)", () => {
   });
   it("hybrid.v1 sinyali ayrıştırılamazsa bakım skoru gönderilmez; tüm alanlar dışlanırsa null", () => {
     expect(expertAnalysisSummary(fullRow({ engine_version: "hybrid.v1", signals: { bozuk: true } })).subscores).toBeNull();
-    expect(expertAnalysisSummary(fullRow({ subscores: null, observations: "metin", overall: null, face_shape: null }))).toEqual({
-      overall: null,
-      potential: 6.4,
-      subscores: null,
-      observations: null,
-      faceShape: null,
-    });
+    expect(expertAnalysisSummary(fullRow({ subscores: null, observations: "metin" }))).toEqual({ subscores: null, observations: null });
   });
 });
 
@@ -76,7 +72,9 @@ describe("partnerRequestEmail özeti", () => {
       message: null,
       summary: expertAnalysisSummary(fullRow()),
     });
-    for (const banned of ["harmony", "eyes", "jawline", "Simetri", "Çene hattı dar", "photo"]) expect(mail.html).not.toContain(banned);
+    for (const banned of ["harmony", "eyes", "jawline", "Simetri", "Çene hattı dar", "photo", "Genel skor", "Potansiyel", "Yüz şekli", "5.6", "6.4", "oval"]) {
+      expect(mail.html).not.toContain(banned);
+    }
     expect(mail.html).toContain('"skin":5.2');
   });
 });

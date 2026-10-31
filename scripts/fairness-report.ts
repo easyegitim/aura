@@ -23,6 +23,7 @@ import path from "node:path";
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { ObservationOutput, type Observation } from "../lib/ai/observationSchema";
+import { OBSERVE_PROMPT_VERSION } from "../lib/ai/prompts/observe.v2";
 import { buildScorePrompt } from "../lib/ai/prompts/score.v1";
 import { SCORE_OUTPUT_JSON_SCHEMA, ScoreOutput } from "../lib/ai/scoreSchema";
 import { SUB_KEYS, type SubKey } from "../lib/config/teaser";
@@ -123,7 +124,7 @@ export function renderEngineReport(f: EngineFairness, meta: { model: string; n: 
   const lines = [
     "# Adalet (önyargı) raporu — hybrid.v1",
     "",
-    `Tarih: ${meta.date} · Gözlemci: ${meta.model} · n=${meta.n} · İstem: observe.v1 · Kalibrasyon: h1`,
+    `Tarih: ${meta.date} · Gözlemci: ${meta.model} · n=${meta.n} · İstem: ${OBSERVE_PROMPT_VERSION} · Kalibrasyon: h1`,
     "",
     `Kapı (engine spec §12, SPEC 8.8): yapısal bant içi pay farkı ≤ ${G.componentShareGapPts} puan · alt skor farkı ≤ ${G.subMeanGap} · genel ≤ ${G.overallMeanGap} · κ farkı ≤ ${G.kappaGap} · çekim oranı farkı ≤ ${G.captureRateGapPts} puan.`,
     "",

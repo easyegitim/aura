@@ -11,7 +11,7 @@ import { getTeaserConfig } from "@/lib/config/teaser";
 import { createAdminClient } from "@/lib/db/admin";
 import { createClient } from "@/lib/db/server";
 import { toClientAnalysis, type AnalysisRow } from "@/lib/score/present";
-import { ANALYSIS_ROW_COLUMNS } from "@/lib/score/rowColumns";
+import { selectAnalysisRows } from "@/lib/score/rowColumns";
 
 /** /analiz/[id]: sunucu kırpılmış görünümü üretir; kilitli değerler HTML'e ve istemciye girmez. */
 export default async function AnalysisPage({ params }: PageProps<"/analiz/[id]">) {
@@ -24,12 +24,7 @@ export default async function AnalysisPage({ params }: PageProps<"/analiz/[id]">
   if (!user) redirect("/");
 
   const admin = createAdminClient();
-  const { data } = await admin
-    .from("analyses")
-    .select(ANALYSIS_ROW_COLUMNS)
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data } = await selectAnalysisRows((cols) => admin.from("analyses").select(cols).eq("id", id).eq("user_id", user.id).maybeSingle());
   if (!data) notFound();
 
   const t = await getTranslations("analysis");

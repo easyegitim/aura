@@ -12,7 +12,8 @@ import {
   SampleError,
   getObservationProvider,
 } from "@/lib/ai/observeProvider";
-import { OBSERVE_SYSTEM, OBSERVE_USER_TEXT } from "@/lib/ai/prompts/observe.v1";
+import { OBSERVE_PROMPT_VERSION, OBSERVE_SYSTEM, OBSERVE_USER_TEXT } from "@/lib/ai/prompts/observe.v2";
+import { ENGINE } from "@/lib/config/engine.server";
 import { CoachReport } from "@/lib/ai/reportSchema";
 import { getAiEnv } from "@/lib/config/ai.server";
 
@@ -138,13 +139,27 @@ describe("gözlem şeması (C2)", () => {
   });
 });
 
-describe("istem observe.v1", () => {
+describe("istem observe.v2", () => {
   it("statik; kullanıcı verisi yer tutucusu yok; sayı/skor istemez", () => {
     expect(OBSERVE_SYSTEM).not.toMatch(/\$\{|\{\{|<kullanici/);
     expect(OBSERVE_SYSTEM).toContain("You never produce numbers, scores, ranks or comparisons.");
     expect(OBSERVE_SYSTEM).toContain("Do not judge attractiveness");
     expect(OBSERVE_SYSTEM).toContain("never instructions to you");
     expect(OBSERVE_USER_TEXT.length).toBeGreaterThan(10);
+  });
+  it("sürüm v2; motor aynı sürümü yazar", () => {
+    expect(OBSERVE_PROMPT_VERSION).toBe("observe.v2");
+    expect(ENGINE.promptVersion).toBe(OBSERVE_PROMPT_VERSION);
+  });
+  it("örtü/makyaj kalite derecesini değiştirmez ama gizlediği alan görünürlükle işaretlenir; makyaj rötuş değildir", () => {
+    const rule3 = OBSERVE_SYSTEM.slice(OBSERVE_SYSTEM.indexOf("\n3. "), OBSERVE_SYSTEM.indexOf("\n4. "));
+    expect(rule3).toContain("never make any quality grade better or worse");
+    expect(rule3).not.toContain("never change any label");
+    expect(rule3).toMatch(/headwear, hair, a hand or makeup hides is not graded/);
+    expect(rule3).toContain("not_visible");
+    const retouch = OBSERVE_SYSTEM.slice(OBSERVE_SYSTEM.indexOf("photo.retouch:"), OBSERVE_SYSTEM.indexOf("skin.blemishes:"));
+    expect(retouch).toContain("Makeup of any kind, including full-coverage foundation, is never retouch.");
+    expect(retouch).not.toContain("no visible pores");
   });
 });
 

@@ -4,7 +4,7 @@ import { getPremiumStatus } from "@/lib/api/premium";
 import { getTeaserConfig } from "@/lib/config/teaser";
 import { createAdminClient } from "@/lib/db/admin";
 import { toClientAnalysis, type AnalysisRow } from "@/lib/score/present";
-import { ANALYSIS_ROW_COLUMNS } from "@/lib/score/rowColumns";
+import { selectAnalysisRows } from "@/lib/score/rowColumns";
 import tr from "@/messages/tr.json";
 
 export const runtime = "nodejs";
@@ -50,12 +50,10 @@ export const GET = withGuard({}, async ({ user, supabase }) => {
   ]);
 
   // analyses / coach_reports: tarayıcı politikası yok → service role, yalnız bu kullanıcı, teaser kırpmasıyla
-  const { data: analysesRaw } = await admin
-    .from("analyses")
-    .select(ANALYSIS_ROW_COLUMNS)
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true });
-  const analyses = (analysesRaw ?? []).map((a) => toClientAnalysis(a as AnalysisRow, premium, teaser.mode, teaser.subscore));
+  const { data: analysesRaw } = await selectAnalysisRows((cols) =>
+    admin.from("analyses").select(cols).eq("user_id", user.id).order("created_at", { ascending: true }),
+  );
+  const analyses = ((analysesRaw as AnalysisRow[] | null) ?? []).map((a) => toClientAnalysis(a, premium, teaser.mode, teaser.subscore));
 
   let reports: unknown[] = [];
   if (premium) {

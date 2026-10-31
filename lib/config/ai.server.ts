@@ -70,6 +70,19 @@ export type TokenUsage = { input: number; output: number; cacheRead: number; cac
 
 export const ZERO_USAGE: TokenUsage = { input: 0, output: 0, cacheRead: 0, cacheWrite5m: 0, cacheWrite1h: 0 };
 
+/** Tek bir modelin (sunucu taraflı yedek zincirinde bir halka) kullanımı; her halka kendi modelinin fiyatıyla sayılır. */
+export type ModelUsage = { model: string; usage: TokenUsage };
+
+export function addTokenUsage(a: TokenUsage, b: TokenUsage): TokenUsage {
+  return {
+    input: a.input + b.input,
+    output: a.output + b.output,
+    cacheRead: a.cacheRead + b.cacheRead,
+    cacheWrite5m: a.cacheWrite5m + b.cacheWrite5m,
+    cacheWrite1h: a.cacheWrite1h + b.cacheWrite1h,
+  };
+}
+
 type Price = { input: number; output: number; cacheRead: number; cacheWrite5m: number; cacheWrite1h: number };
 
 /**
@@ -98,6 +111,11 @@ export function estUsd(u: TokenUsage, model: string): number {
     (u.input * p.input + u.output * p.output + u.cacheRead * p.cacheRead + u.cacheWrite5m * p.cacheWrite5m + u.cacheWrite1h * p.cacheWrite1h) /
     1_000_000;
   return Math.round(usd * 1e6) / 1e6;
+}
+
+/** Model başına kullanımın toplam tahmini maliyeti (USD, 6 ondalık): her halka kendi modelinin fiyatıyla. */
+export function estUsdByModel(parts: readonly ModelUsage[]): number {
+  return Math.round(parts.reduce((s, p) => s + estUsd(p.usage, p.model), 0) * 1e6) / 1e6;
 }
 
 /** engine spec §9.2. Kaynak: lib/config/engine.server.ts ENGINE_STATUS (motor izi C). */

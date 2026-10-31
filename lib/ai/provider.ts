@@ -4,10 +4,10 @@ import type Anthropic from "@anthropic-ai/sdk";
 import type { BetaMessage, MessageCreateParamsNonStreaming } from "@anthropic-ai/sdk/resources/beta/messages/messages";
 import { GoogleGenAI } from "@google/genai";
 import { ApiError } from "@/lib/api/errors";
-import { ZERO_USAGE, estUsd, getAiEnv, type AiEnv, type TokenUsage } from "@/lib/config/ai.server";
+import { ZERO_USAGE, estUsdByModel, getAiEnv, type AiEnv, type TokenUsage } from "@/lib/config/ai.server";
 import { COACH } from "@/lib/config/engine.server";
 import { SCORE_CALL_TIMEOUT_MS, SCORE_RETRIES, SCORE_RETRY_BASE_MS, getScoringEnv } from "@/lib/config/scoring";
-import { classifyAnthropicError, getAnthropic, readJsonText, readUsage, servedByFallback, summarizeAnthropicError, toAnthropicJsonSchema } from "./anthropic";
+import { classifyAnthropicError, getAnthropic, readJsonText, readUsage, readUsageByModel, servedByFallback, summarizeAnthropicError, toAnthropicJsonSchema } from "./anthropic";
 import { SERVER_FALLBACK_BETA } from "./observeProvider";
 import { aiErrorSummary, isTransientAiError, withTransientRetry } from "./retry";
 import { COACH_REPORT_JSON_SCHEMA, CoachReport } from "./reportSchema";
@@ -226,7 +226,8 @@ export class ClaudeReportProvider implements ReportProvider {
       throw new ApiError("AI_FAILED", "Rapor servisi yanıt vermedi.");
     }
     const usage = readUsage(res);
-    const cost = estUsd(usage, res.model);
+    // Yedek zincirinde reddeden denemeler de faturalanır: her halka kendi modelinin fiyatıyla (usage.iterations).
+    const cost = estUsdByModel(readUsageByModel(res));
     opts.onUsage?.(usage, { model: res.model, estUsd: cost });
     const raw = readJsonText(res).text ?? "";
     let report: unknown = null;
