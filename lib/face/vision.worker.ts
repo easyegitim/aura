@@ -2,7 +2,7 @@
 import { isModuleWorkerFromProbe } from "./workerEnv";
 import { FaceLandmarker, FilesetResolver, ImageSegmenter, type FaceLandmarkerResult } from "@mediapipe/tasks-vision";
 import type { Protect } from "@/content/types";
-import { CompositeError, compositeTryon, geometryDrift } from "@/lib/tryon/composite";
+import { CompositeError, compositeTryon, geometryDrift, type DriftPolicy } from "@/lib/tryon/composite";
 import { faceBoxToPixels, pixelStatsFromRgba } from "./pixelStats";
 import { SEG_CLASS, type BlendshapeScores, type FrameAnalysis, type Point, type SegmentationResult } from "./types";
 
@@ -11,7 +11,7 @@ export type WorkerRequest =
   | { type: "detectVideo"; id: number; bitmap: ImageBitmap; timestamp: number }
   | { type: "detectImage"; id: number; bitmap: ImageBitmap }
   | { type: "segment"; id: number; bitmap: ImageBitmap }
-  | { type: "tryon"; id: number; c: ImageBitmap; g: ImageBitmap; landmarksC: Point[]; protect: Protect }
+  | { type: "tryon"; id: number; c: ImageBitmap; g: ImageBitmap; landmarksC: Point[]; protect: Protect; policy: DriftPolicy }
   | { type: "close"; id: number };
 
 export type TryonWorkerResult =
@@ -190,7 +190,7 @@ async function detectImage(bitmap: ImageBitmap): Promise<FrameAnalysis> {
 }
 
 /** SPEC 10.4–10.5: G'de yüz bul → hizala → kompozit → kompozitte tekrar yüz bul → geometri sapması. Görseller bellekte kalır. */
-async function tryon(c: ImageBitmap, g: ImageBitmap, landmarksC: Point[], protect: Protect): Promise<TryonWorkerResult> {
+async function tryon(c: ImageBitmap, g: ImageBitmap, landmarksC: Point[], protect: Protect, policy: DriftPolicy): Promise<TryonWorkerResult> {
   await ensureMode("IMAGE");
   const resG = landmarker!.detect(g);
   if (resG.faceLandmarks.length !== 1) return { ok: false, reason: "no_face_in_output" };
@@ -207,7 +207,7 @@ async function tryon(c: ImageBitmap, g: ImageBitmap, landmarksC: Point[], protec
     return { ok: false, reason: "no_face_in_output" };
   }
   const landmarksOut = resOut.faceLandmarks[0].map((p) => ({ x: p.x * comp.image.width, y: p.y * comp.image.height }));
-  const drift = geometryDrift(landmarksC, landmarksOut);
+  const drift = geometryDrift(landmarksC, landmarksOut, policy);
   if (!drift.ok) {
     comp.image.close();
     return { ok: false, reason: "geometry_drift" };
@@ -260,7 +260,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         break;
       case "tryon":
         try {
-          const r = await tryon(msg.c, msg.g, msg.landmarksC, msg.protect);
+          const r = await tryon(msg.c, msg.g, msg.landmarksC, msg.protect, msg.policy);
           reply({ id: msg.id, ok: true, result: r }, r.ok ? [r.image] : []);
         } finally {
           msg.c.close();
