@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-dvh flex-col">
       <AppHeader />
-      <main className="flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))]">{children}</main>
+      <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))]">{children}</main>
       <BottomNav />
     </div>
   );

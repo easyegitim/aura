@@ -1,12 +1,12 @@
 "use client";
 
+import { LoaderCircle, ScanFace, ShieldCheck, TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnalysisProgress } from "@/components/analysis/AnalysisProgress";
 import { GeometryOverlay, type OverlaySource } from "@/components/analysis/GeometryOverlay";
 import { SelfieCamera, type CaptureResult } from "@/components/camera/SelfieCamera";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { track } from "@/lib/analytics";
@@ -23,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { findHairline, propagateHairline } from "@/lib/face/hairline";
 import { computeStableGeometry, toPixels, type GeometryFrame } from "@/lib/face/metrics";
 import type { GeometryResult } from "@/lib/face/types";
+import { cn } from "@/lib/utils";
 
 /** Çekim sonrası cihazda geometri (F06): segmenter → saç çizgisi → 5 kare medyanı → GeometryResult. */
 async function computeGeometry(result: CaptureResult): Promise<GeometryResult> {
@@ -183,61 +184,81 @@ export function CaptureScreen({ engine, aiProviderName }: { engine: EngineName; 
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-6">
-      <Card>
+      <Card className="bg-hero-glow">
         <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("body")}</CardDescription>
+          <p className="eyebrow">{t("eyebrow")}</p>
+          <CardTitle className="text-2xl font-bold">{t("title")}</CardTitle>
+          <CardDescription className="text-[13px]">{t("lead")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <GeometryOverlay source={source} variant="full" showLines={geometry !== null} />
           <ul className="flex flex-wrap gap-1.5" aria-label={t("qualityAria")}>
             {(["light", "sharpness", "framing"] as const).map((k) => (
-              <li key={k}>
-                <Badge variant="outline">{t(`quality.${k}.${quality[k]}`)}</Badge>
+              <li key={k} className="inline-flex h-6 items-center gap-1.5 rounded-full bg-muted px-2.5 text-[11px] font-medium">
+                <span aria-hidden="true" className={cn("size-1.5 rounded-full", quality[k] === "good" ? "bg-success" : "bg-warn")} />
+                {t(`quality.${k}.${quality[k]}`)}
               </li>
             ))}
             {result.source === "gallery" ? (
-              <li>
-                <Badge variant="outline">{t("fromGallery")}</Badge>
+              <li className="inline-flex h-6 items-center gap-1.5 rounded-full bg-muted px-2.5 text-[11px] font-medium">
+                <span aria-hidden="true" className="size-1.5 rounded-full bg-info" />
+                {t("fromGallery")}
               </li>
             ) : null}
           </ul>
           {geometry ? (
-            <p className="text-sm">
-              {tg("faceShape")}: <strong>{tg(`shapes.${geometry.faceShape.primary}`)}</strong>
-              {geometry.faceShape.secondary ? ` (${tg("between", { other: tg(`shapes.${geometry.faceShape.secondary}`) })})` : null}
-            </p>
+            <div className="flex items-center gap-3 rounded-xl border bg-muted/40 px-3.5 py-3">
+              <span aria-hidden="true" className="grid size-9 place-items-center rounded-xl bg-brand-soft text-brand">
+                <ScanFace className="size-5" />
+              </span>
+              <p className="min-w-0 flex-1">
+                <span className="eyebrow block">{tg("faceShape")}</span>
+                <strong className="text-lg font-bold tracking-tight">{tg(`shapes.${geometry.faceShape.primary}`)}</strong>
+                {geometry.faceShape.secondary ? (
+                  <span className="block text-xs text-muted-foreground">{tg("between", { other: tg(`shapes.${geometry.faceShape.secondary}`) })}</span>
+                ) : null}
+              </p>
+            </div>
           ) : (
-            <p className="text-xs text-muted-foreground" role="status">
+            <p className="flex items-center gap-2 text-xs text-muted-foreground" role="status">
+              <LoaderCircle aria-hidden="true" className="size-4 motion-safe:animate-spin" />
               {tg("computing")}
             </p>
           )}
-          <label className="flex items-start gap-3 rounded-md border px-3 py-2 text-sm">
-            <Checkbox checked={saveProgress} onCheckedChange={(v) => setSaveProgress(v === true)} className="mt-0.5" />
+          <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border bg-muted/40 p-3 text-[13px]">
+            <Checkbox checked={saveProgress} onCheckedChange={(v) => setSaveProgress(v === true)} className="mt-0.5 size-5" />
             <span>
-              {t("saveProgress")}
-              <span className="block text-xs text-muted-foreground">{t("saveProgressHint")}</span>
+              <span className="font-semibold">{t("saveProgress")}</span>
+              <span className="mt-0.5 block text-[11px] text-muted-foreground">{t("saveProgressHint")}</span>
             </span>
           </label>
           {error ? (
-            <p role="alert" className="rounded-md border px-3 py-2 text-sm">
-              {ta.has(`errors.${error.code}`) ? ta(`errors.${error.code}`) : ta("errors.GENERIC")}
-              {error.retryAt ? ` ${ta("retryAt", { date: new Date(error.retryAt).toLocaleString("tr-TR") })}` : ""}
+            <p role="alert" className="flex items-start gap-2.5 rounded-xl border border-dashed p-3 text-sm">
+              <TriangleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-warn" />
+              <span>
+                {ta.has(`errors.${error.code}`) ? ta(`errors.${error.code}`) : ta("errors.GENERIC")}
+                {error.retryAt ? ` ${ta("retryAt", { date: new Date(error.retryAt).toLocaleString("tr-TR") })}` : ""}
+              </span>
             </p>
           ) : null}
           <div className="flex gap-2">
-            <Button variant={captureRejected ? "default" : "outline"} className="min-h-11 flex-1" onClick={() => setResult(null)}>
+            <Button variant={captureRejected ? "default" : "outline"} size="lg" className="flex-1" onClick={() => setResult(null)}>
               {t("retake")}
             </Button>
             <Button
               variant={captureRejected ? "outline" : "default"}
-              className="min-h-11 flex-1"
+              size="lg"
+              className="flex-[1.4]"
               disabled={startDisabled}
               onClick={() => geometry && void runAnalysis(result, geometry)}
             >
               {ta("start")}
             </Button>
           </div>
+          <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
+            <ShieldCheck aria-hidden="true" className="mt-px size-3.5 shrink-0 text-brand" />
+            <span>{t("sendNote")}</span>
+          </p>
         </CardContent>
       </Card>
     </div>

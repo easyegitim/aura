@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarDays, Check, Flame, ListChecks, Moon, Plus, Sun, Clock3, Trash2, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -8,18 +8,21 @@ import { toast } from "sonner";
 import { EXERCISES, EXERCISE_SAFETY_TEXT } from "@/content/exercises";
 import { HABITS } from "@/content/habits";
 import { SKIN_STEPS } from "@/content/skin-steps";
+import { ScoreRing } from "@/components/analysis/ScoreRing";
 import { ExerciseTimer } from "@/components/routine/ExerciseTimer";
+import { StateCard } from "@/components/routine/StateCard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
 import { track } from "@/lib/analytics";
 import { createClient } from "@/lib/db/browser";
 import { completionRatio, computeStreak, istanbulDate, type DayLog } from "@/lib/routine/streak";
+import { cn } from "@/lib/utils";
 
 type Item = { id: string; kind: "step" | "exercise" | "habit"; ref_id: string | null; slot: "morning" | "evening" | "daily" | "weekly"; title: string; position: number };
 const SLOTS = ["morning", "daily", "evening", "weekly"] as const;
+const SLOT_ICON: Record<(typeof SLOTS)[number], LucideIcon> = { morning: Sun, daily: Clock3, evening: Moon, weekly: CalendarDays };
 
 /** /rutin (F12): bugünün listesi, routine_logs upsert (iyimser), seri, zamanlayıcılar, düzenleme. RLS: kendi satırları. */
 export function RoutineScreen({ userId, exerciseEligible }: { userId: string; exerciseEligible: boolean }) {
@@ -96,39 +99,60 @@ export function RoutineScreen({ userId, exerciseEligible }: { userId: string; ex
 
   if (items.length === 0 && !adding) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("emptyTitle")}</CardTitle>
-          <CardDescription>{t("emptyBody")}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-2">
-          <Button asChild><Link href="/plan">{t("fromPlan")}</Link></Button>
-          <Button variant="outline" onClick={() => setAdding(true)}><Plus aria-hidden="true" /> {t("addManual")}</Button>
-        </CardContent>
-      </Card>
+      <StateCard icon={<ListChecks className="size-6" />} title={t("emptyTitle")} body={t("emptyBody")}>
+        <Button asChild>
+          <Link href="/plan">{t("fromPlan")}</Link>
+        </Button>
+        <Button variant="outline" onClick={() => setAdding(true)}>
+          <Plus aria-hidden="true" /> {t("addManual")}
+        </Button>
+      </StateCard>
     );
   }
 
+  const pct = Math.round(ratio * 100);
+  const doneCount = dailyIds.filter((id) => doneToday(id)).length;
+
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="space-y-2 pt-4">
-          <div className="flex items-center justify-between text-sm">
-            <span>{t("today", { date: new Date().toLocaleDateString("tr-TR", { day: "numeric", month: "long" }) })}</span>
-            <span className="font-medium">{t("streak", { n: streak })}</span>
+    <div className="space-y-3">
+      <Card className="bg-hero-glow">
+        <CardContent className="flex items-center gap-5">
+          <ScoreRing value={pct} max={100} size={104} stroke={10} animate>
+            <span className="num text-2xl font-bold">{pct}%</span>
+          </ScoreRing>
+          <div className="min-w-0 flex-1 space-y-2">
+            <p className="eyebrow">{t("today", { date: new Date().toLocaleDateString("tr-TR", { day: "numeric", month: "long" }) })}</p>
+            <p className="flex items-center gap-1.5">
+              <Flame className="size-5 text-brand" aria-hidden="true" />
+              <span className="num text-brand-gradient text-2xl font-bold">{streak}</span>
+              <span className="text-sm font-semibold">{t("streakDays")}</span>
+            </p>
+            <p className="num text-xs text-muted-foreground">{t("doneCount", { done: doneCount, total: dailyIds.length })}</p>
+            <span className="sr-only">
+              {t("progressAria")}: {pct}%. {t("streak", { n: streak })}
+            </span>
           </div>
-          <Progress value={Math.round(ratio * 100)} aria-label={t("progressAria")} />
-          <p className="text-xs text-muted-foreground">{t("streakHint")}</p>
         </CardContent>
+        <p className="px-5 text-[11px] leading-relaxed text-muted-foreground">{t("streakHint")}</p>
       </Card>
 
       {SLOTS.map((slot) => {
         const list = items.filter((i) => i.slot === slot);
         if (!list.length) return null;
+        const SlotIcon = SLOT_ICON[slot];
+        const slotDone = list.filter((i) => doneToday(i.id)).length;
         return (
           <Card key={slot}>
             <CardHeader>
-              <CardTitle className="text-base">{t(`slots.${slot}`)}</CardTitle>
+              <h2 className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
+                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand" aria-hidden="true">
+                  <SlotIcon className="size-4" />
+                </span>
+                <span className="flex-1">{t(`slots.${slot}`)}</span>
+                <span className="num text-sm font-semibold text-muted-foreground">
+                  {slotDone}/{list.length}
+                </span>
+              </h2>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
@@ -136,23 +160,28 @@ export function RoutineScreen({ userId, exerciseEligible }: { userId: string; ex
                   const ex = item.kind === "exercise" ? EXERCISES.find((e) => e.id === item.ref_id) : undefined;
                   const done = doneToday(item.id);
                   return (
-                    <li key={item.id} className="rounded-md border p-3">
-                      <div className="flex items-start gap-3">
-                        <Checkbox id={`ri-${item.id}`} checked={done} onCheckedChange={() => toggle(item)} className="mt-0.5" />
-                        <label htmlFor={`ri-${item.id}`} className={`flex-1 text-sm ${done ? "text-muted-foreground line-through" : ""}`}>
+                    <li key={item.id} className={cn("rounded-xl border px-3 py-1 transition-colors", done ? "border-transparent bg-brand-soft" : "bg-muted/40")}>
+                      <div className="flex min-h-12 items-center gap-3">
+                        <Checkbox
+                          id={`ri-${item.id}`}
+                          checked={done}
+                          onCheckedChange={() => toggle(item)}
+                          className="size-6 rounded-full data-[state=checked]:border-transparent data-[state=checked]:bg-cta-gradient"
+                        />
+                        <label htmlFor={`ri-${item.id}`} className={cn("flex-1 cursor-pointer py-2 text-[15px] font-medium", done && "text-muted-foreground line-through")}>
                           {item.title}
-                          {ex ? <span className="block text-xs text-muted-foreground no-underline">{ex.doseTr}</span> : null}
+                          {ex ? <span className="block text-xs font-normal text-muted-foreground no-underline">{ex.doseTr}</span> : null}
                         </label>
                         {editing ? (
-                          <span className="flex gap-1">
-                            <Button size="icon-xs" variant="ghost" aria-label={t("moveUp")} onClick={() => move(item, -1)}><ArrowUp /></Button>
-                            <Button size="icon-xs" variant="ghost" aria-label={t("moveDown")} onClick={() => move(item, 1)}><ArrowDown /></Button>
-                            <Button size="icon-xs" variant="ghost" aria-label={t("remove")} onClick={() => remove(item)}><Trash2 /></Button>
+                          <span className="flex">
+                            <Button size="icon" variant="ghost" aria-label={t("moveUp")} onClick={() => move(item, -1)}><ArrowUp /></Button>
+                            <Button size="icon" variant="ghost" aria-label={t("moveDown")} onClick={() => move(item, 1)}><ArrowDown /></Button>
+                            <Button size="icon" variant="ghost" aria-label={t("remove")} onClick={() => remove(item)}><Trash2 /></Button>
                           </span>
                         ) : null}
                       </div>
                       {ex && !done ? (
-                        <div className="mt-2 space-y-1 pl-7">
+                        <div className="space-y-1 pb-2 pl-9">
                           <ExerciseTimer exercise={ex} onComplete={() => void toggle(item)} />
                           <p className="text-[11px] text-muted-foreground">{EXERCISE_SAFETY_TEXT}</p>
                         </div>
@@ -166,13 +195,16 @@ export function RoutineScreen({ userId, exerciseEligible }: { userId: string; ex
         );
       })}
 
-      <div className="flex gap-2">
-        <Button variant="outline" className="flex-1" onClick={() => setEditing((e) => !e)}>{editing ? t("done") : t("edit")}</Button>
+      <div className="flex gap-2 pt-1">
+        <Button variant="outline" className="flex-1" onClick={() => setEditing((e) => !e)}>
+          {editing ? <Check aria-hidden="true" /> : null}
+          {editing ? t("done") : t("edit")}
+        </Button>
         <Button variant="outline" className="flex-1" onClick={() => setAdding(true)}><Plus aria-hidden="true" /> {t("addManual")}</Button>
       </div>
 
       <Dialog open={adding} onOpenChange={setAdding}>
-        <DialogContent className="max-h-[85dvh] overflow-y-auto">
+        <DialogContent className="max-h-[85dvh] space-y-1 overflow-y-auto">
           <DialogHeader><DialogTitle>{t("addTitle")}</DialogTitle></DialogHeader>
           <AddList title={t("slots.morning")} entries={SKIN_STEPS.filter((s) => s.slot === "morning").map((s) => ({ key: s.id, label: s.nameTr, onAdd: () => add("step", s.id, "morning", s.nameTr) }))} />
           <AddList title={t("slots.evening")} entries={SKIN_STEPS.filter((s) => s.slot === "evening").map((s) => ({ key: s.id, label: s.nameTr, onAdd: () => add("step", s.id, "evening", s.nameTr) }))} />
@@ -191,12 +223,15 @@ export function RoutineScreen({ userId, exerciseEligible }: { userId: string; ex
 
 function AddList({ title, entries }: { title: string; entries: { key: string; label: string; onAdd: () => void }[] }) {
   return (
-    <div>
-      <h3 className="mb-1 text-sm font-medium">{title}</h3>
-      <ul className="space-y-1">
+    <div className="space-y-2 pt-2">
+      <h3 className="eyebrow">{title}</h3>
+      <ul className="space-y-1.5">
         {entries.map((e) => (
           <li key={e.key}>
-            <button type="button" onClick={e.onAdd} className="w-full rounded-md border px-3 py-2 text-left text-sm hover:bg-accent">{e.label}</button>
+            <button type="button" onClick={e.onAdd} className="flex min-h-11 w-full items-center gap-3 rounded-xl border bg-muted/40 px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-accent">
+              <Plus className="size-4 shrink-0 text-brand" aria-hidden="true" />
+              <span className="flex-1">{e.label}</span>
+            </button>
           </li>
         ))}
       </ul>

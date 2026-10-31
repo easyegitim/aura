@@ -22,7 +22,7 @@ describe("paywallContext (UI spec §4.1)", () => {
 describe("sayfa 1 tek fiyat satırı (flow.spec: dialog içinde tek ₺|TL öğesi)", () => {
   it("anchor dışındaki sayfa 1 metinlerinde fiyat yok", () => {
     const p = tr.paywall;
-    const page1 = [p.title, p.body, p.notAssessedNote, p.methodLink, p.seePlans, p.note, ...Object.values(p.includes), ...Object.values(p.context), ...Object.values(tr.analysis.sub)];
+    const page1 = [p.title, p.body, p.eyebrow, p.lead, p.details, p.perksAria, p.notAssessedNote, p.methodLink, p.seePlans, p.note, tr.common.close, ...Object.values(p.perks), ...Object.values(p.includes), ...Object.values(p.context), ...Object.values(tr.analysis.sub)];
     for (const s of page1) expect(s).not.toMatch(PRICE);
     expect(p.anchor).toContain("{yearly}");
   });

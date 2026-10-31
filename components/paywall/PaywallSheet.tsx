@@ -1,18 +1,18 @@
 "use client";
 
-import { ArrowLeft, BookOpen, CalendarCheck, Camera, ChartLine, ListChecks, Sparkles, type LucideIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, ChartLine, ChevronDown, Gauge, ListChecks, Lock, Ruler, ScanFace, Sparkles, X, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { track } from "@/lib/analytics";
 import { TEASER_ANALYTICS_CODE, type PaywallTrigger } from "@/lib/config/paywall";
 import { DEFAULT_PLAN_ID, PLANS, SUBSCRIPTION_PLAN_IDS, formatTry, weeklyEquivalentTry, type SubscriptionPlanId } from "@/lib/config/plans";
 import { SUB_KEYS, type SubKey, type TeaserMode } from "@/lib/config/teaser";
 import { cn } from "@/lib/utils";
+import { PlanBody, PlanCheck, PlanRibbon, planCardClass } from "@/components/billing/PlanOption";
 
 export type PlanChoice = SubscriptionPlanId | "week_pass";
 type Step = "benefits" | "plans";
@@ -42,13 +42,14 @@ export function paywallContext(trigger: PaywallTrigger): { key: ContextKey; sub?
   }
 }
 
-const BENEFITS: { k: "i1" | "i2" | "i3" | "i4" | "i5" | "i6"; icon: LucideIcon }[] = [
-  { k: "i1", icon: ChartLine },
-  { k: "i2", icon: ListChecks },
-  { k: "i3", icon: Sparkles },
-  { k: "i4", icon: CalendarCheck },
-  { k: "i5", icon: BookOpen },
-  { k: "i6", icon: Camera },
+/** Sayfa 1 fayda kutuları: kısa etiketler (F08); uzun açıklama "Ayrıntılar" altında. Hiçbirinde fiyat yok. */
+const PERKS: { k: "score" | "subs" | "plan" | "tryon" | "trend" | "steps"; icon: LucideIcon }[] = [
+  { k: "score", icon: Gauge },
+  { k: "subs", icon: ChartLine },
+  { k: "plan", icon: ListChecks },
+  { k: "tryon", icon: ScanFace },
+  { k: "trend", icon: Sparkles },
+  { k: "steps", icon: Ruler },
 ];
 
 const PER_KEY: Record<SubscriptionPlanId, "perWeek" | "perMonth" | "perYear"> = { weekly: "perWeek", monthly: "perMonth", yearly: "perYear" };
@@ -72,6 +73,7 @@ export function PaywallProvider({
   const tp = useTranslations("pricing");
   const tc = useTranslations("checkout");
   const ta = useTranslations("analysis");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [trigger, setTrigger] = useState<PaywallTrigger>("score_main");
   const [step, setStep] = useState<Step>("benefits");
@@ -128,63 +130,96 @@ export function PaywallProvider({
     <PaywallContext.Provider value={{ open: show }}>
       {children}
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="max-h-[90dvh] gap-0 overflow-y-auto rounded-t-2xl p-0">
+        <SheetContent side="bottom" showCloseButton={false} className="max-h-[92dvh] gap-0 overflow-y-auto rounded-t-3xl border-t bg-background p-0">
+          <div aria-hidden="true" className="mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
+          <SheetClose asChild>
+            <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 rounded-full text-muted-foreground" aria-label={tCommon("close")}>
+              <X aria-hidden="true" className="size-5" />
+            </Button>
+          </SheetClose>
           {step === "benefits" ? (
             <>
-              <SheetHeader className="pr-12">
-                <SheetTitle>{t("title")}</SheetTitle>
-                <SheetDescription>{t("body")}</SheetDescription>
+              <SheetHeader className="items-center bg-hero-glow px-5 pt-5 pb-4 text-center">
+                <span aria-hidden="true" className="mb-1 grid size-14 place-items-center rounded-2xl bg-cta-gradient text-primary-foreground shadow-glow">
+                  <Sparkles className="size-7" />
+                </span>
+                <p className="eyebrow">{t("eyebrow")}</p>
+                <SheetTitle className="text-2xl font-bold tracking-tight">{t("title")}</SheetTitle>
+                <SheetDescription className="text-[13px]">{t("lead")}</SheetDescription>
               </SheetHeader>
-              <div className="space-y-4 px-4 pb-4">
-                <p className="text-sm font-medium">{contextLine}</p>
-                <ul className="space-y-2">
-                  {BENEFITS.map(({ k, icon: Icon }) => (
-                    <li key={k} className="flex items-start gap-3 text-sm">
-                      <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
-                      <span>{t(`includes.${k}`)}</span>
+              <div className="space-y-4 px-5 pb-5">
+                <p className="flex items-start gap-2.5 rounded-xl bg-brand-soft px-3.5 py-3 text-[13px] font-medium">
+                  <Lock aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-brand" />
+                  <span>{contextLine}</span>
+                </p>
+                <ul aria-label={t("perksAria")} className="grid grid-cols-2 gap-2">
+                  {PERKS.map(({ k, icon: Icon }, i) => (
+                    <li
+                      key={k}
+                      className="flex min-h-14 items-center gap-2.5 rounded-xl border bg-card px-3 py-2.5 motion-safe:animate-fade-up"
+                      style={{ animationDelay: `${i * 40}ms` }}
+                    >
+                      <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="text-[13px] leading-tight font-semibold">{t(`perks.${k}`)}</span>
                     </li>
                   ))}
                 </ul>
-                <p className="text-xs text-muted-foreground">{t("notAssessedNote")}</p>
-                <Link href="/yontem?from=paywall" className="inline-flex min-h-11 items-center text-sm underline underline-offset-4">
-                  {t("methodLink")}
-                </Link>
+                <details className="group">
+                  <summary className="flex min-h-11 cursor-pointer items-center gap-1 text-xs font-medium text-muted-foreground">
+                    {t("details")}
+                    <ChevronDown aria-hidden="true" className="size-4 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="space-y-2 pb-1 text-[13px] leading-relaxed text-muted-foreground">
+                    <p>{t("body")}</p>
+                    <p>{t("notAssessedNote")}</p>
+                    <Link href="/yontem?from=paywall" className="inline-flex min-h-11 items-center gap-1 font-semibold text-brand underline-offset-4 hover:underline">
+                      {t("methodLink")}
+                      <ArrowUpRight aria-hidden="true" className="size-4" />
+                    </Link>
+                  </div>
+                </details>
               </div>
-              <div className="sticky bottom-0 space-y-2 border-t bg-background px-4 pt-3 pb-6">
-                <p className="text-center text-sm font-medium tabular-nums">
+              <div className="sticky bottom-0 space-y-2.5 border-t bg-background/90 px-5 pt-3.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-xl">
+                <p className="num text-center text-sm font-semibold">
                   {t("anchor", { yearly: formatTry(PLANS.yearly.priceTry), weekly: formatTry(weeklyEquivalentTry("yearly")) })}
                 </p>
                 <Button ref={seePlansRef} type="button" size="lg" className="w-full" onClick={goPlans}>
                   {t("seePlans")}
+                  <ArrowRight aria-hidden="true" />
                 </Button>
-                <p className="text-xs text-muted-foreground">{t("note")}</p>
+                <p className="text-center text-[11px] leading-relaxed text-muted-foreground">{t("note")}</p>
               </div>
             </>
           ) : (
             <>
-              <SheetHeader className="pr-12">
+              <SheetHeader className="px-3 pt-1 pb-3">
                 <SheetTitle className="sr-only">{t("title")}</SheetTitle>
                 <SheetDescription className="sr-only">{t("body")}</SheetDescription>
-                <div className="flex items-center gap-2">
-                  <Button type="button" variant="ghost" size="icon" className="size-11" aria-label={t("backAria")} onClick={goBenefits}>
-                    <ArrowLeft aria-hidden="true" />
+                <div className="flex items-center gap-1 pr-12">
+                  <Button type="button" variant="ghost" size="icon" className="rounded-full" aria-label={t("backAria")} onClick={goBenefits}>
+                    <ArrowLeft aria-hidden="true" className="size-5" />
                   </Button>
-                  <h3 id={plansHeadingId} ref={plansHeadingRef} tabIndex={-1} className="text-base font-semibold outline-none">
+                  <h3 id={plansHeadingId} ref={plansHeadingRef} tabIndex={-1} className="text-xl font-bold tracking-tight outline-none">
                     {t("plansTitle")}
                   </h3>
                 </div>
               </SheetHeader>
-              <div className="px-4 pb-4">
-                <RadioGroup aria-labelledby={plansHeadingId} value={plan} onValueChange={choose} className="gap-2">
+              <div className="px-5 pb-5">
+                <RadioGroup aria-labelledby={plansHeadingId} value={plan} onValueChange={choose} className="gap-2.5">
                   {SUBSCRIPTION_PLAN_IDS.map((id) => (
                     <PlanOption
                       key={id}
                       id={id}
                       selected={plan === id}
+                      featured={id === DEFAULT_PLAN_ID}
+                      featuredLabel={t("bestValue")}
                       name={tp(`plans.${id}.name`)}
-                      price={`${formatTry(PLANS[id].priceTry)} / ${tp(PER_KEY[id])}`}
+                      price={formatTry(PLANS[id].priceTry)}
+                      per={`/ ${tp(PER_KEY[id])}`}
                       detail={id === "weekly" ? null : tp("weeklyEquivalent", { amount: formatTry(weeklyEquivalentTry(id)) })}
-                      badge={id === "weekly" ? null : `${tp(`plans.${id}.badge`)} ${tp("vsWeekly")}`}
+                      badge={id === "weekly" ? null : tp(`plans.${id}.badge`)}
                     />
                   ))}
                   {weekPassEnabled ? (
@@ -199,11 +234,11 @@ export function PaywallProvider({
                   ) : null}
                 </RadioGroup>
               </div>
-              <div className="sticky bottom-0 space-y-2 border-t bg-background px-4 pt-3 pb-6">
+              <div className="sticky bottom-0 space-y-2.5 border-t bg-background/90 px-5 pt-3.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-xl">
                 <Button asChild size="lg" className="w-full">
                   <Link href={href}>{t("continueWith", { price: formatTry(PLANS[plan].priceTry) })}</Link>
                 </Button>
-                <p className="text-xs text-muted-foreground">{tp("autoRenewNote")}</p>
+                <p className="text-center text-[11px] leading-relaxed text-muted-foreground">{tp("autoRenewNote")}</p>
               </div>
             </>
           )}
@@ -213,32 +248,37 @@ export function PaywallProvider({
   );
 }
 
-function PlanOption({ id, selected, name, price, detail, badge }: { id: PlanChoice; selected: boolean; name: string; price: string; detail: string | null; badge: string | null }) {
+function PlanOption({
+  id,
+  selected,
+  featured = false,
+  featuredLabel,
+  name,
+  price,
+  per,
+  detail,
+  badge,
+}: {
+  id: PlanChoice;
+  selected: boolean;
+  featured?: boolean;
+  featuredLabel?: string;
+  name: string;
+  price: string;
+  per?: string;
+  detail: string | null;
+  badge: string | null;
+}) {
   const base = useId();
   const nameId = `${base}-name`;
   const descId = `${base}-desc`;
+  // Radyo erişilebilirlik için gerçek (Radix) radyo; görünümü /premium ile aynı onay dairesi (PlanCheck).
   return (
-    <label
-      className={cn(
-        "flex min-h-11 w-full cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 text-sm",
-        selected ? "border-foreground ring-1 ring-foreground" : "hover:bg-accent",
-      )}
-    >
-      <RadioGroupItem value={id} aria-labelledby={nameId} aria-describedby={descId} className="mt-0.5" />
-      <span className="min-w-0 flex-1">
-        <span className="flex items-baseline justify-between gap-2">
-          <span id={nameId} className="font-medium">{name}</span>
-          <span className="font-semibold tabular-nums">{price}</span>
-        </span>
-        <span id={descId} className="mt-1 block space-y-1 text-xs text-muted-foreground">
-          {detail ? <span className="block">{detail}</span> : null}
-          {badge ? (
-            <Badge variant="secondary" className="h-auto whitespace-normal text-left">
-              {badge}
-            </Badge>
-          ) : null}
-        </span>
-      </span>
+    <label className={cn(planCardClass(selected, featured), "cursor-pointer has-[[role=radio]:focus-visible]:ring-[3px] has-[[role=radio]:focus-visible]:ring-ring/50")}>
+      {featured && featuredLabel ? <PlanRibbon>{featuredLabel}</PlanRibbon> : null}
+      <RadioGroupItem value={id} aria-labelledby={nameId} aria-describedby={detail || badge ? descId : undefined} className="absolute inset-0 size-full rounded-2xl border-0 opacity-0 shadow-none" />
+      <PlanCheck selected={selected} />
+      <PlanBody name={name} price={price} per={per} detail={detail} badge={badge} nameId={nameId} descId={descId} />
     </label>
   );
 }

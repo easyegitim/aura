@@ -1,10 +1,9 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { ChevronRight, Pencil, SlidersHorizontal } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { track } from "@/lib/analytics";
 import { goalMatch, leverSection, type BasisChip, type Goal, type ReportSection } from "@/lib/coach/planBasis";
 import { GOALS } from "@/lib/questionnaire";
@@ -48,38 +47,51 @@ export function PlanBasis({ analysisId, basis, improveFirst, rendered, stale }: 
   const items = improveFirst ?? [];
   const match = goalMatch(goals, items[0]);
 
+  const title = stale ? t("titleCurrent") : t("title");
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{stale ? t("titleCurrent") : t("title")}</CardTitle>
-        {stale ? <CardDescription>{t("staleNote")}</CardDescription> : null}
+        <h2 className="flex items-center gap-2.5 text-lg font-semibold tracking-tight">
+          <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand" aria-hidden="true">
+            <SlidersHorizontal className="size-4" />
+          </span>
+          {title}
+        </h2>
+        {stale ? <CardDescription className="text-[13px]">{t("staleNote")}</CardDescription> : null}
       </CardHeader>
       <CardContent className="space-y-4">
-        <ul className="flex flex-wrap gap-2" aria-label={stale ? t("titleCurrent") : t("title")}>
+        <ul className="flex flex-wrap gap-1.5" aria-label={title}>
           {basis.map((c, i) => (
-            <li key={`${c.key}-${i}`}>
-              <Badge variant="secondary" className="h-auto whitespace-normal">
-                {chipLabel(c)}
-              </Badge>
+            <li key={`${c.key}-${i}`} className="inline-flex min-h-7 items-center rounded-full bg-muted px-3 py-1 text-xs font-medium">
+              {chipLabel(c)}
             </li>
           ))}
         </ul>
 
         {items.length ? (
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">{t("priorities")}</h3>
-            <ol className="list-decimal space-y-1 pl-5 text-sm">
-              {items.map((it) => {
+            <h3 className="eyebrow">{t("priorities")}</h3>
+            <ol className="space-y-1.5">
+              {items.map((it, i) => {
                 const section = leverSection(it.lever);
                 const label = ta.has(it.lever) ? ta(it.lever) : it.lever;
+                const inner = (
+                  <>
+                    <span className="num grid size-6 shrink-0 place-items-center rounded-full bg-cta-gradient text-[11px] font-bold text-primary-foreground" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0 flex-1 text-sm font-semibold">{label}</span>
+                  </>
+                );
                 return (
                   <li key={it.lever}>
                     {section && rendered.has(section) ? (
-                      <a href={`#section-${section}`} className="underline underline-offset-4">
-                        {label}
+                      <a href={`#section-${section}`} className="flex min-h-12 items-center gap-3 rounded-xl border bg-muted/40 px-3 py-2 transition-colors hover:bg-accent">
+                        {inner}
+                        <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                       </a>
                     ) : (
-                      label
+                      <span className="flex min-h-12 items-center gap-3 rounded-xl bg-muted/40 px-3 py-2">{inner}</span>
                     )}
                   </li>
                 );
@@ -92,7 +104,7 @@ export function PlanBasis({ analysisId, basis, improveFirst, rendered, stale }: 
         <Link
           href={`/baslangic/anket?next=${encodeURIComponent(`/plan/${analysisId}`)}`}
           onClick={() => track("plan_basis_edit_clicked")}
-          className="inline-flex min-h-11 items-center gap-2 text-sm underline underline-offset-4"
+          className="-mx-1 inline-flex min-h-11 items-center gap-2 rounded-lg px-1 text-sm font-semibold text-brand hover:underline"
         >
           <Pencil aria-hidden="true" className="size-4" />
           {t("edit")}

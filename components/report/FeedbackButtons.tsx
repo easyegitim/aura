@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { track } from "@/lib/analytics";
 import { postJson } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 
 type Props = { targetType: "score" | "report" | "tryon" | "exercise"; targetId?: string; section?: string; compact?: boolean };
 
@@ -39,18 +40,18 @@ export function FeedbackButtons({ targetType, targetId, section, compact }: Prop
   }
 
   return (
-    <div className={compact ? "flex items-center gap-1" : "flex items-center gap-2 pt-1"}>
-      <span className="text-xs text-muted-foreground">{sent ? t("thanks") : t("helpful")}</span>
-      <Button size="icon-xs" variant={sent === 1 ? "default" : "ghost"} aria-label={t("yes")} onClick={() => rate(1)} disabled={sent !== null}><ThumbsUp /></Button>
-      <Button size="icon-xs" variant={sent === -1 ? "default" : "ghost"} aria-label={t("no")} onClick={() => rate(-1)} disabled={sent !== null}><ThumbsDown /></Button>
-      <Button size="icon-xs" variant="ghost" aria-label={t("report")} onClick={() => setOpen(true)}><Flag /></Button>
+    <div className={compact ? "flex items-center gap-0.5" : "flex items-center gap-1 pt-1"}>
+      <span className="mr-1 text-xs text-muted-foreground">{sent ? t("thanks") : t("helpful")}</span>
+      <Button size="icon" variant="ghost" className={cn("rounded-full text-muted-foreground", sent === 1 && "bg-brand-soft text-brand disabled:opacity-100")} aria-label={t("yes")} aria-pressed={sent === 1} onClick={() => rate(1)} disabled={sent !== null}><ThumbsUp /></Button>
+      <Button size="icon" variant="ghost" className={cn("rounded-full text-muted-foreground", sent === -1 && "bg-brand-soft text-brand disabled:opacity-100")} aria-label={t("no")} aria-pressed={sent === -1} onClick={() => rate(-1)} disabled={sent !== null}><ThumbsDown /></Button>
+      <Button size="icon" variant="ghost" className="ml-auto rounded-full text-muted-foreground" aria-label={t("report")} onClick={() => setOpen(true)}><Flag /></Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("reportTitle")}</DialogTitle>
             <DialogDescription>{t("reportBody")}</DialogDescription>
           </DialogHeader>
-          <textarea className="min-h-24 w-full rounded-md border bg-background p-2 text-sm" maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("reportPlaceholder")} />
+          <textarea className="min-h-24 w-full rounded-xl border border-input bg-background p-3 text-sm" maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("reportPlaceholder")} />
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>{t("cancel")}</Button>
             <Button onClick={report}>{t("send")}</Button>

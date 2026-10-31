@@ -1,9 +1,8 @@
+import { ScanFace, Scissors } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { LockedFeature } from "@/components/app/LockedFeature";
 import { TryonScreen } from "@/components/tryon/TryonScreen";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CoachReport } from "@/lib/ai/reportSchema";
 import { getConsentState } from "@/lib/api/guard";
 import { getPremiumStatus } from "@/lib/api/premium";
@@ -13,6 +12,11 @@ import { createClient } from "@/lib/db/server";
 import { getLegalVersion } from "@/lib/legal/docs";
 import { QuestionnaireSchema } from "@/lib/questionnaire";
 import { tryonUsage } from "@/lib/tryon/quota";
+
+const LOCKED_PERKS = [
+  { k: "styles", icon: Scissors },
+  { k: "face", icon: ScanFace },
+] as const;
 
 /** /dene (F11): premium; ilk kullanımda tryon_generation rızası; "Sana önerilen" rapordan; kalan hak. */
 export default async function TryonPage({ searchParams }: PageProps<"/dene">) {
@@ -27,15 +31,11 @@ export default async function TryonPage({ searchParams }: PageProps<"/dene">) {
   if (!premium) {
     return (
       <div className="mx-auto w-full max-w-lg px-4 py-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("lockedTitle")}</CardTitle>
-            <CardDescription>{t("lockedBody")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full"><Link href="/premium?from=tryon">{t("goPremium")}</Link></Button>
-          </CardContent>
-        </Card>
+        <LockedFeature
+          title={t("lockedTitle")}
+          href="/premium?from=tryon"
+          perks={LOCKED_PERKS.map(({ k, icon: Icon }) => ({ icon: <Icon className="size-4" />, label: t(`lockedPerks.${k}`) }))}
+        />
       </div>
     );
   }
@@ -56,7 +56,7 @@ export default async function TryonPage({ searchParams }: PageProps<"/dene">) {
 
   return (
     <div className="mx-auto w-full max-w-lg space-y-4 px-4 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
       <TryonScreen
         consentVersion={consentVersion}
         hasConsent={hasConsent}

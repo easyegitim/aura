@@ -1,17 +1,21 @@
 "use client";
 
+import { ArrowRight, BadgeCheck, CircleAlert, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { track } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 type Props = { status: "ok" | "failed" | "pending"; analysisId?: string };
 
 /** /premium/sonuc: başarılı/başarısız; callback gecikmesinde durum birkaç kez sorgulanır (SPEC 4.2). */
 export function PaymentResult({ status: initial, analysisId }: Props) {
   const t = useTranslations("checkout.result");
+  const tc = useTranslations("checkout");
+  const tp = useTranslations("pricing");
   const [status, setStatus] = useState(initial);
   const [plan, setPlan] = useState<string | null>(null);
 
@@ -45,19 +49,42 @@ export function PaymentResult({ status: initial, analysisId }: Props) {
     return () => clearInterval(id);
   }, [status]);
 
+  const planName = plan === "weekly" || plan === "monthly" || plan === "yearly" ? tp(`plans.${plan}.name`) : plan === "week_pass" ? tc("weekPass") : null;
+  const Icon = status === "ok" ? BadgeCheck : status === "failed" ? CircleAlert : Loader2;
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t(`${status}.title`)}</CardTitle>
-        <CardDescription>{t(`${status}.body`)}{plan ? ` (${plan})` : ""}</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-2">
-        {status === "ok" ? (
-          <Button asChild size="lg"><Link href={analysisId ? `/analiz/${analysisId}` : "/analiz"}>{analysisId ? t("ok.cta") : t("ok.ctaList")}</Link></Button>
-        ) : status === "failed" ? (
-          <Button asChild size="lg"><Link href={analysisId ? `/premium?analysis=${analysisId}` : "/premium"}>{t("failed.cta")}</Link></Button>
-        ) : null}
-        <Button asChild variant="ghost"><Link href="/hesap">{t("account")}</Link></Button>
+    <Card className="bg-hero-glow">
+      <CardContent className="flex flex-col items-center gap-3 pt-4 text-center">
+        <span
+          aria-hidden="true"
+          className={cn(
+            "grid size-16 place-items-center rounded-full",
+            status === "ok" && "bg-cta-gradient text-primary-foreground shadow-glow",
+            status === "failed" && "bg-destructive/12 text-destructive",
+            status === "pending" && "bg-brand-soft text-brand",
+          )}
+        >
+          <Icon className={cn("size-8", status === "pending" && "motion-safe:animate-spin")} />
+        </span>
+        <div role="status" aria-live="polite" className="space-y-1.5">
+          <h1 className="text-xl font-bold tracking-tight">{t(`${status}.title`)}</h1>
+          <p className="text-[13px] text-muted-foreground">
+            {t(`${status}.body`)}
+            {planName ? ` (${planName})` : ""}
+          </p>
+        </div>
+        <div className="mt-2 grid w-full gap-2">
+          {status === "ok" ? (
+            <Button asChild size="lg">
+              <Link href={analysisId ? `/analiz/${analysisId}` : "/analiz"}>
+                {analysisId ? t("ok.cta") : t("ok.ctaList")}
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            </Button>
+          ) : status === "failed" ? (
+            <Button asChild size="lg"><Link href={analysisId ? `/premium?analysis=${analysisId}` : "/premium"}>{t("failed.cta")}</Link></Button>
+          ) : null}
+          <Button asChild variant="outline"><Link href="/hesap">{t("account")}</Link></Button>
+        </div>
       </CardContent>
     </Card>
   );

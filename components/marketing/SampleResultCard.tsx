@@ -1,7 +1,8 @@
+import { ArrowUpRight } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { ScoreRing } from "@/components/analysis/ScoreRing";
 
+/** Örnek değerler: gerçek bir kullanıcıya ait değildir (SPEC F01). */
 const SAMPLE = {
   overall: 6.4,
   potential: 7.6,
@@ -14,54 +15,69 @@ const SAMPLE = {
 
 const fmt = (n: number) => n.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-/** Açılıştaki örnek sonuç kartı. Gerçek yüz yok; soyut bir illüstrasyon (SPEC F01). */
+/** Soyut yüz illüstrasyonu (gerçek yüz yok). */
+function FaceGlyph() {
+  return (
+    <svg viewBox="0 0 120 120" className="size-full" aria-hidden="true">
+      <ellipse cx="60" cy="56" rx="26" ry="33" fill="none" stroke="currentColor" strokeWidth="4" />
+      <path d="M33 47c8-17 46-17 54 0" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+      <path d="M18 116c6-20 22-30 42-30s36 10 42 30" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Açılıştaki örnek sonuç kartı. Sonuç ekranının görsel dilini tekrarlar; gerçek yüz yok, soyut illüstrasyon (SPEC F01). */
 export function SampleResultCard() {
   const t = useTranslations("landing.sampleCard");
   return (
-    <Card className="mx-auto w-full max-w-sm overflow-hidden" aria-label={t("badge")}>
-      <CardContent className="space-y-5 pt-2">
-        <div className="flex items-center justify-between">
-          <Badge variant="secondary">{t("badge")}</Badge>
-          <span className="text-xs text-muted-foreground">{t("illustrationNote")}</span>
+    <figure
+      className="border-brand-gradient relative mx-auto w-full max-w-sm overflow-hidden rounded-3xl p-5 shadow-card"
+      aria-label={t("badge")}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-hero-glow" aria-hidden="true" />
+      <div className="relative space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-muted px-2.5 text-[11px] font-medium">
+            <span className="size-1.5 rounded-full bg-brand" aria-hidden="true" />
+            {t("badge")}
+          </span>
+          <span className="grid size-10 place-items-center rounded-full bg-muted p-2 text-muted-foreground">
+            <FaceGlyph />
+          </span>
         </div>
 
         <div className="flex items-center gap-5">
-          <svg viewBox="0 0 120 120" className="size-24 shrink-0" aria-hidden="true">
-            <defs>
-              <linearGradient id="aura-g" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="currentColor" stopOpacity="0.18" />
-                <stop offset="1" stopColor="currentColor" stopOpacity="0.05" />
-              </linearGradient>
-            </defs>
-            <circle cx="60" cy="60" r="58" fill="url(#aura-g)" />
-            <ellipse cx="60" cy="52" rx="24" ry="30" fill="none" stroke="currentColor" strokeWidth="2.5" />
-            <path d="M22 112c6-20 20-30 38-30s32 10 38 30" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-            <path d="M36 44c6-14 42-14 48 0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-          <div>
-            <p className="text-sm text-muted-foreground">{t("overallLabel")}</p>
-            <p className="text-5xl font-semibold tabular-nums tracking-tight">{fmt(SAMPLE.overall)}</p>
-            <p className="mt-1 text-sm">
-              {t("potentialLabel")}: <span className="font-medium tabular-nums">{fmt(SAMPLE.potential)}</span>
-              <span className="text-muted-foreground"> (+{fmt(SAMPLE.potential - SAMPLE.overall)})</span>
+          <ScoreRing value={SAMPLE.overall} size={128} stroke={11}>
+            <span className="num text-brand-gradient text-4xl font-bold">{fmt(SAMPLE.overall)}</span>
+            <span className="text-[11px] text-muted-foreground">/10</span>
+          </ScoreRing>
+          <div className="min-w-0 space-y-2">
+            <p className="eyebrow">{t("overallLabel")}</p>
+            <p className="border-brand-gradient inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold">
+              <ArrowUpRight className="size-3.5 text-brand" aria-hidden="true" />
+              {t("potentialLabel")} <span className="num">{fmt(SAMPLE.potential)}</span>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <span className="num text-brand-gradient text-sm font-bold">+{fmt(SAMPLE.potential - SAMPLE.overall)}</span> {t("gainNote")}
             </p>
           </div>
         </div>
 
-        <ul className="space-y-2.5">
+        <ul className="space-y-3.5">
           {SAMPLE.subs.map((s) => (
-            <li key={s.key} className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>{t(`sub.${s.key}`)}</span>
-                <span className="tabular-nums text-muted-foreground">{fmt(s.value)}</span>
+            <li key={s.key} className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[13px] font-semibold">{t(`sub.${s.key}`)}</span>
+                <span className="num text-base font-bold">{fmt(s.value)}</span>
               </div>
-              <div className="h-2 w-full rounded-full bg-muted" role="presentation">
-                <div className="h-2 rounded-full bg-foreground/70" style={{ width: `${s.value * 10}%` }} />
+              <div className="h-2 w-full overflow-hidden rounded-full bg-track" role="presentation">
+                <div className="h-full origin-left rounded-full bg-brand-gradient motion-safe:animate-grow-x" style={{ width: `${s.value * 10}%` }} />
               </div>
             </li>
           ))}
         </ul>
-      </CardContent>
-    </Card>
+        <p className="text-[11px] text-muted-foreground">{t("illustrationNote")}</p>
+      </div>
+    </figure>
   );
 }

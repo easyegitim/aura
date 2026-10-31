@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Markdown } from "@/components/legal/Markdown";
-import { Badge } from "@/components/ui/badge";
 import { getLegalDoc, isLegalSlug, listLegalSlugs } from "@/lib/legal/docs";
 
 export const dynamicParams = false;
@@ -26,20 +25,26 @@ export default async function LegalPage({ params }: PageProps<"/yasal/[slug]">) 
   const showPendingBanner = process.env.NODE_ENV === "development" && !doc.approved;
 
   return (
-    <article className="mx-auto w-full max-w-3xl space-y-5 px-4 py-10">
+    <article className="mx-auto w-full max-w-3xl space-y-5 px-4 pt-8 pb-14">
       {showPendingBanner ? (
-        <p role="status" className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+        <p role="status" className="rounded-2xl border border-dashed px-4 py-3 text-xs text-muted-foreground">
           {t("pendingApproval")}
         </p>
       ) : null}
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">{doc.title}</h1>
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary">{t("version", { version: doc.version })}</Badge>
-          <Badge variant="outline">{t("updatedAt", { date: doc.updatedAt })}</Badge>
+      <header className="space-y-3">
+        <h1 className="text-2xl font-bold tracking-tight">{doc.title}</h1>
+        <div className="flex flex-wrap gap-2">
+          <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-brand-soft px-2.5 text-[11px] font-semibold text-brand">
+            {t("version", { version: doc.version })}
+          </span>
+          <span className="inline-flex h-6 items-center rounded-full bg-muted px-2.5 text-[11px] font-medium text-muted-foreground">
+            {t("updatedAt", { date: doc.updatedAt })}
+          </span>
         </div>
       </header>
-      <Markdown>{doc.body}</Markdown>
+      <div className="rounded-2xl border bg-card p-5 shadow-card">
+        <Markdown>{doc.body}</Markdown>
+      </div>
     </article>
   );
 }

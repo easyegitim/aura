@@ -51,24 +51,23 @@ export function ExerciseTimer({ exercise, onComplete }: { exercise: Exercise; on
   if (isTimed) {
     const mm = String(Math.floor(left / 60)).padStart(2, "0"), ss = String(left % 60).padStart(2, "0");
     return (
-      <div className="flex items-center gap-3">
-        <span className="text-2xl font-semibold tabular-nums">{mm}:{ss}</span>
-        {sets > 1 ? <span className="text-xs text-muted-foreground">{t("set", { n: set, total: sets })}</span> : null}
-        <Button size="icon-sm" variant="outline" aria-label={running ? t("pause") : t("start")} onClick={() => setRunning((r) => !r)}>{running ? <Pause /> : <Play />}</Button>
-        <Button size="icon-sm" variant="ghost" aria-label={t("reset")} onClick={reset}><RotateCcw /></Button>
+      <div className="flex items-center gap-2">
+        <span className="num text-brand-gradient text-2xl font-bold">{mm}:{ss}</span>
+        {sets > 1 ? <span className="text-xs whitespace-nowrap text-muted-foreground">{t("set", { n: set, total: sets })}</span> : null}
+        <Button size="icon" className="ml-auto rounded-full" aria-label={running ? t("pause") : t("start")} onClick={() => setRunning((r) => !r)}>{running ? <Pause /> : <Play />}</Button>
+        <Button size="icon" variant="ghost" className="rounded-full text-muted-foreground" aria-label={t("reset")} onClick={reset}><RotateCcw /></Button>
       </div>
     );
   }
   const target = timer.reps;
   const hold = "holdSeconds" in timer ? timer.holdSeconds : undefined;
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-2xl font-semibold tabular-nums">{reps}/{target}</span>
-      {sets > 1 ? <span className="text-xs text-muted-foreground">{t("set", { n: set, total: sets })}</span> : null}
-      {hold ? <span className="text-xs text-muted-foreground">{t("hold", { s: hold })}</span> : null}
+    <div className="flex items-center gap-2">
+      <span className="num text-brand-gradient text-2xl font-bold">{reps}/{target}</span>
+      {sets > 1 ? <span className="text-xs whitespace-nowrap text-muted-foreground">{t("set", { n: set, total: sets })}</span> : null}
+      {hold ? <span className="text-xs whitespace-nowrap text-muted-foreground">{t("hold", { s: hold })}</span> : null}
       <Button
-        size="sm"
-        variant="outline"
+        className="ml-auto"
         onClick={() => {
           const next = reps + 1;
           if (next >= target) {
@@ -84,7 +83,7 @@ export function ExerciseTimer({ exercise, onComplete }: { exercise: Exercise; on
       >
         {t("rep")}
       </Button>
-      <Button size="icon-sm" variant="ghost" aria-label={t("reset")} onClick={reset}><RotateCcw /></Button>
+      <Button size="icon" variant="ghost" className="rounded-full text-muted-foreground" aria-label={t("reset")} onClick={reset}><RotateCcw /></Button>
     </div>
   );
 }

@@ -8,7 +8,17 @@
     "photoNotStored": "Fotoğrafın sunucuda saklanmaz.",
     "scoreDisclaimer": "Bu skor yapay zekânın fotoğraf üzerinden tahminidir; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
     "notMedicalAdvice": "Tıbbi tavsiye değildir.",
-    "aiGenerated": "Yapay zekâ ile oluşturuldu."
+    "aiGenerated": "Yapay zekâ ile oluşturuldu.",
+    "toggleTheme": "Açık ya da koyu temaya geç",
+    "details": "Ayrıntılar",
+    "close": "Kapat",
+    "notFound": {
+      "eyebrow": "404",
+      "title": "Bu sayfa bulunamadı",
+      "body": "Bağlantı eskimiş ya da sayfa kaldırılmış olabilir.",
+      "toAnalyses": "Analizlerime dön",
+      "toHome": "Ana sayfaya dön"
+    }
   },
   "nav": {
     "analysis": "Analiz",
@@ -23,11 +33,22 @@
     "heroTitle": "Skorunu öğren, potansiyelini gör, planla yükselt.",
     "heroSubtitle": "Bir selfie çek. Yapay zekâ görünüm skorunu, potansiyelini ve seni yükseltecek kişisel bakım planını çıkarsın.",
     "heroNote": "18 yaş ve üzeri içindir. Fotoğrafın saklanmaz; yalnız analiz sırasında işlenir.",
+    "heroEyebrow": "Yapay zekâ bakım koçu",
+    "trustLabel": "Güvenceler",
+    "trust": {
+      "photo": "Fotoğraf saklanmaz",
+      "adult": "18+",
+      "fair": "Herkese aynı ölçü"
+    },
+    "howEyebrow": "3 adım",
+    "pricingEyebrow": "Premium",
+    "faqEyebrow": "SSS",
     "sampleCard": {
       "badge": "Örnek sonuç",
       "overallLabel": "Genel skor",
       "potentialLabel": "Potansiyel",
       "illustrationNote": "Temsili illüstrasyon, gerçek bir yüz değildir.",
+      "gainNote": "8–12 haftada",
       "sub": {
         "skin": "Cilt",
         "hair": "Saç",
@@ -57,6 +78,7 @@
   },
   "pricing": {
     "title": "Fiyatlar",
+    "eyebrow": "Premium",
     "subtitle": "Tüm fiyatlar KDV dahildir. Ödeme iyzico güvencesiyle alınır; kart bilgin bize ulaşmaz.",
     "perWeek": "hafta",
     "perMonth": "ay",
@@ -72,7 +94,7 @@
       },
       "yearly": {
         "name": "Yıllık",
-        "badge": "Yılda 4 ay bedava · En avantajlı"
+        "badge": "Yılda 4 ay bedava"
       }
     },
     "choose": "Bu planı seç",
@@ -86,8 +108,7 @@
       "i6": "Paylaşım kartı"
     },
     "freeNote": "Hesap başına 1 analiz hakkı ile yüz şeklini ve bir alt skorunu görürsün; genel skor, potansiyel, rapor ve deneme premiumdadır.",
-    "autoRenewNote": "Abonelik otomatik yenilenir. İptali hesap sayfasından tek tıkla yapabilirsin.",
-    "vsWeekly": "haftalık plana göre"
+    "autoRenewNote": "Abonelik otomatik yenilenir. İptali hesap sayfasından tek tıkla yapabilirsin."
   },
   "faq": {
     "q1": {
@@ -188,7 +209,10 @@
       "cancelError": "İptal iletilemedi. Tekrar dene veya destekle iletişime geç.",
       "manageInStore": "Aboneliği mağazada yönet",
       "storeManaged": "Bu abonelik App Store / Google Play üzerinden yönetilir.",
-      "restore": "Satın almaları geri yükle"
+      "restore": "Satın almaları geri yükle",
+      "statusActive": "Aktif",
+      "statusCanceling": "Dönem sonunda biter",
+      "statusFree": "Ücretsiz"
     },
     "legalTitle": "Yasal metinler",
     "consents": {
@@ -308,6 +332,12 @@
     "reject": "Reddet"
   },
   "onboarding": {
+    "flow": {
+      "label": "Başlangıç adımları",
+      "age": "Yaş",
+      "consents": "İzinler",
+      "profile": "Profil"
+    },
     "age": {
       "title": "Kaç yaşındasın?",
       "description": "Hizmet yalnız 18 yaş ve üzeri içindir. Yalnız doğum yılını soruyoruz; tam doğum tarihini kaydetmiyoruz.",
@@ -502,7 +532,16 @@
       },
       "open": "Kamerayı aç",
       "upload": "Galeriden yükle",
-      "privacy": "Görüntü telefonunda analiz edilir. Çekilen fotoğraf yalnız skorlama için, rızanla, geçici olarak gönderilir; saklanmaz."
+      "privacy": "Görüntü telefonunda analiz edilir. Çekilen fotoğraf yalnız skorlama için, rızanla, geçici olarak gönderilir; saklanmaz.",
+      "eyebrow": "Adım 1 / 2",
+      "lead": "Koşullar uygun olunca fotoğraf kendiliğinden çekilir.",
+      "tipsShort": {
+        "light": "Işık önden",
+        "neutral": "Nötr ifade",
+        "frame": "Baş ve çene kadrajda",
+        "alone": "Karede yalnız sen"
+      },
+      "tipsMore": "Çekim ipuçları"
     },
     "denied": {
       "title": "Kameraya erişilemedi",
@@ -584,14 +623,20 @@
           "good": "Kadraj: ortalı",
           "ok": "Kadraj: hafif kaymış"
         }
-      }
+      },
+      "eyebrow": "Adım 2 / 2",
+      "lead": "Kalite kapısından geçti.",
+      "sendNote": "Analizi başlatınca fotoğraf yalnız skorlama için, rızanla, geçici olarak gönderilir."
     },
     "trust": {
       "title": "Fotoğrafına ne oluyor?",
       "device": "Yüzündeki 478 nokta telefonunda bulunur ve telefonundan çıkmaz; yalnız bunlardan hesaplanan oranlar analizinle saklanır.",
       "sent": "Analiz için yalnız yüzünün kırpılmış bir kopyası, rızanla {provider} sağlayıcısına gider. Aura fotoğrafını saklamaz.",
       "limits": "Skor kişisel değerini ya da sağlığını ölçmez; kimseyle kıyaslanmaz.",
-      "methodLink": "Skor nasıl hesaplanır?"
+      "methodLink": "Skor nasıl hesaplanır?",
+      "deviceShort": "478 yüz noktası telefonunda kalır; yalnız oranlar saklanır.",
+      "sentShort": "Yüzünün kırpılmış kopyası rızanla {provider} sağlayıcısına gider; Aura saklamaz.",
+      "limitsShort": "Skor kişisel değerini ölçmez; kimseyle kıyaslanmaz."
     }
   },
   "geometry": {
@@ -639,7 +684,8 @@
         "ready": "Sonucun hazır",
         "doneSr": "tamamlandı",
         "hint": "Genellikle 10–25 saniye sürer.",
-        "slow": "Biraz uzun sürüyor, bekliyoruz. Analiz tamamlanmazsa hakkın düşmez."
+        "slow": "Biraz uzun sürüyor, bekliyoruz. Analiz tamamlanmazsa hakkın düşmez.",
+        "title": "Analiz ediliyor"
       }
     },
     "errors": {
@@ -690,7 +736,7 @@
     "narrative": "Genel skorun {overall}. 8–12 haftalık planla ulaşabileceğin potansiyel {potential}.",
     "ratiosTitle": "Oranların",
     "planTitle": "Sana özel plan",
-    "planBody": "Sana uygun 3 saç kesimi, sakal ve cilt rutini; 60 stili kendi yüzünde dene.",
+    "planBody": "3 saç kesimi, sakal ve cilt rutini; 60 stili kendi yüzünde dene.",
     "seePlan": "Planı gör",
     "tryStyles": "Stilleri dene",
     "unlock": "Kilidi aç",
@@ -707,18 +753,18 @@
     "lockedAriaFor": "{name} kilitli; açmak için dokun",
     "legacyNote": "Bu analiz önceki yöntemle hesaplandı; yeni analizler güncel yöntemi kullanır.",
     "processingRefresh": "Sonuç hazır olunca bu sayfa kendiliğinden yenilenir.",
-    "disclaimerHybrid": "Bu skor telefonundaki ölçümlerden ve fotoğraftaki görünür bakım ayrıntılarından, herkes için aynı kurallarla hesaplanır; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
+    "disclaimerHybrid": "Telefonundaki ölçümler ve fotoğraftaki bakım ayrıntılarından, herkes için aynı kurallarla hesaplanan bir tahmindir; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
     "hero": {
       "potentialOpen": "Potansiyel {potential} · +{delta}",
       "potentialLocked": "Potansiyel +●,●",
       "potentialLockedName": "Potansiyel skorun",
-      "potentialAtTop": "Potansiyelin skoruna çok yakın",
-      "potentialCaption": "8–12 haftalık planla ulaşılabilecek tahmini fark",
+      "potentialAtTop": "Potansiyeline çok yakınsın",
+      "potentialCaption": "8–12 haftalık planla tahmini artış",
       "outOf": "/10"
     },
     "reference": {
       "tick": "Referans {ref}",
-      "note": "{ref}, ölçeğin herkes için aynı olan referans noktasıdır. Sıralama ya da yüzdelik değildir; skorun kimseyle kıyaslanmaz, kendi değişimini izlemen içindir.",
+      "note": "{ref}, herkes için aynı referans noktasıdır. Sıralama ya da yüzdelik değildir; skorun kimseyle kıyaslanmaz, yalnız kendi değişimini izlemen içindir.",
       "aria": "1 ile 10 arası ölçek; herkes için aynı referans {ref}; senin skorun {value}",
       "ariaLocked": "1 ile 10 arası ölçek; herkes için aynı referans {ref}; skorun kilitli",
       "methodLink": "Skor nasıl hesaplanır?"
@@ -727,10 +773,10 @@
     "subWhat": {
       "harmony": "Sağ–sol denge ve dikey oranlar; telefonunda ölçülür.",
       "eyes": "Göz aralığı, göz ekseni ve iki göz arasındaki denge; telefonunda ölçülür.",
-      "jawline": "Çene ve elmacık genişliklerinin oranı ile alt yüz dengesi; telefonunda ölçülür. Sakal hattı bakım alanında değerlendirilir.",
-      "skin": "Fotoğrafta görünen yüzey: aktif sivilce, doku ve parlama. Tanı değildir; ten rengi, izler ve skarlar puanlanmaz.",
-      "hair": "Saçın düzeni ve kesimin formu; saç dokusu, yoğunluğu, rengi ve dökülmesi puanlanmaz.",
-      "grooming": "Kaşlarda belirgin dağınıklık, dudak kuruluğu ve varsa sakal hattının düzeni; sakal olup olmaması puanı değiştirmez."
+      "jawline": "Çene ve elmacık genişliklerinin oranı ile alt yüz dengesi; telefonunda ölçülür. Sakal hattı bakımda değerlendirilir.",
+      "skin": "Fotoğrafta görünen aktif sivilce, doku ve parlama. Tanı değildir; ten rengi, izler ve skarlar puanlanmaz.",
+      "hair": "Saçın düzeni ve kesimin formu; dokusu, yoğunluğu, rengi ve dökülmesi puanlanmaz.",
+      "grooming": "Kaş düzeni, dudak kuruluğu ve varsa sakal hattı; sakal olup olmaması puanı değiştirmez."
     },
     "notAssessed": {
       "value": "Değerlendirilmedi",
@@ -738,11 +784,12 @@
       "not_visible": "Bu alan bu çekimde net görünmediği için değerlendirilmedi; genel skorda bu alan için herkese uygulanan sabit referans değeri kullanıldı."
     },
     "improveFirst": {
-      "title": "Önce odaklanacağın adımlar",
+      "title": "İlk adımların",
       "gain": "Genel skora en fazla +{gain}",
       "toPlan": "Planda nasıl yapılacağını gör",
-      "lockedBody": "En fazla 3 adımın sırası alt skorlarına göre hesaplanır. Premium ile sıralı listen ve planın açılır.",
-      "empty": "Görünür bakım alanlarında öne çıkan bir adım yok; planındaki rutini sürdürmen yeterli."
+      "lockedBody": "Alt skorlarına göre sıralanmış 3 adım premiumda.",
+      "empty": "Görünür bakım alanlarında öne çıkan bir adım yok; planındaki rutini sürdürmen yeterli.",
+      "gainShort": "genel skora"
     },
     "levers": {
       "lv_blemish_care": "Nazik temizleme ve haftalık arındırma",
@@ -881,7 +928,13 @@
         }
       },
       "skinConcernNote": "{zone}belirgin alanlar için bir dermatoloğa göstermek faydalı olabilir."
-    }
+    },
+    "details": "Ayrıntılar",
+    "premiumTag": "Premium",
+    "method": {
+      "full": "Yöntemin tamamı"
+    },
+    "scoreLocked": "Skor kilitli"
   },
   "paywall": {
     "title": "Tam sonucunu aç",
@@ -926,7 +979,21 @@
     "backAria": "Faydalara geri dön",
     "continueWith": "Devam et · {price}",
     "backToAnalysis": "Analizine dön",
-    "methodLink": "Skor nasıl hesaplanır?"
+    "methodLink": "Skor nasıl hesaplanır?",
+    "eyebrow": "Premium",
+    "lead": "Bu analizin hemen açılır; yeni çekim yok.",
+    "perksAria": "Premium ile açılanlar",
+    "perks": {
+      "score": "Genel skor ve potansiyel",
+      "subs": "6 alt skorun tamamı",
+      "plan": "Kişisel koç planı",
+      "tryon": "Haftada 10 sanal deneme",
+      "trend": "Haftalık analiz ve trend",
+      "steps": "Odak adımları ve ölçüler"
+    },
+    "details": "Ayrıntılar",
+    "bestValue": "En avantajlı",
+    "pageLead": "Planını seç; sonucunun tamamı hemen açılsın."
   },
   "share": {
     "button": "Paylaşım kartı oluştur",
@@ -997,10 +1064,21 @@
         "body": "Ödeme kuruluşundan onay bekleniyor; birkaç saniye içinde güncellenecek."
       },
       "account": "Hesap"
-    }
+    },
+    "secure": "Güvenli ödeme · iyzico",
+    "stepsAria": "Ödeme adımları",
+    "steps": {
+      "plan": "Plan",
+      "account": "Hesap",
+      "billing": "Fatura",
+      "pay": "Ödeme"
+    },
+    "stepDone": "tamamlandı",
+    "consentTitle": "Onaylar"
   },
   "report": {
     "title": "Planın",
+    "eyebrow": "Kişisel plan",
     "generatingTitle": "Planın hazırlanıyor…",
     "generatingBody": "Skorların, yüz şeklin ve anket cevapların katalogdaki seçeneklerle eşleştiriliyor. 10–20 saniye sürebilir.",
     "errorTitle": "Plan oluşturulamadı",
@@ -1068,7 +1146,8 @@
         "exercises": "Çene sağlığıyla ilgili cevabın nedeniyle egzersiz eklenmedi.",
         "beard": "Sakal tercihine göre sakal bölümü eklenmedi."
       }
-    }
+    },
+    "jumpNav": "Plan bölümleri"
   },
   "feedback": {
     "helpful": "Faydalı mı?",
@@ -1096,7 +1175,8 @@
       "b2": "Sunucumuz görseli saklamaz; yalnız bellekte iletir.",
       "b3": "Yüzün telefonunda orijinal piksellerle geri yazılır; kontrol başarısızsa sonuç gösterilmez ve hakkın düşmez.",
       "b4": "Sonuç görselleri yalnız telefonunda kalır; indirdiğinde 'Yapay zekâ ile oluşturuldu' etiketi gömülür.",
-      "accept": "İzin veriyorum ve devam et"
+      "accept": "İzin veriyorum ve devam et",
+      "eyebrow": "Bir kez sorulur"
     },
     "consentError": "İzin kaydedilemedi.",
     "needSelfie": "Bu oturumda bellekte selfie yok; deneme için yeni bir çekim yap. Fotoğraf cihazından çıkmadan önce kalite kapısından geçer.",
@@ -1136,10 +1216,20 @@
     "sliderAria": "Önce/sonra karşılaştırma",
     "download": "İndir",
     "tryAnother": "Başka stil dene",
-    "resultNote": "Görsel temsilidir; gerçek sonuç berber/kuaför uygulamasına bağlıdır. Yüzün orijinal piksellerinle korundu."
+    "resultNote": "Görsel temsilidir; gerçek sonuç berber/kuaför uygulamasına bağlıdır. Yüzün orijinal piksellerinle korundu.",
+    "lockedEyebrow": "Sanal deneme",
+    "lockedPerks": {
+      "styles": "60 saç, sakal ve renk stili",
+      "face": "Kendi fotoğrafında, yüzün değişmeden",
+      "quota": "Her 7 günde 10 deneme"
+    },
+    "remainingLabel": "Kalan deneme",
+    "retry": "Tekrar dene",
+    "sliderHint": "Kaydırarak karşılaştır"
   },
   "routine": {
     "title": "Rutin",
+    "eyebrow": "Her gün",
     "lockedTitle": "Rutin premiumda",
     "lockedBody": "Sabah/akşam bakım adımları, egzersiz zamanlayıcıları ve seri sayacı.",
     "goPremium": "Premium'a geç",
@@ -1150,6 +1240,8 @@
     "addManual": "Adım ekle",
     "today": "Bugün, {date}",
     "streak": "Seri: {n} gün",
+    "streakDays": "gün seri",
+    "doneCount": "Bugün {done}/{total} adım",
     "streakHint": "Günlük adımların en az %80'i yapılınca gün seriye sayılır.",
     "progressAria": "Bugünkü tamamlanma",
     "slots": {
@@ -1179,6 +1271,8 @@
   },
   "progress": {
     "title": "İlerleme",
+    "eyebrow": "Haftalık takip",
+    "photosTitle": "İlerleme fotoğrafların",
     "loading": "Yükleniyor…",
     "deviceNote": "Fotoğrafların yalnız bu cihazda. Tarayıcı verisini silersen kaybolur.",
     "storageUnavailable": "Bu tarayıcıda yerel depolama kapalı; ilerleme fotoğrafları kaydedilemez.",
@@ -1196,7 +1290,10 @@
     "newAnalysis": "Yeni analiz",
     "trendLockedTitle": "Skor trendi premiumda",
     "trendLockedBody": "Haftalık yeniden analizle genel ve potansiyel skorun zaman içinde.",
-    "goPremium": "Premium'a geç"
+    "goPremium": "Premium'a geç",
+    "trendEmptyTitle": "Skor trendin burada çizilecek",
+    "trendEmptyBody": "İkinci analizinle genel ve potansiyel skorun çizgiye dönüşür.",
+    "trendNextSlot": "İkinci analiz hakkın {date} tarihinde açılır."
   },
   "experts": {
     "title": "Uzman Ağı",
@@ -1244,6 +1341,7 @@
     "metaTitle": "Skor nasıl hesaplanır?",
     "metaDescription": "Aura skorunun yöntemi: telefonunda ölçülen oranlar, görünür bakım ayrıntıları ve herkes için aynı hesaplama.",
     "title": "Skor nasıl hesaplanır?",
+    "eyebrow": "Şeffaflık",
     "legacyNote": "Bu sayfa yeni yöntemi anlatır. Şu an analizler önceki yöntemle hesaplanıyor; yeni yöntem açıldığında bu not kalkar.",
     "summaryTitle": "Kısaca",
     "summary": "Yapısal alt skorlar telefonunda ölçülen oranlardan gelir. Cilt, saç ve bakım skorları fotoğraftaki görünür ve değiştirilebilir ayrıntılardan gelir: yapay zekâ bu ayrıntıları yalnız kategorilere ayırır (ör. “hafif parlama”). Tüm sayılar kodda, herkes için aynı tablolarla hesaplanır.",

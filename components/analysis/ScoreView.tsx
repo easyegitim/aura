@@ -1,5 +1,6 @@
 "use client";
 
+import { Scissors, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,6 +8,7 @@ import { CaptureHintsCard } from "@/components/analysis/CaptureHintsCard";
 import { ImproveFirstCard } from "@/components/analysis/ImproveFirstCard";
 import { LockedSection } from "@/components/analysis/LockedSection";
 import { MeasurementsCard } from "@/components/analysis/MeasurementsCard";
+import { MethodDisclosure } from "@/components/analysis/MethodDisclosure";
 import { REVEAL_COUNT_MS, REVEAL_LINES_MS, ScoreHero } from "@/components/analysis/ScoreHero";
 import { SubscoreList, type SubRow } from "@/components/analysis/SubscoreList";
 import { useBoundSelfie } from "@/components/analysis/useBoundSelfie";
@@ -117,17 +119,28 @@ export function ScoreView({ a, premium, currentEngine }: { a: ClientAnalysis; pr
     />
   );
   const subs = <SubscoreList rows={rows} hybrid={hybrid} reveal={reveal} onLocked={onLocked} />;
-  const improve = <ImproveFirstCard v={a.improveFirst} analysisId={a.id} onLocked={onLocked} />;
+  const improve = <ImproveFirstCard v={a.improveFirst} analysisId={a.id} onLocked={onLocked} kinds={a.kinds} />;
   const hints = <CaptureHintsCard hints={a.captureHints} />;
   const measurements = <MeasurementsCard a={a} onLocked={onLocked} />;
   const plan = (
-    <LockedSection title={t("planTitle")} description={t("planBody")} locked={!premium} onTap={() => onLocked("plan")}>
-      <div className="grid gap-2 sm:grid-cols-2">
-        <Button asChild className="min-h-11">
+    <LockedSection
+      title={t("planTitle")}
+      description={t("planBody")}
+      icon={<Sparkles className="size-4" />}
+      feature
+      ctaVariant="outline"
+      locked={!premium}
+      onTap={() => onLocked("plan")}
+    >
+      <div className="grid grid-cols-2 gap-2">
+        <Button asChild>
           <Link href={`/plan/${a.id}`}>{t("seePlan")}</Link>
         </Button>
-        <Button asChild variant="outline" className="min-h-11">
-          <Link href="/dene">{t("tryStyles")}</Link>
+        <Button asChild variant="outline">
+          <Link href="/dene">
+            <Scissors aria-hidden="true" />
+            {t("tryStyles")}
+          </Link>
         </Button>
       </div>
     </LockedSection>
@@ -141,26 +154,29 @@ export function ScoreView({ a, premium, currentEngine }: { a: ClientAnalysis; pr
   });
   const share = premium && overall !== null && potential !== null ? <ShareCardButton overall={overall} potential={potential} subs={shareSubs} /> : null;
   const feedback = a.status === "completed" ? <FeedbackButtons targetType="score" targetId={a.id} /> : null;
+  const method = <MethodDisclosure hybrid={hybrid} />;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {lowScore ? (
         <>
           {improve}
           {plan}
           {hero}
           {subs}
-          {hints}
           {measurements}
+          {hints}
+          {method}
         </>
       ) : (
         <>
           {hero}
           {subs}
           {improve}
-          {hints}
-          {measurements}
           {plan}
+          {measurements}
+          {hints}
+          {method}
         </>
       )}
       {share}
