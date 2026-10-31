@@ -5,7 +5,8 @@ import { getPremiumStatus } from "@/lib/api/premium";
 import { createReport } from "@/lib/coach/reportsStore";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+// engine spec §9.6: COACH.deadlineMs 110 s + pay. Vercel planının 120 s izin verdiği doğrulanmalı (onay maddesi).
+export const maxDuration = 120;
 
 const Input = z.object({ analysisId: z.uuid(), regenerate: z.boolean().optional() });
 

@@ -87,6 +87,14 @@ test.describe("Ana akış (F01–F13)", () => {
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByRole("dialog").getByText(/₺|TL/)).toBeVisible();
 
+    // Sayfa 2: planlar (yıllık seçili) → /premium aynı analize dönüş bilgisiyle (UI spec §4.1, §8.4)
+    await page.getByRole("dialog").getByRole("button", { name: "Planları gör" }).click();
+    const plans = page.getByRole("dialog").getByRole("radiogroup");
+    await expect(plans).toBeVisible();
+    await expect(plans.getByRole("radio", { name: "Yıllık" })).toBeChecked();
+    await page.getByRole("dialog").getByRole("link", { name: /^Devam et/ }).click();
+    await expect(page).toHaveURL(/\/premium\?plan=yearly&from=score_potential&analysis=[0-9a-f-]{36}/);
+
     // Anonim hesap ödeme uçlarına giremez; hesap bağlama istemi
     const checkout = await page.request.post("/api/billing/checkout", { data: { plan: "weekly", buyer: {}, accepted: { terms: true, waiver: true } } });
     expect([400, 403]).toContain(checkout.status());

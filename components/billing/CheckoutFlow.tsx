@@ -16,10 +16,10 @@ import { DEFAULT_PLAN_ID, PLANS, SUBSCRIPTION_PLAN_IDS, formatTry, weeklyEquival
 import { cn } from "@/lib/utils";
 
 type PlanChoice = SubscriptionPlanId | "week_pass";
-type Props = { isAnonymous: boolean; initialPlan: PlanChoice; weekPassEnabled: boolean; alreadyPremium: boolean };
+type Props = { isAnonymous: boolean; initialPlan: PlanChoice; weekPassEnabled: boolean; alreadyPremium: boolean; analysisId?: string };
 
 /** SPEC 15.2: plan → hesap bağlama (anonimse) → fatura formu + 2 onay → iyzico formu. Kart bilgisi iyzico formunda girilir. */
-export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alreadyPremium }: Props) {
+export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alreadyPremium, analysisId }: Props) {
   const t = useTranslations("checkout");
   const tp = useTranslations("pricing");
   const [plan, setPlan] = useState<PlanChoice>(initialPlan);
@@ -62,6 +62,7 @@ export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alread
         plan,
         buyer: { ...form, identityNumber: form.identityNumber || undefined },
         accepted: { terms: true, waiver: true },
+        ...(analysisId ? { analysisId } : {}),
       });
       if (res?.checkoutFormContent) setFormHtml(res.checkoutFormContent);
     } catch (err) {
@@ -137,7 +138,7 @@ export function CheckoutFlow({ isAnonymous, initialPlan, weekPassEnabled, alread
       </section>
 
       {!linked ? (
-        <LinkAccount returnPath={`/premium?plan=${plan}`} onLinked={() => setLinked(true)} />
+        <LinkAccount returnPath={`/premium?plan=${plan}${analysisId ? `&analysis=${analysisId}` : ""}`} onLinked={() => setLinked(true)} />
       ) : (
         <form onSubmit={submit} className="space-y-3">
           <Card>

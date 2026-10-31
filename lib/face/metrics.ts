@@ -3,6 +3,7 @@ import { IDX } from "./indices";
 import { eulerFromMatrix } from "./pose";
 import type { FrameAnalysis, GeometryResult, Point } from "./types";
 import { classifyFaceShape } from "./faceShape";
+import { computeSymmetry, derotate, type Symmetry } from "./symmetry";
 
 export type Metrics = GeometryResult["metrics"];
 
@@ -59,7 +60,32 @@ export function computeMetrics(L: Point[], hairlineY: number | null): Metrics {
   };
   const lowerToMiddle = lower / middle;
 
-  return { lengthRatio, jawRatio, foreheadRatio, fwhr, canthalTiltDeg, lowerToMiddle, thirds, hairlineFound };
+  // hybrid.v1 (engine spec §3.1): iris merkezleri arası / elmacık genişliği; göz–ağız mesafesi / 10–152 uzunluğu.
+  const ipdRatio = d(L[IDX.irisR], L[IDX.irisL]) / cheek;
+  const eyeMouthRatio =
+    ((L[IDX.stomionUpper].y + L[IDX.stomionLower].y) / 2 - (L[IDX.irisR].y + L[IDX.irisL].y) / 2) /
+    (L[IDX.menton].y - L[IDX.top].y);
+
+  return { lengthRatio, jawRatio, foreheadRatio, fwhr, canthalTiltDeg, lowerToMiddle, thirds, hairlineFound, ipdRatio, eyeMouthRatio };
+}
+
+/** engine spec §3.2: karede poz eşikleri (derece). Simetri |yaw| ≤ 3 ve |pitch| ≤ 10; göz–ağız |pitch| ≤ 8. */
+export const FRAME_POSE_LIMITS = { symmetryYaw: 3, symmetryPitch: 10, eyeMouthPitch: 8 } as const;
+
+/**
+ * Bir karenin simetrisi: noktalar piksel birimine (x·w, y·h, z·w) çevrilir, karenin matrisiyle de-rotasyon yapılır,
+ * roll düzeltilir, sonra aynalanır (engine spec §3.3). Matris yoksa veya geçersizse null.
+ */
+export function frameSymmetry(frame: Pick<FrameAnalysis, "landmarks" | "width" | "height" | "matrix">): Symmetry | null {
+  if (!frame.landmarks || !frame.matrix) return null;
+  const px = frame.landmarks.map((p) => ({ x: p.x * frame.width, y: p.y * frame.height, z: (p.z ?? 0) * frame.width }));
+  const der = derotate(px, frame.matrix);
+  if (!der) return null;
+  const { points } = rollCorrect(der);
+  const w = d(points[IDX.cheekR], points[IDX.cheekL]);
+  if (!(w > 0)) return null;
+  const s = computeSymmetry(points, w);
+  return Number.isFinite(s.face) && Number.isFinite(s.eyes) && Number.isFinite(s.lower) ? s : null;
 }
 
 export function median(values: number[]): number {
@@ -87,13 +113,34 @@ export function computeStableGeometry(frames: GeometryFrame[], capturedAt = new 
     const withHair = hairline ? [...px, hairline] : px;
     const { points } = rollCorrect(withHair);
     const hairY = hairline ? points[points.length - 1].y : null;
-    return computeMetrics(points.slice(0, px.length), hairY);
+    const m = computeMetrics(points.slice(0, px.length), hairY);
+    // engine spec §3.2: yeni metrikler yalnız matrisi olan karelerden; poz her karenin kendi matrisinden.
+    const pose = frame.matrix ? eulerFromMatrix(frame.matrix) : null;
+    const symOk =
+      pose !== null && Math.abs(pose.yaw) <= FRAME_POSE_LIMITS.symmetryYaw && Math.abs(pose.pitch) <= FRAME_POSE_LIMITS.symmetryPitch;
+    return {
+      m,
+      ipd: pose ? m.ipdRatio ?? null : null,
+      eyeMouth: pose && Math.abs(pose.pitch) <= FRAME_POSE_LIMITS.eyeMouthPitch ? m.eyeMouthRatio ?? null : null,
+      symmetry: symOk ? frameSymmetry(frame) : null,
+    };
   });
 
   const med = (pick: (m: Metrics) => number | null) => {
-    const vals = per.map(pick).filter((v): v is number => v !== null && Number.isFinite(v));
+    const vals = per.map((p) => pick(p.m)).filter((v): v is number => v !== null && Number.isFinite(v));
     return vals.length ? median(vals) : null;
   };
+  // Yeterli nitelikli kare yoksa null: en az min(3, kullanılabilir kare) kare gerekir.
+  const minFrames = Math.min(3, usable.length);
+  const medQualified = (vals: (number | null)[]) => {
+    const ok = vals.filter((v): v is number => v !== null && Number.isFinite(v));
+    return ok.length >= minFrames && ok.length > 0 ? median(ok) : null;
+  };
+  const syms = per.map((p) => p.symmetry).filter((v): v is Symmetry => v !== null);
+  const symmetry =
+    syms.length >= minFrames && syms.length > 0
+      ? { face: median(syms.map((x) => x.face)), eyes: median(syms.map((x) => x.eyes)), lower: median(syms.map((x) => x.lower)) }
+      : null;
 
   const upper = med((m) => m.thirds.upper);
   const metrics: Metrics = {
@@ -104,7 +151,10 @@ export function computeStableGeometry(frames: GeometryFrame[], capturedAt = new 
     canthalTiltDeg: med((m) => m.canthalTiltDeg)!,
     lowerToMiddle: med((m) => m.lowerToMiddle)!,
     thirds: { upper, middle: med((m) => m.thirds.middle)!, lower: med((m) => m.thirds.lower)! },
-    hairlineFound: per.filter((m) => m.hairlineFound).length * 2 > per.length,
+    hairlineFound: per.filter((p) => p.m.hairlineFound).length * 2 > per.length,
+    ipdRatio: medQualified(per.map((p) => p.ipd)),
+    eyeMouthRatio: medQualified(per.map((p) => p.eyeMouth)),
+    symmetry,
   };
   if (!metrics.hairlineFound) metrics.thirds.upper = null;
 
@@ -143,5 +193,10 @@ function roundMetrics(m: Metrics): Metrics {
       lower: round(m.thirds.lower, 3),
     },
     hairlineFound: m.hairlineFound,
+    ipdRatio: roundOpt(m.ipdRatio, 3),
+    eyeMouthRatio: roundOpt(m.eyeMouthRatio, 3),
+    symmetry: m.symmetry ? { face: round(m.symmetry.face, 3), eyes: round(m.symmetry.eyes, 3), lower: round(m.symmetry.lower, 3) } : null,
   };
 }
+
+const roundOpt = (v: number | null | undefined, digits: number) => (v === null || v === undefined ? null : round(v, digits));

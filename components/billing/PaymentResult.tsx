@@ -55,7 +55,7 @@ export function PaymentResult({ status: initial, analysisId }: Props) {
         {status === "ok" ? (
           <Button asChild size="lg"><Link href={analysisId ? `/analiz/${analysisId}` : "/analiz"}>{analysisId ? t("ok.cta") : t("ok.ctaList")}</Link></Button>
         ) : status === "failed" ? (
-          <Button asChild size="lg"><Link href="/premium">{t("failed.cta")}</Link></Button>
+          <Button asChild size="lg"><Link href={analysisId ? `/premium?analysis=${analysisId}` : "/premium"}>{t("failed.cta")}</Link></Button>
         ) : null}
         <Button asChild variant="ghost"><Link href="/hesap">{t("account")}</Link></Button>
       </CardContent>

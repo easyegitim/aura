@@ -12,6 +12,8 @@ export const GeometrySchema = z.object({
     brightness: z.number(),
     sharpness: z.number(),
     passed: z.boolean(),
+    /** Elle çekim üst verisi; skora girmez (UI spec S7). */
+    relaxed: z.boolean().optional(),
   }),
   metrics: z.object({
     lengthRatio: z.number().min(0.5).max(3),
@@ -22,6 +24,13 @@ export const GeometrySchema = z.object({
     lowerToMiddle: z.number().min(0.2).max(4),
     thirds: z.object({ upper: z.number().nullable(), middle: z.number(), lower: z.number() }),
     hairlineFound: z.boolean(),
+    // hybrid.v1 ek metrikleri (engine spec §1.2, C1); eski istemciler için isteğe bağlı.
+    ipdRatio: z.number().min(0.2).max(0.8).nullable().optional(),
+    eyeMouthRatio: z.number().min(0.15).max(0.7).nullable().optional(),
+    symmetry: z
+      .object({ face: z.number().min(0).max(0.3), eyes: z.number().min(0).max(0.3), lower: z.number().min(0).max(0.3) })
+      .nullable()
+      .optional(),
   }),
   faceShape: z.object({ primary: FaceShape, secondary: FaceShape.optional(), confidence: z.number().min(0).max(1) }),
   capturedAt: z.string(),

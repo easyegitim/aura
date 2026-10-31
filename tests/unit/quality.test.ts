@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { QUALITY_CONFIG, checkQuality, faceBox } from "@/lib/face/quality";
+import {
+  MANUAL_CAPTURE,
+  MANUAL_QUALITY_CONFIG,
+  QUALITY_CONFIG,
+  SOFT_ISSUES,
+  checkQuality,
+  faceBox,
+  manualOfferReady,
+  qualitySummary,
+} from "@/lib/face/quality";
 import type { FrameAnalysis, Point } from "@/lib/face/types";
 
 /** Merkezde, genişliği w olan dikdörtgen "yüz" noktaları. */
@@ -84,5 +93,69 @@ describe("checkQuality (SPEC 7.3)", () => {
     expect(QUALITY_CONFIG.yawMaxDeg).toBe(8);
     expect(QUALITY_CONFIG.sharpnessMin).toBe(60);
     expect(QUALITY_CONFIG.stableMs).toBe(600);
+  });
+});
+
+/** Sunucu kapısı (sözleşme C13): parlaklık 55–225, netlik ≥ 35, |yaw| ≤ 12, |pitch| ≤ 15, |roll| ≤ 10. */
+const SERVER_GATE = { brightness: { min: 55, max: 225 }, sharpnessMin: 35, yaw: 12, pitch: 15, roll: 10 };
+
+describe("elle çekim (UI spec §6.1)", () => {
+  const LIVE = MANUAL_CAPTURE.offerAfterMs;
+
+  it("gevşek yapılandırma sunucu kapısının içinde; sert eşikler değişmez", () => {
+    expect(MANUAL_QUALITY_CONFIG.brightness.min).toBeGreaterThanOrEqual(SERVER_GATE.brightness.min);
+    expect(MANUAL_QUALITY_CONFIG.brightness.max).toBeLessThanOrEqual(SERVER_GATE.brightness.max);
+    expect(MANUAL_QUALITY_CONFIG.sharpnessMin).toBeGreaterThanOrEqual(SERVER_GATE.sharpnessMin);
+    expect(MANUAL_QUALITY_CONFIG.yawMaxDeg).toBeLessThanOrEqual(SERVER_GATE.yaw);
+    expect(MANUAL_QUALITY_CONFIG.pitchMaxDeg).toBeLessThanOrEqual(SERVER_GATE.pitch);
+    expect(MANUAL_QUALITY_CONFIG.rollMaxDeg).toBeLessThanOrEqual(SERVER_GATE.roll);
+    for (const k of ["faceWidthRatio", "yawMaxDeg", "pitchMaxDeg", "rollMaxDeg", "eyeBlinkMax", "mouthSmileMax", "jawOpenMax"] as const) {
+      expect(MANUAL_QUALITY_CONFIG[k]).toEqual(QUALITY_CONFIG[k]);
+    }
+    // Sıkı eşikler aynen kalır
+    expect(QUALITY_CONFIG.brightness).toEqual({ min: 80, max: 200 });
+    expect(QUALITY_CONFIG.centerOffsetMax).toBe(0.12);
+  });
+
+  it("8 sn sonra yalnız yumuşak sorun varsa teklif edilir", () => {
+    expect(manualOfferReady(frame({ brightness: 70 }), LIVE)).toBe(true); // too_dark (sıkı), gevşekte geçer
+    expect(manualOfferReady(frame({ sharpness: 45 }), LIVE)).toBe(true); // blurry
+    expect(manualOfferReady(frame({ brightnessBalance: 45 }), LIVE)).toBe(true); // uneven_light
+    expect(manualOfferReady(frame({ landmarks: fakeFace(0.5, 0.6, 0.6) }), LIVE)).toBe(true); // off_center ≈ 0,14
+  });
+
+  it("8 sn dolmadan, sıkı kontrol geçerken veya gevşek kontrol de başarısızken teklif yok", () => {
+    expect(manualOfferReady(frame({ brightness: 70 }), LIVE - 1)).toBe(false);
+    expect(manualOfferReady(frame(), LIVE)).toBe(false);
+    expect(manualOfferReady(frame({ brightness: 50 }), LIVE)).toBe(false);
+    expect(manualOfferReady(frame({ sharpness: 30 }), LIVE)).toBe(false);
+  });
+
+  it("her sert sorun teklifi engeller", () => {
+    const rad = (10 * Math.PI) / 180;
+    const yawed = [Math.cos(rad), 0, -Math.sin(rad), 0, 0, 1, 0, 0, Math.sin(rad), 0, Math.cos(rad), 0, 0, 0, 0, 1];
+    const hard: Partial<FrameAnalysis>[] = [
+      { faces: 0, landmarks: null },
+      { faces: 2 },
+      { landmarks: fakeFace(0.3) },
+      { landmarks: fakeFace(0.8) },
+      { matrix: yawed },
+      { blendshapes: { eyeBlinkLeft: 0.6, eyeBlinkRight: 0.1, mouthSmileLeft: 0, mouthSmileRight: 0, jawOpen: 0 } },
+      { blendshapes: { eyeBlinkLeft: 0, eyeBlinkRight: 0, mouthSmileLeft: 0.6, mouthSmileRight: 0, jawOpen: 0 } },
+    ];
+    for (const over of hard) {
+      // Yumuşak bir sorunla birlikte bile
+      expect(manualOfferReady(frame({ brightness: 70, ...over }), LIVE)).toBe(false);
+    }
+    expect(SOFT_ISSUES).not.toContain("head_angle");
+  });
+
+  it("qualitySummary: sıkı geçen → good, yalnız gevşek geçen → ok", () => {
+    expect(qualitySummary(checkQuality(frame()).measures)).toEqual({ light: "good", sharpness: "good", framing: "good" });
+    const relaxed = frame({ brightness: 70, sharpness: 45, landmarks: fakeFace(0.5, 0.6, 0.6) });
+    expect(checkQuality(relaxed, MANUAL_QUALITY_CONFIG).passed).toBe(true);
+    expect(qualitySummary(checkQuality(relaxed).measures)).toEqual({ light: "ok", sharpness: "ok", framing: "ok" });
+    expect(qualitySummary(checkQuality(frame({ brightnessBalance: 45 })).measures).light).toBe("ok");
+    expect(qualitySummary(checkQuality(frame({ brightness: null, sharpness: null })).measures)).toMatchObject({ light: "good", sharpness: "good" });
   });
 });

@@ -2,6 +2,7 @@
 // (components/providers/AnalyticsProvider.tsx). Sunucuda track() no-op'tur.
 // Kural: olaylara fotoğraf, skor, metrik, e-posta eklenmez; tip sistemi bunu zorlar.
 // İstemci yapısal tiptedir: web posthog-js, mobil posthog-react-native aynı arayüzü sağlar.
+import type { MethodFrom } from "@/lib/config/method";
 
 export type AnalyticsEvents = {
   landing_cta_clicked: undefined;
@@ -27,6 +28,18 @@ export type AnalyticsEvents = {
   expert_request_sent: { specialty: string };
   feedback_sent: { targetType: string; rating: number | null };
   account_deletion_requested: undefined;
+  // UI spec §8.2 (kapalı liste): skor, değer, kaldıraç, fotoğraf, metrik, e-posta yok.
+  result_viewed: { tier: "free" | "premium"; overlay: "photo" | "schematic"; legacy: boolean };
+  overlay_opened: { source: "photo" | "schematic" };
+  method_viewed: { from: MethodFrom };
+  paywall_step_viewed: { step: "plans"; trigger: string };
+  paywall_plan_selected: { plan: "weekly" | "monthly" | "yearly" | "week_pass" };
+  paywall_dismissed: { step: "benefits" | "plans" };
+  capture_manual_offered: undefined;
+  /** issue: QualityIssue kodu. */
+  capture_manual_used: { issue: string };
+  improve_first_clicked: { position: 1 | 2 | 3 };
+  plan_basis_edit_clicked: undefined;
 };
 
 export type AnalyticsEventName = keyof AnalyticsEvents;

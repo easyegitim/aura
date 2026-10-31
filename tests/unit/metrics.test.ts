@@ -3,6 +3,7 @@ import { IDX } from "@/lib/face/indices";
 import { computeMetrics, computeStableGeometry, eyeTilt, median, rollCorrect, toPixels } from "@/lib/face/metrics";
 import type { FrameAnalysis } from "@/lib/face/types";
 import { normalize, syntheticFace } from "../helpers/syntheticFace";
+import { FRAME_H, FRAME_W, frontalFace, poseMatrix, posedFace, toNormalized } from "../helpers/mirroredFace";
 
 const base = { cheek: 100, length: 140, jaw: 84, forehead: 90 };
 
@@ -115,5 +116,79 @@ describe("median ve computeStableGeometry", () => {
 
   it("toPixels normalize noktaları piksele çevirir", () => {
     expect(toPixels([{ x: 0.5, y: 0.25 }], 720, 960)[0]).toEqual({ x: 360, y: 240, z: undefined });
+  });
+});
+
+describe("hybrid.v1 metrikleri (engine spec §3.1–3.2)", () => {
+  // Ayna yüzde: iris 140/300, göz–ağız (102 − (−40)) / 380.
+  const IPD = 140 / 300;
+  const EYE_MOUTH = 142 / 380;
+
+  function mframe(pose: { yaw?: number; pitch?: number } = {}, extra: Partial<FrameAnalysis> = {}): FrameAnalysis {
+    const yaw = pose.yaw ?? 0;
+    const pitch = pose.pitch ?? 0;
+    return {
+      width: FRAME_W,
+      height: FRAME_H,
+      faces: 1,
+      landmarks: toNormalized(posedFace({ yaw, pitch })),
+      blendshapes: null,
+      matrix: poseMatrix(pitch, yaw, 0),
+      brightness: 130,
+      brightnessBalance: 5,
+      sharpness: 90,
+      hairVisible: true,
+      timestamp: 0,
+      ...extra,
+    };
+  }
+  const geo = (frames: FrameAnalysis[]) => computeStableGeometry(frames.map((frame) => ({ frame, hairline: null })));
+
+  it("computeMetrics ipdRatio ve eyeMouthRatio'yu verir", () => {
+    const m = computeMetrics(frontalFace(), null);
+    expect(m.ipdRatio).toBeCloseTo(IPD, 9);
+    expect(m.eyeMouthRatio).toBeCloseTo(EYE_MOUTH, 9);
+  });
+
+  it("önden kareler: yeni metrikler 3 ondalık ve simetri ~0", () => {
+    const g = geo([mframe(), mframe(), mframe()]);
+    expect(g.metrics.ipdRatio).toBeCloseTo(IPD, 3);
+    expect(g.metrics.eyeMouthRatio).toBeCloseTo(EYE_MOUTH, 3);
+    expect(g.metrics.symmetry).toEqual({ face: 0, eyes: 0, lower: 0 });
+    expect(String(g.metrics.ipdRatio).split(".")[1]?.length ?? 0).toBeLessThanOrEqual(3);
+  });
+
+  it("yaw 4° kareler simetriden çıkarılır; yeterli kare yoksa null", () => {
+    // 3 nitelikli + 2 yaw 4° → simetri var
+    expect(geo([mframe({ yaw: 4 }), mframe(), mframe({ yaw: 4 }), mframe(), mframe()]).metrics.symmetry).not.toBeNull();
+    // 2 nitelikli + 3 yaw 4° → min(3, 5) = 3 kare gerekir → null; ipd (tüm kareler) kalır
+    const g = geo([mframe({ yaw: 4 }), mframe(), mframe({ yaw: 4 }), mframe({ yaw: 4 }), mframe()]);
+    expect(g.metrics.symmetry).toBeNull();
+    expect(g.metrics.ipdRatio).not.toBeNull();
+  });
+
+  it("göz–ağız yalnız |pitch| ≤ 8 karelerden; simetri |pitch| ≤ 10", () => {
+    const g = geo([mframe({ pitch: 9 }), mframe({ pitch: 9 }), mframe({ pitch: 9 })]);
+    expect(g.metrics.eyeMouthRatio).toBeNull();
+    expect(g.metrics.symmetry).not.toBeNull();
+  });
+
+  it("matrissiz kare yeni medyanlardan çıkarılır", () => {
+    const g = geo([mframe({}, { matrix: null }), mframe({}, { matrix: null }), mframe({}, { matrix: null }), mframe(), mframe()]);
+    expect(g.metrics.symmetry).toBeNull();
+    expect(g.metrics.ipdRatio).toBeNull();
+    expect(g.metrics.eyeMouthRatio).toBeNull();
+    // Eski metrikler matrissiz karelerden de hesaplanır.
+    expect(g.metrics.lengthRatio).toBeGreaterThan(0);
+  });
+
+  it("tek kare yeterlidir (min(3, 1)); JSON < 600 karakter, landmarks ve x/y anahtarı yok", () => {
+    const g = geo([mframe({ yaw: 2 })]);
+    expect(g.metrics.symmetry).not.toBeNull();
+    const json = JSON.stringify(g);
+    expect(json.length).toBeLessThan(600);
+    expect(json).not.toContain("landmarks");
+    expect(json).not.toMatch(/"x":|"y":/);
+    expect(g.version).toBe("geo-v1");
   });
 });

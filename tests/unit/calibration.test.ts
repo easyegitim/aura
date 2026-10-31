@@ -38,3 +38,15 @@ describe("kalibrasyon v1 (yüzdelik tablo)", () => {
     expect(calibrate(6.5, "v1", { table: t, sub: "hair" })).toBe(5.5);
   });
 });
+
+describe("kalibrasyon h1 (engine spec §5.1)", () => {
+  it("kimlik + 1,0–9,8 kenetleme, tek ondalık", () => {
+    expect(calibrate(6.5, "h1")).toBe(6.5);
+    expect(calibrate(5.449, "h1")).toBe(5.4);
+    expect(calibrate(-3, "h1")).toBe(1);
+    expect(calibrate(10, "h1")).toBe(9.8);
+  });
+  it("alt skor seçeneği h1'i değiştirmez (alt skor başına tablo yok)", () => {
+    expect(calibrate(6.2, "h1", { sub: "skin" })).toBe(calibrate(6.2, "h1"));
+  });
+});

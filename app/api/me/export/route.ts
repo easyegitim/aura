@@ -4,10 +4,22 @@ import { getPremiumStatus } from "@/lib/api/premium";
 import { getTeaserConfig } from "@/lib/config/teaser";
 import { createAdminClient } from "@/lib/db/admin";
 import { toClientAnalysis, type AnalysisRow } from "@/lib/score/present";
+import { selectAnalysisRows } from "@/lib/score/rowColumns";
+import tr from "@/messages/tr.json";
 
 export const runtime = "nodejs";
 
 const DAILY_LIMIT = 3;
+
+/**
+ * KVKK m. 11 tam kopya başvurusu notu (engine spec §8, UI spec R16). Uygulama içi dışa aktarma kilit kırpmalı kalır;
+ * not, ayrı başvuru yolunu gösterir. Yol ve adres kullanıcı + hukukçu onayıyla belirlenir: KVKK_REQUEST_ADDRESS
+ * tanımlanana kadar not gönderilmez (null), böylece yer tutucu bir adres kullanıcıya gösterilmez.
+ */
+function kvkkExportNote(env: Record<string, string | undefined> = process.env): string | null {
+  const address = env.KVKK_REQUEST_ADDRESS?.trim();
+  return address ? tr.account.export.kvkkNote.replace("{address}", address) : null;
+}
 
 /**
  * SPEC 14 / Faz 13 madde 3: GET /api/me/export → JSON dosyası; günde 3.
@@ -38,12 +50,10 @@ export const GET = withGuard({}, async ({ user, supabase }) => {
   ]);
 
   // analyses / coach_reports: tarayıcı politikası yok → service role, yalnız bu kullanıcı, teaser kırpmasıyla
-  const { data: analysesRaw } = await admin
-    .from("analyses")
-    .select("id, status, created_at, face_shape, overall, potential, subscores, gains, observations, geometry, calibration_version")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true });
-  const analyses = (analysesRaw ?? []).map((a) => toClientAnalysis(a as AnalysisRow, premium, teaser.mode, teaser.subscore));
+  const { data: analysesRaw } = await selectAnalysisRows((cols) =>
+    admin.from("analyses").select(cols).eq("user_id", user.id).order("created_at", { ascending: true }),
+  );
+  const analyses = ((analysesRaw as AnalysisRow[] | null) ?? []).map((a) => toClientAnalysis(a, premium, teaser.mode, teaser.subscore));
 
   let reports: unknown[] = [];
   if (premium) {
@@ -54,6 +64,7 @@ export const GET = withGuard({}, async ({ user, supabase }) => {
   const payload = {
     exportedAt: new Date().toISOString(),
     format: "aura-export/1",
+    kvkkNote: kvkkExportNote(),
     account: { id: user.id, email: user.email ?? null, isAnonymous: Boolean(user.is_anonymous), createdAt: user.created_at },
     profile: profile.data ?? null,
     consents: consents.data ?? [],

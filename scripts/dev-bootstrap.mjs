@@ -8,7 +8,8 @@
  *   5. isteğe bağlı: test hesabına sınırsız hak verir (--unlimited <user_id> | --unlimited latest).
  * Her adım bağımsızdır; biri başarısız olursa elle yapılacak adımı yazar ve devam eder.
  *
- * Kullanım: SUPABASE_ACCESS_TOKEN=sbp_... SUPABASE_PROJECT_REF=xxxx [GEMINI_API_KEY=...] node scripts/dev-bootstrap.mjs [--premium latest]
+ * Kullanım: SUPABASE_ACCESS_TOKEN=sbp_... SUPABASE_PROJECT_REF=xxxx [GEMINI_API_KEY=...] [ANTHROPIC_API_KEY=...] node scripts/dev-bootstrap.mjs [--premium latest]
+ * ANTHROPIC_API_KEY verilirse Claude motoru da açılır: SCORE_ENGINE=hybrid.v1, AI_OBSERVE_PROVIDER=claude, AI_COACH_PROVIDER=claude.
  * Gizli değerler yalnız .env.local'e yazılır (depoya girmez); ekrana basılmaz.
  */
 import { spawnSync } from "node:child_process";
@@ -47,8 +48,9 @@ if (!existsSync(envPath)) {
 }
 let env = readFileSync(envPath, "utf8");
 const get = (k) => (env.match(new RegExp(`^${k}=([^\\n#]*)`, "m"))?.[1] ?? "").trim();
-function set(k, v) {
-  if (get(k)) return false; // dolu değeri ezme
+function set(k, v, force = false) {
+  if (!force && get(k)) return false; // dolu değeri ezme (force: motor seçimi gibi gizli olmayan ayarlar)
+  if (get(k) === v) return false;
   env = env.match(new RegExp(`^${k}=`, "m")) ? env.replace(new RegExp(`^${k}=[^\\n]*`, "m"), `${k}=${v}`) : `${env.trimEnd()}\n${k}=${v}\n`;
   return true;
 }
@@ -86,6 +88,11 @@ if (set("NEXT_PUBLIC_SUPABASE_URL", `https://${ref}.supabase.co`)) wrote++;
 if (anon && set("NEXT_PUBLIC_SUPABASE_ANON_KEY", anon)) wrote++;
 if (service && set("SUPABASE_SERVICE_ROLE_KEY", service)) wrote++;
 if (process.env.GEMINI_API_KEY && set("GEMINI_API_KEY", process.env.GEMINI_API_KEY)) wrote++;
+if (process.env.ANTHROPIC_API_KEY) {
+  if (set("ANTHROPIC_API_KEY", process.env.ANTHROPIC_API_KEY)) wrote++;
+  // Yalnız yerel prototip: Claude motoru (hybrid.v1) ve Claude koç raporu. Production bu betikle ayarlanmaz.
+  for (const [k, v] of [["SCORE_ENGINE", "hybrid.v1"], ["AI_OBSERVE_PROVIDER", "claude"], ["AI_COACH_PROVIDER", "claude"]]) if (set(k, v, true)) wrote++;
+}
 writeFileSync(envPath, env);
 console.log(`  ${wrote} değer yazıldı`);
 if (!anon || !service) console.log("  ! anahtarlar API'den alınamadı. Elle: Supabase → Settings → API → anon ve service_role değerlerini .env.local'e yapıştır.");

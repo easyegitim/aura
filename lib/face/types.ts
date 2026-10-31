@@ -5,7 +5,16 @@ export type Point = { x: number; y: number; z?: number };
 
 export type GeometryResult = {
   version: "geo-v1";
-  quality: { yaw: number; pitch: number; roll: number; brightness: number; sharpness: number; passed: boolean };
+  quality: {
+    yaw: number;
+    pitch: number;
+    roll: number;
+    brightness: number;
+    sharpness: number;
+    passed: boolean;
+    /** Elle çekim (gevşek yumuşak eşikler). Yalnız saklanan üst veri; hiçbir skoru değiştirmez (UI spec S7, C7). */
+    relaxed?: boolean;
+  };
   metrics: {
     lengthRatio: number;
     jawRatio: number;
@@ -15,6 +24,11 @@ export type GeometryResult = {
     lowerToMiddle: number;
     thirds: { upper: number | null; middle: number; lower: number };
     hairlineFound: boolean;
+    /** hybrid.v1 ek metrikleri (engine spec §1.2, C1). İsteğe bağlı: eski istemciler göndermez; sürüm "geo-v1" kalır. */
+    ipdRatio?: number | null;
+    eyeMouthRatio?: number | null;
+    /** De-rotasyon sonrası ayna RMS'i (yüz genişliğine oranla); koordinat taşımaz. */
+    symmetry?: { face: number; eyes: number; lower: number } | null;
   };
   faceShape: { primary: FaceShape; secondary?: FaceShape; confidence: number };
   capturedAt: string;

@@ -4,6 +4,7 @@ import { getPremiumStatus } from "@/lib/api/premium";
 import { getTeaserConfig } from "@/lib/config/teaser";
 import { createAdminClient } from "@/lib/db/admin";
 import { toClientAnalysis, type AnalysisRow } from "@/lib/score/present";
+import { selectAnalysisRows } from "@/lib/score/rowColumns";
 
 export const runtime = "nodejs";
 
@@ -12,12 +13,7 @@ export const GET = withGuard({}, async ({ req, user, supabase }) => {
   const id = new URL(req.url).pathname.split("/").pop() ?? "";
   if (!z.uuid().safeParse(id).success) return notFound();
   const admin = createAdminClient();
-  const { data } = await admin
-    .from("analyses")
-    .select("id, status, created_at, face_shape, overall, potential, subscores, gains, observations, geometry, calibration_version")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data } = await selectAnalysisRows((cols) => admin.from("analyses").select(cols).eq("id", id).eq("user_id", user.id).maybeSingle());
   if (!data) return notFound();
   const { premium } = await getPremiumStatus(supabase, user.id);
   const teaser = getTeaserConfig();

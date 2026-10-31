@@ -25,6 +25,8 @@ const Input = z.object({
     zipCode: z.string().trim().max(10).optional(),
   }),
   accepted: z.object({ terms: z.literal(true), waiver: z.literal(true) }),
+  /** Ödeme sonrası dönülecek analiz (UI spec §4.2). Yalnız yönlendirme içindir; sahiplik callback'te doğrulanır. */
+  analysisId: z.uuid().optional(),
 });
 
 /**
@@ -72,7 +74,7 @@ export const POST = withGuard({ schema: Input, allowAnonymous: false, requireAdu
       { onConflict: "user_id" },
     );
     if (error) throw new Error("pending subscription upsert failed");
-    await admin.from("payment_events").insert({ provider: "iyzico", event_key: `checkout:${init.token}`, payload: { conversationId, plan: input.plan, userId: user.id, token: init.token } });
+    await admin.from("payment_events").insert({ provider: "iyzico", event_key: `checkout:${init.token}`, payload: { conversationId, plan: input.plan, userId: user.id, token: init.token, ...(input.analysisId ? { analysisId: input.analysisId } : {}) } });
 
     // Sözleşme + ön bilgilendirme kopyası (Resend) — e-posta gönderimi callback'te başarı sonrası yapılır; burada yalnız hazırlanır.
     await renderContracts({ plan: input.plan, buyerName: `${buyer.name} ${buyer.surname}`, buyerEmail: email, buyerAddress: `${buyer.address}, ${buyer.city}` });

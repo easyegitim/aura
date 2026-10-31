@@ -1,14 +1,15 @@
 "use client";
 
-import { Camera, ImageUp, RotateCcw } from "lucide-react";
+import { Camera, ImageUp, RotateCcw, Scale, ScanFace, Send, Smartphone, Smile, Sun, User } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { track } from "@/lib/analytics";
 import { VisionClient } from "@/lib/face/client";
 import { PreprocessError, loadImageFile, resizeToAnalysis, type LoadedImage } from "@/lib/face/preprocess";
-import { QUALITY_CONFIG, checkQuality, type QualityReport } from "@/lib/face/quality";
+import { MANUAL_QUALITY_CONFIG, QUALITY_CONFIG, checkQuality, manualOfferReady, type QualityReport } from "@/lib/face/quality";
 import type { FrameAnalysis } from "@/lib/face/types";
 import { cn } from "@/lib/utils";
 
@@ -21,14 +22,23 @@ export type CaptureResult = {
   recentFrames: FrameAnalysis[];
   quality: QualityReport;
   source: "camera" | "gallery";
+  /** Elle çekim ("Şimdi çek") ve sıkı kontrol geçmedi. Yalnız saklanan üst veri; skoru değiştirmez (C7). */
+  relaxed: boolean;
 };
 
 type Stage = "guide" | "loading" | "live" | "countdown" | "processing" | "review" | "denied" | "model_error";
 
-type Props = { onCapture: (r: CaptureResult) => void };
+type Props = {
+  onCapture: (r: CaptureResult) => void;
+  /** Analiz akışında güven bloğundaki sağlayıcı adı; hukuki onaya kadar nötr "yapay zekâ" (UI spec §5.3).
+   *  Verilmezse (ör. deneme ekranı) güven bloğu yerine eski kısa gizlilik notu gösterilir. */
+  aiProviderName?: string;
+};
+
+const TIP_ICONS = { light: Sun, neutral: Smile, frame: ScanFace, alone: User } as const;
 
 /** SPEC 7 / Faz 4: rehber → kamera (aynalı, oval kılavuz, tek satır uyarı) → 600 ms kararlı → 3-2-1 → çekim; galeriden yükleme. */
-export function SelfieCamera({ onCapture }: Props) {
+export function SelfieCamera({ onCapture, aiProviderName }: Props) {
   const t = useTranslations("camera");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -41,6 +51,8 @@ export function SelfieCamera({ onCapture }: Props) {
   const stageRef = useRef<Stage>("guide");
   const attemptsRef = useRef(0);
   const countdownEndRef = useRef<number | null>(null);
+  const liveStartedAtRef = useRef<number | null>(null);
+  const manualOfferedRef = useRef(false);
 
   const [stage, setStageState] = useState<Stage>("guide");
   const [issue, setIssue] = useState<string | null>(null);
@@ -48,6 +60,7 @@ export function SelfieCamera({ onCapture }: Props) {
   const [countdown, setCountdown] = useState(0);
   const [review, setReview] = useState<{ url: string; report: QualityReport; result: CaptureResult | null } | null>(null);
   const [modelReady, setModelReady] = useState(false);
+  const [manualOffered, setManualOffered] = useState(false);
 
   const setStage = useCallback((s: Stage) => {
     stageRef.current = s;
@@ -78,8 +91,20 @@ export function SelfieCamera({ onCapture }: Props) {
 
   useEffect(() => () => stopCamera(), [stopCamera]);
 
+  /** Canlı akışın kalıntılarını temizler: eski kareler galeri sonucuna veya yeni çekime karışmaz. */
+  const resetLiveState = useCallback(() => {
+    recentRef.current = [];
+    stableSinceRef.current = null;
+    countdownEndRef.current = null;
+    liveStartedAtRef.current = null;
+    manualOfferedRef.current = false;
+    setManualOffered(false);
+    setIssue(null);
+    setWarning(null);
+  }, []);
+
   const finalizeCapture = useCallback(
-    async (bitmap: ImageBitmap, source: "camera" | "gallery") => {
+    async (bitmap: ImageBitmap, source: "camera" | "gallery", opts: { manual?: boolean } = {}) => {
       setStage("processing");
       const client = VisionClient.get();
       let image: LoadedImage | null = null;
@@ -87,12 +112,22 @@ export function SelfieCamera({ onCapture }: Props) {
         image = await resizeToAnalysis(bitmap);
         const forWorker = await createImageBitmap(image.bitmap);
         const final = await client.detectImage(forWorker);
-        const report = checkQuality(final);
+        // Galeri yüklemeleri sıkı kontrolde kalır (SPEC 7.3); gevşek eşikler yalnız elle çekimde.
+        const strict = checkQuality(final);
+        const report = opts.manual ? checkQuality(final, MANUAL_QUALITY_CONFIG) : strict;
+        if (opts.manual) track("capture_manual_used", { issue: strict.issues[0] ?? "none" });
         const url = URL.createObjectURL(await bitmapToBlob(image.bitmap));
         if (report.passed) {
           attemptsRef.current++;
           track("capture_succeeded", { attempts: attemptsRef.current });
-          const result: CaptureResult = { image, final, recentFrames: recentRef.current.slice(-5), quality: report, source };
+          const result: CaptureResult = {
+            image,
+            final,
+            recentFrames: source === "gallery" ? [] : recentRef.current.slice(-5),
+            quality: report,
+            source,
+            relaxed: opts.manual === true && !strict.passed,
+          };
           setReview({ url, report, result });
         } else {
           attemptsRef.current++;
@@ -103,13 +138,15 @@ export function SelfieCamera({ onCapture }: Props) {
         setStage("review");
       } catch {
         image?.bitmap.close();
+        // Kamera bu noktada durdurulmuştur: canlı görünüme dönmek ölü bir önizleme bırakırdı.
+        resetLiveState();
         setIssue(t("errors.processing"));
-        setStage(source === "camera" ? "live" : "guide");
+        setStage("guide");
       } finally {
         bitmap.close();
       }
     },
-    [setStage, t],
+    [resetLiveState, setStage, t],
   );
 
   const loopRef = useRef<() => Promise<void>>(async () => {});
@@ -126,7 +163,14 @@ export function SelfieCamera({ onCapture }: Props) {
         const bitmap = await createImageBitmap(video);
         const frame = await VisionClient.get().detectVideo(bitmap, now);
         const report = checkQuality(frame);
+        if (stageRef.current !== "live" && stageRef.current !== "countdown") return;
         setIssue(report.issues[0] ? t(`issues.${report.issues[0]}`) : null);
+        // 8 sn sonra yalnız yumuşak sorunlar kaldıysa "Şimdi çek" (canlı akış bitene kadar kalır).
+        if (!manualOfferedRef.current && liveStartedAtRef.current !== null && manualOfferReady(frame, now - liveStartedAtRef.current)) {
+          manualOfferedRef.current = true;
+          setManualOffered(true);
+          track("capture_manual_offered");
+        }
         setWarning(report.warnings[0] ? t(`warnings.${report.warnings[0]}`) : null);
         if (report.passed) {
           recentRef.current = [...recentRef.current.slice(-4), frame];
@@ -181,8 +225,8 @@ export function SelfieCamera({ onCapture }: Props) {
       if (!video) return;
       video.srcObject = stream;
       await video.play();
-      recentRef.current = [];
-      stableSinceRef.current = null;
+      resetLiveState();
+      liveStartedAtRef.current = performance.now();
       setStage("live");
       rafRef.current = requestAnimationFrame(() => void loopRef.current());
     } catch (err) {
@@ -197,6 +241,7 @@ export function SelfieCamera({ onCapture }: Props) {
   }
 
   async function onFile(file: File | undefined) {
+    resetLiveState();
     if (!file) return;
     track("capture_started", { source: "gallery" });
     setStage("loading");
@@ -217,8 +262,27 @@ export function SelfieCamera({ onCapture }: Props) {
     if (review) URL.revokeObjectURL(review.url);
     review?.result?.image.bitmap.close();
     setReview(null);
-    setIssue(null);
+    resetLiveState();
     setStage("guide");
+  }
+
+  /** "Şimdi çek": o anki kare gevşek eşiklerle denetlenir; sert sorunlar yine engeller. */
+  async function captureNow() {
+    const video = videoRef.current;
+    if (!video || (stageRef.current !== "live" && stageRef.current !== "countdown")) return;
+    setStage("processing");
+    let full: ImageBitmap;
+    try {
+      full = await createImageBitmap(video);
+    } catch {
+      stopCamera();
+      resetLiveState();
+      setIssue(t("errors.processing"));
+      setStage("guide");
+      return;
+    }
+    stopCamera();
+    await finalizeCapture(full, "camera", { manual: true });
   }
 
   function useResult() {
@@ -244,6 +308,7 @@ export function SelfieCamera({ onCapture }: Props) {
           {/* eslint-disable-next-line @next/next/no-img-element -- yerel blob, next/image uygun değil */}
           <img src={review.url} alt="" className="mx-auto max-h-[50dvh] rounded-lg" />
           {review.report.warnings[0] ? <p className="text-xs text-muted-foreground">{t(`warnings.${review.report.warnings[0]}`)}</p> : null}
+          {review.result?.relaxed ? <p className="text-sm text-muted-foreground">{t("review.relaxedNote")}</p> : null}
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={retake}>
               <RotateCcw aria-hidden="true" /> {t("review.retake")}
@@ -259,6 +324,32 @@ export function SelfieCamera({ onCapture }: Props) {
     );
   }
 
+  // Güven bloğu (UI spec §5.1): ekstra dokunma yok; "Kamerayı aç" kartın ilk düğmesi kalır.
+  const trust =
+    aiProviderName === undefined ? (
+      <p className="text-xs text-muted-foreground">{t("guide.privacy")}</p>
+    ) : (
+      <section aria-labelledby="camera-trust-title" className="space-y-2 rounded-lg bg-muted/50 p-3 text-sm">
+        <h3 id="camera-trust-title" className="font-medium">
+          {t("trust.title")}
+        </h3>
+        <ul className="space-y-2 text-muted-foreground">
+          <li className="flex items-start gap-2">
+            <Smartphone className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden="true" />
+            <span>{t("trust.device")}</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Send className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden="true" />
+            <span>{t("trust.sent", { provider: aiProviderName })}</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Scale className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden="true" />
+            <span>{t("trust.limits")}</span>
+          </li>
+        </ul>
+      </section>
+    );
+
   if (stage === "guide" || stage === "denied" || stage === "model_error") {
     return (
       <Card>
@@ -268,12 +359,19 @@ export function SelfieCamera({ onCapture }: Props) {
         </CardHeader>
         <CardContent className="space-y-4">
           {stage === "guide" ? (
-            <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-              {(["light", "neutral", "frame", "alone"] as const).map((k) => (
-                <li key={k}>{t(`guide.tips.${k}`)}</li>
-              ))}
+            <ul className="grid grid-cols-2 gap-2 text-sm">
+              {(["light", "neutral", "frame", "alone"] as const).map((k) => {
+                const Icon = TIP_ICONS[k];
+                return (
+                  <li key={k} className="flex items-start gap-2 rounded-lg border p-2 text-muted-foreground">
+                    <Icon className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden="true" />
+                    <span>{t(`guide.tips.${k}`)}</span>
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
+          {stage === "guide" ? trust : null}
           {issue ? (
             <p role="status" className="rounded-md border px-3 py-2 text-sm">
               {issue}
@@ -294,7 +392,12 @@ export function SelfieCamera({ onCapture }: Props) {
               </Button>
             ) : null}
           </div>
-          <p className="text-xs text-muted-foreground">{t("guide.privacy")}</p>
+          {stage !== "guide" ? trust : null}
+          {aiProviderName !== undefined ? (
+            <Link href="/yontem?from=guide" className="inline-flex min-h-11 items-center text-sm underline underline-offset-4">
+              {t("trust.methodLink")}
+            </Link>
+          ) : null}
           {fileInput}
         </CardContent>
       </Card>
@@ -322,12 +425,21 @@ export function SelfieCamera({ onCapture }: Props) {
       <p role="status" aria-live="polite" className={cn("min-h-6 text-center text-sm", issue ? "" : "text-muted-foreground")}>
         {issue ?? warning ?? (stage === "countdown" ? t("live.holdStill") : t("live.ready"))}
       </p>
+      {manualOffered && (stage === "live" || stage === "countdown") ? (
+        <div className="space-y-1 text-center">
+          <Button size="lg" className="w-full max-w-sm" onClick={() => void captureNow()}>
+            <Camera aria-hidden="true" /> {t("live.manual")}
+          </Button>
+          <p className="mx-auto max-w-sm text-xs text-muted-foreground">{t("live.manualHint")}</p>
+        </div>
+      ) : null}
       <div className="flex justify-center gap-2">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => {
             stopCamera();
+            resetLiveState();
             setStage("guide");
           }}
         >

@@ -16,6 +16,10 @@ export type PotentialInput = {
   /** Rapor varsa: kazancı plana bağlanmayan alan 0 sayılır (linkedActions). */
   linkedActions?: Partial<Record<keyof ScoreOutput["achievableGain"], string[]>>;
   calibrate: (raw: number) => number;
+  /** hybrid.v1: satırın ağırlıkları (WEIGHTS_H1 veya saç hariç seti). Verilmezse SUB_WEIGHTS. */
+  weights?: Record<SubKey, number>;
+  /** hybrid.v1: skin/hair/grooming tavanları (POTENTIAL_H1.caps). Verilmezse POTENTIAL.caps. Çene hattı jawlineCap() ile kalır. */
+  caps?: Partial<Record<"skin" | "hair" | "grooming", number>>;
 };
 
 export function jawlineCap(bodyFatContextAllowed: boolean, beardOption: boolean): number {
@@ -26,12 +30,13 @@ export function effectiveGain(key: SubKey, input: PotentialInput): number {
   if (key === "harmony" || key === "eyes") return 0;
   const g = input.gains[key];
   if (input.linkedActions && (input.linkedActions[key]?.length ?? 0) === 0) return 0;
-  const cap = key === "jawline" ? jawlineCap(input.bodyFatContextAllowed, input.beardOption) : POTENTIAL.caps[key];
+  const cap = key === "jawline" ? jawlineCap(input.bodyFatContextAllowed, input.beardOption) : (input.caps?.[key] ?? POTENTIAL.caps[key]);
   return Math.min(Math.max(g.value, 0), cap);
 }
 
 export function computePotentialRaw(input: PotentialInput): number {
-  return SUB_KEYS.reduce((sum, k) => sum + SUB_WEIGHTS[k] * Math.min(10, input.rawSubscores[k] + effectiveGain(k, input)), 0);
+  const w = input.weights ?? SUB_WEIGHTS;
+  return SUB_KEYS.reduce((sum, k) => sum + w[k] * Math.min(10, input.rawSubscores[k] + effectiveGain(k, input)), 0);
 }
 
 export function computePotential(input: PotentialInput): number {

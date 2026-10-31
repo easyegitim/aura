@@ -2,6 +2,8 @@
 export const FLAGS = {
   expertNetwork: "FEATURE_EXPERT_NETWORK",
   weekPass: "FEATURE_WEEK_PASS",
+  /** Sağlayıcı adlarını arayüzde göster (UI spec §5.3). Hukuki onay (KVKK m.9, saklama) gelene kadar kapalı; kapalıyken "yapay zekâ". */
+  providerNames: "FEATURE_PROVIDER_NAMES",
 } as const;
 
 export type FlagKey = keyof typeof FLAGS;
