@@ -9,6 +9,7 @@ export const fmtScore = (n: number) => n.toLocaleString("tr-TR", { minimumFracti
 /**
  * Kilitli değer: gerçek değer istemcide yoktur; "●,●" + kilit, dokununca paywall (SPEC 5.3).
  * aria adı alanı söyler ("Genel skorun kilitli; açmak için dokun"); dokunma hedefi ≥ 44 px.
+ * Görsel yalnız süstür: genişlik, renk ve yazı değerden türetilmez.
  */
 export function LockedValue({
   v,
@@ -33,16 +34,29 @@ export function LockedValue({
         onClick={onTap}
         aria-label={aria}
         className={cn(
-          "inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-md tabular-nums text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          big ? "text-5xl font-semibold" : "text-base",
+          "num inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+          big ? "flex-col gap-2 p-3" : "shrink-0 px-2 text-base",
           pop && "motion-safe:animate-in motion-safe:zoom-in-90 motion-safe:duration-300",
           className,
         )}
       >
-        <span aria-hidden="true">●,●</span>
-        <Lock className={big ? "size-6" : "size-3.5"} aria-hidden="true" />
+        {big ? (
+          <>
+            <span className="grid size-14 place-items-center rounded-full bg-brand-soft text-brand ring-1 ring-brand/30" aria-hidden="true">
+              <Lock className="size-6" />
+            </span>
+            <span aria-hidden="true" className="text-2xl tracking-[0.2em] text-muted-foreground">
+              ●,●
+            </span>
+          </>
+        ) : (
+          <>
+            <span aria-hidden="true">●,●</span>
+            <Lock className="size-3.5 shrink-0" aria-hidden="true" />
+          </>
+        )}
       </button>
     );
   }
-  return <span className={cn("tabular-nums", big && "text-5xl font-semibold", className)}>{v.value === null ? "–" : fmtScore(v.value)}</span>;
+  return <span className={cn("num", big && "text-5xl font-bold", className)}>{v.value === null ? "–" : fmtScore(v.value)}</span>;
 }

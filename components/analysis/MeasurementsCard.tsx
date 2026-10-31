@@ -1,6 +1,8 @@
 "use client";
 
+import { Ruler } from "lucide-react";
 import { useTranslations } from "next-intl";
+import type { ReactNode } from "react";
 import { LockedSection } from "@/components/analysis/LockedSection";
 import type { PaywallTrigger } from "@/lib/config/paywall";
 import type { ClientAnalysis } from "@/lib/score/present";
@@ -8,7 +10,16 @@ import type { ClientAnalysis } from "@/lib/score/present";
 const pct = (v: number | null) => (v === null ? "–" : `%${Math.round(v * 100)}`);
 const ROWS = ["canthalTilt", "thirds", "fwhr", "jawRatio"] as const;
 
-/** Oranlar (UI spec §2.7): kilitliyken adlandırılmış satırlar "●,●" ile görünür, değer yoktur. */
+function Tile({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex min-h-20 flex-col justify-between gap-2 rounded-xl bg-muted/60 p-3">
+      <dt className="text-[11px] leading-tight text-muted-foreground">{label}</dt>
+      <dd className="num text-base leading-tight font-semibold">{children}</dd>
+    </div>
+  );
+}
+
+/** Oranlar (UI spec §2.7): kilitliyken adlandırılmış kutular "●,●" ile görünür, değer yoktur. */
 export function MeasurementsCard({ a, onLocked }: { a: ClientAnalysis; onLocked: (t: PaywallTrigger) => void }) {
   const t = useTranslations("analysis");
   const tg = useTranslations("geometry");
@@ -16,37 +27,36 @@ export function MeasurementsCard({ a, onLocked }: { a: ClientAnalysis; onLocked:
   return (
     <LockedSection
       title={t("ratiosTitle")}
+      icon={<Ruler className="size-4" />}
       locked={a.metrics.locked}
       onTap={() => onLocked("measurements")}
       preview={
-        <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
+        <dl className="grid grid-cols-2 gap-2">
           {ROWS.map((k) => (
-            <div key={k} className="contents">
-              <dt className="text-muted-foreground">{tg(k)}</dt>
-              <dd className="tabular-nums text-muted-foreground" aria-hidden="true">
+            <Tile key={k} label={tg(k)}>
+              <span className="text-muted-foreground blur-[1px]" aria-hidden="true">
                 ●,●
-              </dd>
-            </div>
+              </span>
+            </Tile>
           ))}
         </dl>
       }
     >
       {metrics ? (
-        <>
-          <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
-            <dt className="text-muted-foreground">{tg("canthalTilt")}</dt>
-            <dd>{metrics.canthalTiltDeg > 2 ? tg("tilt.positive") : metrics.canthalTiltDeg < -2 ? tg("tilt.negative") : tg("tilt.neutral")}</dd>
-            <dt className="text-muted-foreground">{tg("thirds")}</dt>
-            <dd className="tabular-nums">
+        <dl className="grid grid-cols-2 gap-2">
+          <Tile label={tg("canthalTilt")}>
+            <span className="text-sm">
+              {metrics.canthalTiltDeg > 2 ? tg("tilt.positive") : metrics.canthalTiltDeg < -2 ? tg("tilt.negative") : tg("tilt.neutral")}
+            </span>
+          </Tile>
+          <Tile label={tg("thirds")}>
+            <span className="text-sm whitespace-nowrap">
               {pct(metrics.thirds.upper)} / {pct(metrics.thirds.middle)} / {pct(metrics.thirds.lower)}
-            </dd>
-            <dt className="text-muted-foreground">{tg("fwhr")}</dt>
-            <dd className="tabular-nums">{metrics.fwhr.toFixed(2)}</dd>
-            <dt className="text-muted-foreground">{tg("jawRatio")}</dt>
-            <dd className="tabular-nums">{metrics.jawRatio.toFixed(2)}</dd>
-          </dl>
-          <p className="mt-2 text-xs text-muted-foreground">{a.engine === "hybrid.v1" ? tg("noteV2") : tg("note")}</p>
-        </>
+            </span>
+          </Tile>
+          <Tile label={tg("fwhr")}>{metrics.fwhr.toFixed(2)}</Tile>
+          <Tile label={tg("jawRatio")}>{metrics.jawRatio.toFixed(2)}</Tile>
+        </dl>
       ) : (
         <p className="text-sm text-muted-foreground">–</p>
       )}

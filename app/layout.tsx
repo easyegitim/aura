@@ -22,8 +22,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#0b0b12" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0b12" },
   ],
 };
 
@@ -32,7 +32,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang={locale} suppressHydrationWarning className="h-full">
       <body className="flex min-h-full flex-col">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        {/* Koyu varsayılan (F08 "koyu, cesur"); açık tema başlıktaki düğmeyle seçilir ve localStorage "theme" anahtarında kalır. */}
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <NextIntlClientProvider>
             {children}
             <CookieBanner cookieTextVersion={cookieTextVersion} />

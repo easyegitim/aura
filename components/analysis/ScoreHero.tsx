@@ -1,14 +1,14 @@
 "use client";
 
-import { ArrowUpRight, Lock } from "lucide-react";
+import { ArrowUpRight, Lock, Maximize2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { GeometryOverlay, type OverlayLayerKey, type OverlaySource } from "@/components/analysis/GeometryOverlay";
 import { LockedValue, fmtScore } from "@/components/analysis/LockedValue";
 import { OverlayDialog } from "@/components/analysis/OverlayDialog";
 import { ReferenceScale } from "@/components/analysis/ReferenceScale";
-import { Card, CardContent } from "@/components/ui/card";
+import { ScoreRing } from "@/components/analysis/ScoreRing";
+import { Card } from "@/components/ui/card";
 import { track } from "@/lib/analytics";
 import type { PaywallTrigger } from "@/lib/config/paywall";
 import { CALIBRATION_REFERENCE } from "@/lib/config/scoring";
@@ -75,6 +75,10 @@ export function ScoreHero({
     track("overlay_opened", { source: source ? "photo" : "schematic" });
   }
 
+  const chipClass = cn(
+    "border-brand-gradient inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold",
+    reveal && "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:fill-mode-both motion-safe:duration-300",
+  );
   let chip: ReactNode = null;
   if (a.potential.locked) {
     // DOM'da /potansiyel|kilidi aç|premium/i ile eşleşen ilk düğme budur (e2e).
@@ -83,87 +87,85 @@ export function ScoreHero({
         type="button"
         onClick={() => onLocked("score_potential")}
         aria-label={t("lockedAriaFor", { name: t("hero.potentialLockedName") })}
-        className={cn(
-          "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          reveal && "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:fill-mode-both motion-safe:duration-300",
-        )}
+        className={cn(chipClass, "transition-transform hover:scale-[1.02]")}
         style={chipDelay}
       >
-        <ArrowUpRight className="size-4" aria-hidden="true" />
-        <span aria-hidden="true">{t("hero.potentialLocked")}</span>
+        <ArrowUpRight className="size-4 text-brand" aria-hidden="true" />
+        <span aria-hidden="true" className="num">
+          {t("hero.potentialLocked")}
+        </span>
         <Lock className="size-3.5 text-muted-foreground" aria-hidden="true" />
       </button>
     );
   } else if (potential !== null) {
     chip = (
-      <p
-        className={cn(
-          "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1 text-sm",
-          reveal && "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:fill-mode-both motion-safe:duration-300",
-        )}
-        style={chipDelay}
-      >
-        <ArrowUpRight className="size-4" aria-hidden="true" />
-        {delta !== null && delta < 0.1
-          ? t("hero.potentialAtTop")
-          : t("hero.potentialOpen", { potential: fmtScore(potential), delta: fmtScore(delta ?? 0) })}
+      <p className={chipClass} style={chipDelay}>
+        <ArrowUpRight className="size-4 text-brand" aria-hidden="true" />
+        <span className="num">
+          {delta !== null && delta < 0.1
+            ? t("hero.potentialAtTop")
+            : t("hero.potentialOpen", { potential: fmtScore(potential), delta: fmtScore(delta ?? 0) })}
+        </span>
       </p>
     );
   }
 
   return (
-    <section className="space-y-3" aria-labelledby="hero-title">
-      <Card>
-        <CardContent className="space-y-3">
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={openOverlay}
-              aria-label={t("overlay.open")}
-              className="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <GeometryOverlay source={source} variant="thumb" animate={reveal} notMeasured={notMeasured} />
-            </button>
-            <div className="min-w-0 flex-1 space-y-2">
-              <h2 id="hero-title" className="font-semibold leading-none">
-                {t("overallTitle")}
-              </h2>
-              {showLegacyNote ? <p className="text-xs text-muted-foreground">{t("legacyNote")}</p> : null}
-              {a.overall.locked ? (
-                <LockedValue
-                  v={a.overall}
-                  big
-                  pop={reveal}
-                  onTap={() => onLocked("score_main")}
-                  aria={t("lockedAriaFor", { name: t("overallTitle") })}
-                />
-              ) : (
-                <p className="flex items-baseline gap-1">
-                  <span className="text-6xl font-semibold tabular-nums" aria-hidden="true">
-                    {shown === null ? "–" : fmtScore(shown)}
-                  </span>
-                  <span className="sr-only">{overall === null ? "–" : fmtScore(overall)}</span>
-                  <span className="text-lg text-muted-foreground">{t("hero.outOf")}</span>
-                </p>
-              )}
+    <section aria-labelledby="hero-title">
+      <Card className="bg-hero-glow gap-0 overflow-hidden pt-6 pb-0">
+        <div className="flex flex-col items-center gap-4 px-5">
+          <h2 id="hero-title" className="eyebrow">
+            {t("overallTitle")}
+          </h2>
+          {showLegacyNote ? <p className="-mt-2 text-center text-xs text-muted-foreground">{t("legacyNote")}</p> : null}
+          <ScoreRing value={overall} animate={reveal}>
+            {a.overall.locked ? (
+              <LockedValue
+                v={a.overall}
+                big
+                pop={reveal}
+                onTap={() => onLocked("score_main")}
+                aria={t("lockedAriaFor", { name: t("overallTitle") })}
+              />
+            ) : (
+              <p className="flex flex-col items-center">
+                <span className="num text-display text-brand-gradient pr-[0.04em]" aria-hidden="true">
+                  {shown === null ? "–" : fmtScore(shown)}
+                </span>
+                <span className="sr-only">{overall === null ? "–" : fmtScore(overall)}</span>
+                <span className="num mt-1 text-sm font-medium text-muted-foreground">{t("hero.outOf")}</span>
+              </p>
+            )}
+          </ScoreRing>
+          {chip ? (
+            <div className="flex flex-col items-center gap-1.5">
               {chip}
-              {chip ? <p className="text-xs text-muted-foreground">{t("hero.potentialCaption")}</p> : null}
+              <p className="text-xs text-muted-foreground">{t("hero.potentialCaption")}</p>
             </div>
+          ) : null}
+          <ReferenceScale reference={CALIBRATION_REFERENCE} value={overall} className="w-full" />
+        </div>
+        <div className="mt-5 flex items-center gap-4 border-t bg-muted/40 px-5 py-4">
+          <button
+            type="button"
+            onClick={openOverlay}
+            aria-label={t("overlay.open")}
+            className="relative shrink-0 rounded-xl ring-1 ring-border transition-transform hover:scale-[1.02] [&>div>div]:h-[90px] [&>div>div]:w-[72px] [&>div>div]:rounded-xl"
+          >
+            <GeometryOverlay source={source} variant="thumb" animate={reveal} notMeasured={notMeasured} />
+            <span className="absolute right-1 bottom-1 grid size-5 place-items-center rounded-md bg-background/80 backdrop-blur" aria-hidden="true">
+              <Maximize2 className="size-3" />
+            </span>
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="eyebrow">{tg("faceShape")}</p>
+            <p className="text-xl font-semibold tracking-tight">{a.faceShape ? tg(`shapes.${a.faceShape}`) : "–"}</p>
+            {a.faceShapeDetail?.secondary ? (
+              <p className="text-sm text-muted-foreground">{tg("between", { other: tg(`shapes.${a.faceShapeDetail.secondary}`) })}</p>
+            ) : null}
           </div>
-          <p className="text-sm">
-            {tg("faceShape")}: <strong>{a.faceShape ? tg(`shapes.${a.faceShape}`) : "–"}</strong>
-            {a.faceShapeDetail?.secondary ? ` (${tg("between", { other: tg(`shapes.${a.faceShapeDetail.secondary}`) })})` : null}
-          </p>
-        </CardContent>
+        </div>
       </Card>
-      <ReferenceScale reference={CALIBRATION_REFERENCE} value={overall} />
-      <p className="text-xs text-muted-foreground">{t("reference.note", { ref: fmtScore(CALIBRATION_REFERENCE) })}</p>
-      <p className="text-xs">
-        <Link href="/yontem?from=result" className="underline underline-offset-4">
-          {t("reference.methodLink")}
-        </Link>
-      </p>
-      <p className="text-xs text-muted-foreground">{a.engine === "hybrid.v1" ? t("disclaimerHybrid") : t("disclaimer")}</p>
       <OverlayDialog open={overlayOpen} onOpenChange={setOverlayOpen} source={source} notMeasured={notMeasured} />
     </section>
   );

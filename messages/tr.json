@@ -8,7 +8,8 @@
     "photoNotStored": "Fotoğrafın sunucuda saklanmaz.",
     "scoreDisclaimer": "Bu skor yapay zekânın fotoğraf üzerinden tahminidir; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
     "notMedicalAdvice": "Tıbbi tavsiye değildir.",
-    "aiGenerated": "Yapay zekâ ile oluşturuldu."
+    "aiGenerated": "Yapay zekâ ile oluşturuldu.",
+    "toggleTheme": "Açık ya da koyu temaya geç"
   },
   "nav": {
     "analysis": "Analiz",
@@ -690,7 +691,7 @@
     "narrative": "Genel skorun {overall}. 8–12 haftalık planla ulaşabileceğin potansiyel {potential}.",
     "ratiosTitle": "Oranların",
     "planTitle": "Sana özel plan",
-    "planBody": "Sana uygun 3 saç kesimi, sakal ve cilt rutini; 60 stili kendi yüzünde dene.",
+    "planBody": "3 saç kesimi, sakal ve cilt rutini; 60 stili kendi yüzünde dene.",
     "seePlan": "Planı gör",
     "tryStyles": "Stilleri dene",
     "unlock": "Kilidi aç",
@@ -707,18 +708,18 @@
     "lockedAriaFor": "{name} kilitli; açmak için dokun",
     "legacyNote": "Bu analiz önceki yöntemle hesaplandı; yeni analizler güncel yöntemi kullanır.",
     "processingRefresh": "Sonuç hazır olunca bu sayfa kendiliğinden yenilenir.",
-    "disclaimerHybrid": "Bu skor telefonundaki ölçümlerden ve fotoğraftaki görünür bakım ayrıntılarından, herkes için aynı kurallarla hesaplanır; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
+    "disclaimerHybrid": "Telefonundaki ölçümler ve fotoğraftaki bakım ayrıntılarından, herkes için aynı kurallarla hesaplanan bir tahmindir; ışık ve açıyla değişebilir, kişisel değerini ölçmez.",
     "hero": {
       "potentialOpen": "Potansiyel {potential} · +{delta}",
       "potentialLocked": "Potansiyel +●,●",
       "potentialLockedName": "Potansiyel skorun",
-      "potentialAtTop": "Potansiyelin skoruna çok yakın",
-      "potentialCaption": "8–12 haftalık planla ulaşılabilecek tahmini fark",
+      "potentialAtTop": "Potansiyeline çok yakınsın",
+      "potentialCaption": "8–12 haftalık planla tahmini artış",
       "outOf": "/10"
     },
     "reference": {
       "tick": "Referans {ref}",
-      "note": "{ref}, ölçeğin herkes için aynı olan referans noktasıdır. Sıralama ya da yüzdelik değildir; skorun kimseyle kıyaslanmaz, kendi değişimini izlemen içindir.",
+      "note": "{ref}, herkes için aynı referans noktasıdır. Sıralama ya da yüzdelik değildir; skorun kimseyle kıyaslanmaz, yalnız kendi değişimini izlemen içindir.",
       "aria": "1 ile 10 arası ölçek; herkes için aynı referans {ref}; senin skorun {value}",
       "ariaLocked": "1 ile 10 arası ölçek; herkes için aynı referans {ref}; skorun kilitli",
       "methodLink": "Skor nasıl hesaplanır?"
@@ -727,10 +728,10 @@
     "subWhat": {
       "harmony": "Sağ–sol denge ve dikey oranlar; telefonunda ölçülür.",
       "eyes": "Göz aralığı, göz ekseni ve iki göz arasındaki denge; telefonunda ölçülür.",
-      "jawline": "Çene ve elmacık genişliklerinin oranı ile alt yüz dengesi; telefonunda ölçülür. Sakal hattı bakım alanında değerlendirilir.",
-      "skin": "Fotoğrafta görünen yüzey: aktif sivilce, doku ve parlama. Tanı değildir; ten rengi, izler ve skarlar puanlanmaz.",
-      "hair": "Saçın düzeni ve kesimin formu; saç dokusu, yoğunluğu, rengi ve dökülmesi puanlanmaz.",
-      "grooming": "Kaşlarda belirgin dağınıklık, dudak kuruluğu ve varsa sakal hattının düzeni; sakal olup olmaması puanı değiştirmez."
+      "jawline": "Çene ve elmacık genişliklerinin oranı ile alt yüz dengesi; telefonunda ölçülür. Sakal hattı bakımda değerlendirilir.",
+      "skin": "Fotoğrafta görünen aktif sivilce, doku ve parlama. Tanı değildir; ten rengi, izler ve skarlar puanlanmaz.",
+      "hair": "Saçın düzeni ve kesimin formu; dokusu, yoğunluğu, rengi ve dökülmesi puanlanmaz.",
+      "grooming": "Kaş düzeni, dudak kuruluğu ve varsa sakal hattı; sakal olup olmaması puanı değiştirmez."
     },
     "notAssessed": {
       "value": "Değerlendirilmedi",
@@ -738,11 +739,12 @@
       "not_visible": "Bu alan bu çekimde net görünmediği için değerlendirilmedi; genel skorda bu alan için herkese uygulanan sabit referans değeri kullanıldı."
     },
     "improveFirst": {
-      "title": "Önce odaklanacağın adımlar",
+      "title": "İlk adımların",
       "gain": "Genel skora en fazla +{gain}",
       "toPlan": "Planda nasıl yapılacağını gör",
-      "lockedBody": "En fazla 3 adımın sırası alt skorlarına göre hesaplanır. Premium ile sıralı listen ve planın açılır.",
-      "empty": "Görünür bakım alanlarında öne çıkan bir adım yok; planındaki rutini sürdürmen yeterli."
+      "lockedBody": "Alt skorlarına göre sıralanmış 3 adım premiumda.",
+      "empty": "Görünür bakım alanlarında öne çıkan bir adım yok; planındaki rutini sürdürmen yeterli.",
+      "gainShort": "genel skora"
     },
     "levers": {
       "lv_blemish_care": "Nazik temizleme ve haftalık arındırma",
@@ -881,7 +883,13 @@
         }
       },
       "skinConcernNote": "{zone}belirgin alanlar için bir dermatoloğa göstermek faydalı olabilir."
-    }
+    },
+    "details": "Ayrıntılar",
+    "premiumTag": "Premium",
+    "method": {
+      "full": "Yöntemin tamamı"
+    },
+    "scoreLocked": "Skor kilitli"
   },
   "paywall": {
     "title": "Tam sonucunu aç",
